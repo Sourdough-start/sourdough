@@ -18,7 +18,7 @@ _No items._
 
 Requires foundation work or longer-term planning.
 
-_No items._
+- **[Stripe Connect Integration](plans/stripe-connect-roadmap.md)** - Stripe Connect with 1% application fee for platform monetization. Includes payment service layer, webhook handling, Connect onboarding for forks, settings UI, payment history, usage tracking integration, dual licensing (MIT core + commercial Stripe module), and comprehensive developer recipes/patterns. 10 phases (Phase 0 is manual platform setup).
 
 ## Pre-Release Checklist
 
@@ -145,6 +145,12 @@ Reference for paid third-party integrations used by Sourdough. All integrations 
 | Provider | Pricing Model | Notes |
 |----------|--------------|-------|
 | Novu (optional) | Free tier + usage-based | Optional notification infrastructure (Cloud or self-hosted). Free for 30k events/month. Local system remains default fallback. See [ADR-025](adr/025-novu-notification-integration.md). |
+
+### Payment Processing (per transaction)
+
+| Provider | Pricing Model | Notes |
+|----------|--------------|-------|
+| Stripe | 2.9% + 30c per transaction | Plus 1% Sourdough platform fee via Connect. Optional — only when Stripe is configured. See [Stripe Connect Roadmap](plans/stripe-connect-roadmap.md). |
 
 ### Free Integrations (no cost)
 
