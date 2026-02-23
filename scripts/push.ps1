@@ -86,7 +86,7 @@ Write-Host "========================================" -ForegroundColor Magenta
 
 # Run backend tests
 Write-Host "`nRunning backend tests in Docker..." -ForegroundColor Yellow
-docker compose exec -T php php artisan test 2>&1
+docker compose exec -T app bash -c "cd /var/www/html/backend && php artisan test" 2>&1
 $BackendTestExit = $LASTEXITCODE
 
 if ($BackendTestExit -ne 0) {
@@ -102,7 +102,7 @@ Write-Host "Backend tests passed!" -ForegroundColor Green
 
 # Run frontend tests
 Write-Host "`nRunning frontend tests in Docker..." -ForegroundColor Yellow
-docker compose exec -T node npm test 2>&1
+docker compose exec -T app bash -c "cd /var/www/html/frontend && npm test" 2>&1
 $FrontendTestExit = $LASTEXITCODE
 
 if ($FrontendTestExit -ne 0) {
