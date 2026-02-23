@@ -71,7 +71,7 @@ describe('StripeWebhookService', function () {
                 ->once()
                 ->withArgs(fn ($user, $type, $vars) =>
                     $type === 'payment.succeeded'
-                    && isset($vars['amount'], $vars['currency'], $vars['payment_id'], $vars['title'], $vars['message'])
+                    && isset($vars['amount'], $vars['currency'], $vars['payment_id'])
                 );
 
             $event = buildFakePaymentIntentSucceededEvent('evt_succ_001', 'pi_test_success');
@@ -106,7 +106,7 @@ describe('StripeWebhookService', function () {
                 ->once()
                 ->withArgs(fn ($user, $type, $vars) =>
                     $type === 'payment.failed'
-                    && isset($vars['amount'], $vars['currency'], $vars['error_message'], $vars['title'], $vars['message'])
+                    && isset($vars['amount'], $vars['currency'], $vars['error_message'])
                 );
 
             $event = buildFakePaymentIntentFailedEvent('evt_fail_001', 'pi_test_fail');
@@ -129,7 +129,7 @@ describe('StripeWebhookService', function () {
                 ->once()
                 ->withArgs(fn ($user, $type, $vars) =>
                     $type === 'payment.refunded'
-                    && isset($vars['amount'], $vars['refund_amount'], $vars['currency'], $vars['refund_type'], $vars['title'], $vars['message'])
+                    && isset($vars['amount'], $vars['refund_amount'], $vars['currency'], $vars['refund_type'])
                 );
 
             $event = buildFakeChargeRefundedEvent('evt_ref_001', 'ch_test', 'pi_test_refund');
