@@ -8,7 +8,13 @@ class MyNotificationSettings
 {
     public function __invoke($root, array $args, $context): array
     {
-        $user = Auth::guard('api-key')->user();
+        $user = null;
+        if (is_object($context) && property_exists($context, 'request')) {
+            $user = $context->request->user();
+        }
+        if (!$user) {
+            $user = Auth::guard('api-key')->user();
+        }
         $userSettings = $user->settings()
             ->where('group', 'notifications')
             ->pluck('value', 'key')

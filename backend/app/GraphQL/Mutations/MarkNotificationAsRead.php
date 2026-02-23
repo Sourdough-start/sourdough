@@ -9,7 +9,13 @@ class MarkNotificationAsRead
 {
     public function __invoke($root, array $args, $context)
     {
-        $user = Auth::guard('api-key')->user();
+        $user = null;
+        if (is_object($context) && property_exists($context, 'request')) {
+            $user = $context->request->user();
+        }
+        if (!$user) {
+            $user = Auth::guard('api-key')->user();
+        }
 
         $notification = $user->notifications()
             ->where('id', $args['id'])
