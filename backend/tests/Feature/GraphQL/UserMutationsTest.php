@@ -1,9 +1,10 @@
 <?php
 
 use App\Models\Notification;
+use App\Services\SettingService;
 
 beforeEach(function () {
-    config(['graphql.enabled' => true]);
+    app(SettingService::class)->set('graphql', 'enabled', true);
 });
 
 describe('updateProfile mutation', function () {

@@ -1,7 +1,9 @@
 <?php
 
+use App\Services\SettingService;
+
 beforeEach(function () {
-    config(['graphql.enabled' => true]);
+    app(SettingService::class)->set('graphql', 'enabled', true);
 });
 
 describe('error codes', function () {

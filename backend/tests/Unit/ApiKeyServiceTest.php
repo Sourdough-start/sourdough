@@ -191,8 +191,8 @@ describe('ApiKeyService', function () {
             $original = $service->create($user, 'Old Key');
             $service->rotate($original['token']);
 
-            // Move the original key's creation to beyond grace period
-            $original['token']->update(['created_at' => now()->subDays(10)]);
+            // Move the original key's creation to beyond grace period (created_at not in $fillable)
+            $original['token']->forceFill(['created_at' => now()->subDays(10)])->save();
 
             $count = $service->pruneExpired();
 

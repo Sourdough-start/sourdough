@@ -8,10 +8,10 @@ use App\Services\Stripe\StripeWebhookService;
 describe('StripeWebhookService', function () {
 
     beforeEach(function () {
-        $this->service = new StripeWebhookService();
         $this->orchestratorMock = Mockery::mock(NotificationOrchestrator::class);
         $this->orchestratorMock->shouldReceive('sendByType')->byDefault();
         app()->instance(NotificationOrchestrator::class, $this->orchestratorMock);
+        $this->service = new StripeWebhookService($this->orchestratorMock);
     });
 
     describe('constructEvent', function () {

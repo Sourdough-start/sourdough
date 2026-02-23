@@ -41,9 +41,9 @@ describe('GraphQLSettingController', function () {
             $data = $response->getData(true);
 
             expect($response->getStatusCode())->toBe(200);
-            expect($data['data']['settings']['enabled'])->toBeTrue();
-            expect($data['data']['settings']['max_keys_per_user'])->toBe(5);
-            expect($data['data']['settings']['default_rate_limit'])->toBe(60);
+            expect($data['settings']['enabled'])->toBeTrue();
+            expect($data['settings']['max_keys_per_user'])->toBe(5);
+            expect($data['settings']['default_rate_limit'])->toBe(60);
         });
     });
 
@@ -109,10 +109,10 @@ describe('GraphQLSettingController', function () {
             $data = $response->getData(true);
 
             expect($response->getStatusCode())->toBe(200);
-            expect($data['data'])->toHaveKeys(['total', 'active', 'expiring_soon', 'never_used']);
-            expect($data['data']['total'])->toBeGreaterThanOrEqual(2);
-            expect($data['data']['active'])->toBeGreaterThanOrEqual(2);
-            expect($data['data']['never_used'])->toBeGreaterThanOrEqual(2);
+            expect($data)->toHaveKeys(['total', 'active', 'expiring_soon', 'never_used']);
+            expect($data['total'])->toBeGreaterThanOrEqual(2);
+            expect($data['active'])->toBeGreaterThanOrEqual(2);
+            expect($data['never_used'])->toBeGreaterThanOrEqual(2);
         });
     });
 
@@ -170,12 +170,12 @@ describe('GraphQLSettingController', function () {
             $data = $response->getData(true);
 
             expect($response->getStatusCode())->toBe(200);
-            expect($data['data'])->toHaveKeys(['total_7d', 'total_30d', 'daily', 'top_users', 'top_queries']);
-            expect($data['data']['total_7d'])->toBe(0);
-            expect($data['data']['total_30d'])->toBe(0);
-            expect($data['data']['daily'])->toBeArray();
-            expect($data['data']['top_users'])->toBeArray();
-            expect($data['data']['top_queries'])->toBeArray();
+            expect($data)->toHaveKeys(['total_7d', 'total_30d', 'daily', 'top_users', 'top_queries']);
+            expect($data['total_7d'])->toBe(0);
+            expect($data['total_30d'])->toBe(0);
+            expect($data['daily'])->toBeArray();
+            expect($data['top_users'])->toBeArray();
+            expect($data['top_queries'])->toBeArray();
         });
     });
 });

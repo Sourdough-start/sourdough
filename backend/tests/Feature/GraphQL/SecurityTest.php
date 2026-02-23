@@ -1,12 +1,14 @@
 <?php
 
+use App\Services\SettingService;
+
 beforeEach(function () {
-    config(['graphql.enabled' => true]);
+    app(SettingService::class)->set('graphql', 'enabled', true);
 });
 
 describe('introspection', function () {
     it('is disabled by default', function () {
-        config(['graphql.introspection_enabled' => false]);
+        config(['lighthouse.security.disable_introspection' => true]);
 
         $user = createUser();
         $key = createApiKey($user);
@@ -68,7 +70,7 @@ describe('query depth limiting', function () {
 
 describe('max result size', function () {
     it('clamps first parameter to max_result_size', function () {
-        config(['graphql.max_result_size' => 5]);
+        config(['lighthouse.pagination.max_count' => 5]);
 
         $user = createUser();
         $key = createApiKey($user);

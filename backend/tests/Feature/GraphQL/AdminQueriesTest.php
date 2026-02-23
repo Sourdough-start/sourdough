@@ -1,9 +1,10 @@
 <?php
 
 use App\Models\AuditLog;
+use App\Services\SettingService;
 
 beforeEach(function () {
-    config(['graphql.enabled' => true]);
+    app(SettingService::class)->set('graphql', 'enabled', true);
 });
 
 describe('auditLogs query', function () {
