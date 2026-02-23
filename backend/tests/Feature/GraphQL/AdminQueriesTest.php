@@ -12,6 +12,8 @@ describe('auditLogs query', function () {
         $admin = createAdminUser();
         $key = createApiKey($admin);
 
+        // Clear system-generated audit logs from setup
+        AuditLog::query()->delete();
         AuditLog::factory()->count(3)->create();
 
         $response = graphQL(
@@ -41,6 +43,8 @@ describe('auditLogs query', function () {
         $admin = createAdminUser();
         $key = createApiKey($admin);
 
+        // Clear system-generated audit logs from setup
+        AuditLog::query()->delete();
         AuditLog::factory()->create(['action' => 'user.login']);
         AuditLog::factory()->count(2)->create(['action' => 'settings.updated']);
 
@@ -57,6 +61,8 @@ describe('auditLogs query', function () {
         $admin = createAdminUser();
         $key = createApiKey($admin);
 
+        // Clear system-generated audit logs from setup
+        AuditLog::query()->delete();
         AuditLog::factory()->count(5)->create();
 
         $response = graphQL(

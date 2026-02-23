@@ -41,35 +41,27 @@ describe('introspection', function () {
     });
 });
 
-describe('query depth limiting', function () {
-    it('rejects queries exceeding max depth', function () {
-        config([
-            'graphql.max_query_depth' => 2,
-            'lighthouse.security.max_query_depth' => 2,
-        ]);
-
+describe('authorization', function () {
+    it('prevents non-admin access to protected queries', function () {
         $user = createUser();
         $key = createApiKey($user);
 
-        // This query is 5 levels deep: me > ??? (just uses what's available)
-        // Build a query that nests 5 levels
-        $deepQuery = '{ me { id } }'; // shallow, but we test the mechanism
-
-        // A deeply nested query that would exceed depth=2
+        // auditLogs requires admin permission
         $response = graphQL(
             '{ auditLogs(first: 1) { data { user { id } } } }',
             [],
             $key['plaintext']
         )->assertStatus(200);
 
-        // Admin-only, so will get FORBIDDEN — just verify security layer is working
+        // Non-admin should get FORBIDDEN error
         expect($response->json('errors'))->not->toBeNull();
+        expect($response->json('errors.0.message'))->toContain('This action is unauthorized');
     });
 });
 
 describe('max result size', function () {
     it('clamps first parameter to max_result_size', function () {
-        config(['lighthouse.pagination.max_count' => 5]);
+        config(['graphql.max_result_size' => 5]);
 
         $user = createUser();
         $key = createApiKey($user);

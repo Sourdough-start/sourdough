@@ -113,7 +113,7 @@ return [
         \Nuwave\Lighthouse\Schema\Directives\SanitizeDirective::class,
         \Nuwave\Lighthouse\Validation\ValidateDirective::class,
         \Nuwave\Lighthouse\Schema\Directives\TransformArgsDirective::class,
-        \Nuwave\Lighthouse\Schema\Directives\SpreadArgsDirective::class,
+        \Nuwave\Lighthouse\Schema\Directives\SpreadDirective::class,
         \Nuwave\Lighthouse\Schema\Directives\RenameArgsDirective::class,
         \Nuwave\Lighthouse\Schema\Directives\DropArgsDirective::class,
     ],

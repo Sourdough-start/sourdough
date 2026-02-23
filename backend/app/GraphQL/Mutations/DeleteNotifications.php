@@ -9,13 +9,7 @@ class DeleteNotifications
 {
     public function __invoke($root, array $args, $context): array
     {
-        $user = null;
-        if (is_object($context) && property_exists($context, 'request')) {
-            $user = $context->request->user();
-        }
-        if (!$user) {
-            $user = Auth::guard('api-key')->user();
-        }
+        $user = Auth::guard('api-key')->user();
         $ids = $args['ids'];
 
         if (count($ids) > 100) {

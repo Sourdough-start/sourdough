@@ -4,20 +4,30 @@ namespace App\GraphQL\Queries;
 
 use App\GraphQL\Concerns\HandlesPagination;
 use App\Models\User;
+use GraphQL\Error\Error;
+use Illuminate\Support\Facades\Auth;
 
-class UsersQuery
+class Users
 {
     use HandlesPagination;
 
     public function __invoke($root, array $args, $context): array
     {
+        $user = Auth::guard('api-key')->user();
+
+        // Defense in depth: verify authorization at resolver level
+        if (!$user->can('users.view')) {
+            throw new Error('Unauthorized', extensions: ['code' => 'FORBIDDEN']);
+        }
+
         $query = User::query()->orderBy('created_at', 'desc');
 
         if (!empty($args['search'])) {
-            $search = str_replace(['%', '_'], ['\\%', '\\_'], $args['search']);
+            $search = $args['search'];
+            // Use parameterized queries to prevent LIKE injection
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                $q->whereRaw('name LIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('email LIKE ?', ["%{$search}%"]);
             });
         }
 

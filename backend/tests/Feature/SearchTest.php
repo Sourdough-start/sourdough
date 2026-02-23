@@ -91,6 +91,7 @@ describe('Search (Scout / Meilisearch)', function () {
         it('GET /search returns paginated results for authenticated admin', function () {
             User::factory()->create(['name' => 'John Doe', 'email' => 'john@example.com']);
             $admin = createAdminUser();
+            waitForSearch();
 
             $response = $this->actingAs($admin, 'sanctum')
                 ->getJson('/api/search?q=John');
@@ -106,6 +107,7 @@ describe('Search (Scout / Meilisearch)', function () {
         it('GET /search/suggestions returns limited results', function () {
             User::factory()->create(['name' => 'Jane Doe', 'email' => 'jane@example.com']);
             $admin = createAdminUser();
+            waitForSearch();
 
             $response = $this->actingAs($admin, 'sanctum')
                 ->getJson('/api/search/suggestions?q=Jane&limit=3');
@@ -118,6 +120,7 @@ describe('Search (Scout / Meilisearch)', function () {
         it('GET /search with type=users filters to users only', function () {
             User::factory()->create(['name' => 'Alice User', 'email' => 'alice@example.com']);
             $admin = createAdminUser();
+            waitForSearch();
 
             $response = $this->actingAs($admin, 'sanctum')
                 ->getJson('/api/search?q=Alice&type=users');

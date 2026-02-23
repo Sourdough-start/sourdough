@@ -5,7 +5,7 @@ scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date
 scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
 
 "Arbitrary JSON data."
-scalar JSON @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\JSON")
+scalar JSON @scalar(class: "App\\GraphQL\\Scalars\\JSON")
 
 type Query {
     "Get the currently authenticated user's profile."
@@ -35,7 +35,7 @@ type Query {
         page: Int = 1
         filters: AuditLogFilter
         orderBy: [AuditLogOrderBy!]
-    ): AuditLogPaginator! @guard(with: ["api-key"]) @can(ability: "audit.view")
+    ): AuditLogPaginator! @guard(with: ["api-key"]) @can(ability: "audit.view", model: "App\\Models\\User")
 
     "List access logs. Requires audit.view permission."
     accessLogs(
@@ -43,7 +43,7 @@ type Query {
         page: Int = 1
         filters: AccessLogFilter
         orderBy: [AccessLogOrderBy!]
-    ): AccessLogPaginator! @guard(with: ["api-key"]) @can(ability: "audit.view")
+    ): AccessLogPaginator! @guard(with: ["api-key"]) @can(ability: "audit.view", model: "App\\Models\\User")
 
     "List notification deliveries. Requires notification_deliveries.view permission."
     notificationDeliveries(
@@ -51,7 +51,7 @@ type Query {
         page: Int = 1
         filters: NotificationDeliveryFilter
         orderBy: [NotificationDeliveryOrderBy!]
-    ): NotificationDeliveryPaginator! @guard(with: ["api-key"]) @can(ability: "notification_deliveries.view")
+    ): NotificationDeliveryPaginator! @guard(with: ["api-key"]) @can(ability: "notification_deliveries.view", model: "App\\Models\\User")
 
     "List payments. Requires payments.view permission."
     payments(
@@ -59,7 +59,7 @@ type Query {
         page: Int = 1
         filters: PaymentFilter
         orderBy: [PaymentOrderBy!]
-    ): PaymentPaginator! @guard(with: ["api-key"]) @can(ability: "payments.view")
+    ): PaymentPaginator! @guard(with: ["api-key"]) @can(ability: "payments.view", model: "App\\Models\\User")
 
     "Get integration usage statistics. Requires usage.view permission."
     usageStats(
@@ -68,24 +68,24 @@ type Query {
         integration: String
         first: Int = 25
         page: Int = 1
-    ): UsageStatPaginator! @guard(with: ["api-key"]) @can(ability: "usage.view")
+    ): UsageStatPaginator! @guard(with: ["api-key"]) @can(ability: "usage.view", model: "App\\Models\\User")
 
     "Get usage breakdown grouped by integration. Requires usage.view permission."
     usageBreakdown(
         dateFrom: Date
         dateTo: Date
         integration: String
-    ): [UsageBreakdownEntry!]! @guard(with: ["api-key"]) @can(ability: "usage.view")
+    ): [UsageBreakdownEntry!]! @guard(with: ["api-key"]) @can(ability: "usage.view", model: "App\\Models\\User")
 
     "List user groups. Requires groups.view permission."
-    userGroups: [UserGroup!]! @guard(with: ["api-key"]) @can(ability: "groups.view")
+    userGroups: [UserGroup!]! @guard(with: ["api-key"]) @can(ability: "groups.view", model: "App\\Models\\User")
 
     "List all users (admin). Requires users.view permission."
     users(
         first: Int = 25
         page: Int = 1
         search: String
-    ): UserAdminPaginator! @guard(with: ["api-key"]) @can(ability: "users.view")
+    ): UserAdminPaginator! @guard(with: ["api-key"]) @can(ability: "users.view", model: "App\\Models\\User")
 }
 
 type Mutation {

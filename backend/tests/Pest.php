@@ -57,9 +57,16 @@ function createAdminUser(array $attributes = []): \App\Models\User
 
 /*
 |--------------------------------------------------------------------------
-| Stripe Webhook Test Helpers
+| Search Test Helpers
 |--------------------------------------------------------------------------
 */
+
+function waitForSearch(): void
+{
+    if (config('scout.driver') === 'meilisearch') {
+        usleep(500_000); // 500ms for Meilisearch to process indexing
+    }
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -87,10 +94,12 @@ function graphQL(string $query, array $variables = [], ?string $bearerToken = nu
         \Illuminate\Support\Facades\DB::beginTransaction();
     }
 
-    return test()->postJson('/api/graphql', [
+    $response = test()->postJson('/api/graphql', [
         'query' => $query,
         'variables' => $variables,
     ], $headers);
+
+    return $response;
 }
 
 /*

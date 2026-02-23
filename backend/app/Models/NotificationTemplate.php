@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Laravel\Scout\Searchable;
 
 class NotificationTemplate extends Model
@@ -26,6 +27,15 @@ class NotificationTemplate extends Model
             'is_system' => 'boolean',
             'is_active' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // Invalidate notification type cache when templates change
+        static::created(fn () => Cache::forget('notification_known_types'));
+        static::created(fn () => Cache::forget('notification_category_type_map'));
+        static::updated(fn () => Cache::forget('notification_known_types'));
+        static::updated(fn () => Cache::forget('notification_category_type_map'));
     }
 
     /**
