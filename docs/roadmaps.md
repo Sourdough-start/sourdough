@@ -10,6 +10,7 @@ Currently in progress. Complete these before starting new work.
 
 Ready to start. These are unblocked and can begin immediately.
 
+- **Passkeys Code Review** - Security and code quality review of the passkeys/WebAuthn implementation. Verify authentication flow, credential storage, error handling, and frontend UX. Check for common WebAuthn pitfalls (timing attacks, CSRF protection, fallback mechanisms). Validate against OWASP guidance. See `backend/app/Services/Auth/PasskeyService.php`, `backend/app/Http/Controllers/Api/PasskeyController.php`, `backend/database/migrations/2026_01_30_000022_create_webauthn_credentials_table.php`, and frontend implementation.
 - **Stripe Revenue Log** - Add a revenue/transaction log page under the Logs & Monitoring section in Configuration. Display a filterable, sortable table of all Stripe payments and payouts: date, customer, amount, platform fee, net revenue, payment status (succeeded/refunded/failed), and Stripe payment ID. Include date range filtering, summary stats (total revenue, total fees, net earnings), and CSV export. Data sourced from the existing `payments` and `stripe_webhook_events` tables. Protected by admin permission consistent with other log pages.
 
 ## Planned Features

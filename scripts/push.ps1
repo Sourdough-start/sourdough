@@ -79,6 +79,47 @@ git add -A
 Write-Host "Committing changes..." -ForegroundColor Cyan
 git commit -m "$CommitMessage"
 
+# Run tests before pushing
+Write-Host "`n========================================" -ForegroundColor Magenta
+Write-Host "Running tests before release..." -ForegroundColor Magenta
+Write-Host "========================================" -ForegroundColor Magenta
+
+# Run backend tests
+Write-Host "`nRunning backend tests in Docker..." -ForegroundColor Yellow
+docker compose exec -T php php artisan test 2>&1
+$BackendTestExit = $LASTEXITCODE
+
+if ($BackendTestExit -ne 0) {
+    Write-Host "`nBackend tests failed!" -ForegroundColor Red
+    Write-Host "Fix the test failures and try again." -ForegroundColor Red
+    # Reset the commits we made
+    Write-Host "Resetting commits..." -ForegroundColor Yellow
+    git reset --soft HEAD~1
+    exit 1
+}
+
+Write-Host "Backend tests passed!" -ForegroundColor Green
+
+# Run frontend tests
+Write-Host "`nRunning frontend tests in Docker..." -ForegroundColor Yellow
+docker compose exec -T node npm test 2>&1
+$FrontendTestExit = $LASTEXITCODE
+
+if ($FrontendTestExit -ne 0) {
+    Write-Host "`nFrontend tests failed!" -ForegroundColor Red
+    Write-Host "Fix the test failures and try again." -ForegroundColor Red
+    # Reset the commits we made
+    Write-Host "Resetting commits..." -ForegroundColor Yellow
+    git reset --soft HEAD~1
+    exit 1
+}
+
+Write-Host "Frontend tests passed!" -ForegroundColor Green
+
+Write-Host "`n========================================" -ForegroundColor Green
+Write-Host "All tests passed! Proceeding with release..." -ForegroundColor Green
+Write-Host "========================================" -ForegroundColor Green
+
 # Read current version
 $CurrentVersion = (Get-Content $VersionFile).Trim()
 Write-Host "`nCurrent version: $CurrentVersion" -ForegroundColor Cyan
