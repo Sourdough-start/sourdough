@@ -110,21 +110,24 @@ export async function subscribe(vapidPublicKey: string): Promise<PushSubscriptio
 
 /**
  * Unsubscribe from push notifications.
+ * Returns the endpoint of the removed subscription so the caller can
+ * tell the backend which device to remove.
  */
-export async function unsubscribe(): Promise<boolean> {
+export async function unsubscribe(): Promise<string | null> {
   if (!isWebPushSupported()) {
-    return false;
+    return null;
   }
   try {
     const registration = await navigator.serviceWorker.ready;
     const subscription = await registration.pushManager.getSubscription();
     if (subscription) {
+      const endpoint = subscription.endpoint;
       await subscription.unsubscribe();
-      return true;
+      return endpoint;
     }
-    return false;
+    return null;
   } catch {
-    return false;
+    return null;
   }
 }
 

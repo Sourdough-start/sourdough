@@ -181,8 +181,10 @@ Route::middleware(['auth:sanctum', 'verified', '2fa.setup'])->group(function () 
         Route::put('/notification-settings', [UserNotificationSettingsController::class, 'update'])->middleware('log.access:Setting');
         Route::get('/notification-settings/type-preferences', [UserNotificationSettingsController::class, 'typePreferences'])->middleware('log.access:Setting');
         Route::put('/notification-settings/type-preferences', [UserNotificationSettingsController::class, 'updateTypePreference'])->middleware('log.access:Setting');
+        Route::get('/webpush-subscriptions', [UserNotificationSettingsController::class, 'listWebPushSubscriptions'])->middleware('log.access:Setting');
         Route::post('/webpush-subscription', [UserNotificationSettingsController::class, 'storeWebPushSubscription'])->middleware('log.access:Setting');
         Route::delete('/webpush-subscription', [UserNotificationSettingsController::class, 'destroyWebPushSubscription'])->middleware('log.access:Setting');
+        Route::delete('/webpush-subscription/{id}', [UserNotificationSettingsController::class, 'destroyWebPushSubscriptionById'])->whereNumber('id')->middleware('log.access:Setting');
     });
 
     // Dashboard (static widget data)

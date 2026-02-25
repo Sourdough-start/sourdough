@@ -51,7 +51,7 @@ class PasskeyController extends Controller
      */
     public function register(AttestedRequest $request): JsonResponse
     {
-        $name = $request->input('name', 'Passkey');
+        $name = trim($request->input('name', 'Passkey')) ?: 'Passkey';
 
         try {
             $request->save(['alias' => $name]);
@@ -79,10 +79,17 @@ class PasskeyController extends Controller
         ]);
 
         $user = $request->user();
+        $name = trim($request->input('name'));
 
-        if (!$this->passkeyService->renamePasskey($user, $id, $request->input('name'))) {
+        if (!$name) {
+            return $this->errorResponse('Name cannot be empty', 422);
+        }
+
+        if (!$this->passkeyService->renamePasskey($user, $id, $name)) {
             return $this->errorResponse('Passkey not found', 404);
         }
+
+        $this->auditService->logAuth('passkey_renamed', $user, ['credential_id' => $id, 'alias' => $name]);
 
         return $this->successResponse('Passkey updated');
     }

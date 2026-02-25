@@ -119,6 +119,14 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\MustVer
     }
 
     /**
+     * Push notification subscriptions (one per device).
+     */
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
+    /**
      * User notifications
      */
     public function notifications(): HasMany

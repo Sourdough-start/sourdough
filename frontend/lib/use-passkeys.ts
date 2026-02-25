@@ -49,75 +49,137 @@ function bufferToBase64url(buffer: ArrayBuffer): string {
   return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
+// --- Shared transform helpers ---
+
+type AllowCredential = { id: string; type: string; transports?: string[] };
+type PubKeyCredParam = { type: string; alg: number };
+
+function transformChallenge(challenge: unknown): ArrayBuffer {
+  if (typeof challenge === "string") {
+    return base64urlToBuffer(challenge);
+  }
+  if (!challenge) {
+    throw new Error("Missing challenge in server response");
+  }
+  return challenge as ArrayBuffer;
+}
+
+function transformAllowCredentials(allowList: unknown[]): PublicKeyCredentialDescriptor[] | undefined {
+  if (!allowList || !Array.isArray(allowList)) return undefined;
+  return (allowList as AllowCredential[]).map((item) => ({
+    id: base64urlToBuffer(item.id),
+    type: (item.type || "public-key") as PublicKeyCredentialType,
+    transports: item.transports as AuthenticatorTransport[] | undefined,
+  }));
+}
+
+function transformPubKeyCredParams(params: unknown[]) {
+  if (!params || !Array.isArray(params)) return undefined;
+  return (params as PubKeyCredParam[]).map((p) => ({
+    type: p.type || "public-key",
+    alg: p.alg ?? -7,
+  }));
+}
+
+function transformUser(user: { id: string; name: string; displayName?: string } | undefined) {
+  if (!user) return undefined;
+  return {
+    id: base64urlToBuffer(user.id),
+    name: user.name ?? "",
+    displayName: user.displayName ?? user.name ?? "",
+  };
+}
+
 /**
- * Transform server attestation/assertion options to the format expected by navigator.credentials.
+ * Serialize a PublicKeyCredential to a JSON-safe payload for the server.
  */
-function transformOptions(options: Record<string, unknown>): CredentialRequestOptions | CredentialCreationOptions {
-  const transformChallenge = (challenge: unknown) => {
-    if (typeof challenge === "string") {
-      return base64urlToBuffer(challenge);
-    }
-    return challenge as ArrayBuffer;
+function serializeCredential(credential: PublicKeyCredential) {
+  return {
+    id: credential.id,
+    rawId: bufferToBase64url(credential.rawId),
+    type: credential.type,
   };
+}
 
-  type AllowCredential = { id: string; type: string; transports?: string[] };
-  const transformAllowCredentials = (allowList: unknown[]) => {
-    if (!allowList || !Array.isArray(allowList)) return undefined;
-    return (allowList as AllowCredential[]).map((item) => ({
-      id: base64urlToBuffer(item.id),
-      type: item.type || "public-key",
-      transports: item.transports,
-    }));
-  };
-
-  type PubKeyCredParam = { type: string; alg: number };
-  const transformPubKeyCredParams = (params: unknown[]) => {
-    if (!params || !Array.isArray(params)) return undefined;
-    return (params as PubKeyCredParam[]).map((p) => ({
-      type: p.type || "public-key",
-      alg: p.alg ?? -7,
-    }));
-  };
-
-  const transformUser = (user: { id: string; name: string; displayName?: string } | undefined) => {
-    if (!user) return undefined;
-    return {
-      id: base64urlToBuffer(user.id),
-      name: user.name ?? "",
-      displayName: user.displayName ?? user.name ?? "",
-    };
-  };
-
+/**
+ * Transform server attestation options to CredentialCreationOptions.
+ */
+function transformCreationOptions(options: Record<string, unknown>): CredentialCreationOptions {
   const challenge = options.challenge ?? options.challengeBase64;
+
   if (options.publicKey) {
     const pk = options.publicKey as Record<string, unknown>;
     return {
       publicKey: {
         rp: pk.rp as PublicKeyCredentialRpEntity,
-        user: transformUser(pk.user as { id: string; name: string; displayName?: string }),
+        user: transformUser(pk.user as { id: string; name: string; displayName?: string })!,
         challenge: transformChallenge(pk.challenge ?? challenge),
-        pubKeyCredParams: transformPubKeyCredParams((pk.pubKeyCredParams ?? pk.pubKeyCredParams) as unknown[] ?? []),
+        pubKeyCredParams: transformPubKeyCredParams((pk.pubKeyCredParams ?? []) as unknown[]) as PublicKeyCredentialParameters[],
         timeout: (pk.timeout as number) ?? 60000,
         attestation: (pk.attestation as AttestationConveyancePreference) ?? "none",
         authenticatorSelection: pk.authenticatorSelection as AuthenticatorSelectionCriteria | undefined,
       },
-    } as CredentialCreationOptions;
+    };
   }
 
-  if (options.allowCredentials !== undefined || options.allow_list !== undefined) {
-    const allowList = (options.allowCredentials ?? options.allow_list) as unknown[] ?? [];
+  // Fallback: treat the whole object as publicKey options
+  return {
+    publicKey: {
+      rp: options.rp as PublicKeyCredentialRpEntity,
+      user: transformUser(options.user as { id: string; name: string; displayName?: string })!,
+      challenge: transformChallenge(challenge),
+      pubKeyCredParams: transformPubKeyCredParams((options.pubKeyCredParams ?? []) as unknown[]) as PublicKeyCredentialParameters[],
+      timeout: (options.timeout as number) ?? 60000,
+      attestation: (options.attestation as AttestationConveyancePreference) ?? "none",
+      authenticatorSelection: options.authenticatorSelection as AuthenticatorSelectionCriteria | undefined,
+    },
+  };
+}
+
+/**
+ * Transform server assertion options to CredentialRequestOptions.
+ */
+function transformRequestOptions(options: Record<string, unknown>): CredentialRequestOptions {
+  const challenge = options.challenge ?? options.challengeBase64;
+
+  if (options.publicKey) {
+    const pk = options.publicKey as Record<string, unknown>;
+    const allowList = (pk.allowCredentials ?? pk.allow_list) as unknown[] ?? [];
     return {
       publicKey: {
-        challenge: transformChallenge(challenge),
-        timeout: (options.timeout as number) ?? 60000,
-        rpId: options.rpId as string | undefined,
+        challenge: transformChallenge(pk.challenge ?? challenge),
+        timeout: (pk.timeout as number) ?? 60000,
+        rpId: pk.rpId as string | undefined,
         allowCredentials: transformAllowCredentials(allowList),
-        userVerification: (options.userVerification as UserVerificationRequirement) ?? "preferred",
+        userVerification: (pk.userVerification as UserVerificationRequirement) ?? "preferred",
       },
-    } as CredentialRequestOptions;
+    };
   }
 
-  return options as CredentialRequestOptions | CredentialCreationOptions;
+  const allowList = (options.allowCredentials ?? options.allow_list) as unknown[] ?? [];
+  return {
+    publicKey: {
+      challenge: transformChallenge(challenge),
+      timeout: (options.timeout as number) ?? 60000,
+      rpId: options.rpId as string | undefined,
+      allowCredentials: transformAllowCredentials(allowList),
+      userVerification: (options.userVerification as UserVerificationRequirement) ?? "preferred",
+    },
+  };
+}
+
+/**
+ * Map WebAuthn error names to user-friendly messages.
+ */
+function getWebAuthnErrorMessage(err: unknown, fallback: string): string {
+  if (!(err instanceof Error)) return fallback;
+
+  if (err.name === "NotAllowedError") return "Cancelled";
+  if (err.name === "SecurityError") return "This site's security configuration doesn't support passkeys. Ensure you're using HTTPS.";
+  if (err.name === "InvalidStateError") return "This passkey is already registered.";
+  if (err.name === "AbortError") return "The operation timed out. Please try again.";
+
+  return err.message || fallback;
 }
 
 /**
@@ -130,16 +192,14 @@ export async function performPasskeyLogin(remember = false): Promise<
 > {
   try {
     const optionsRes = await api.post("/auth/passkeys/login/options");
-    const options = transformOptions(optionsRes.data) as CredentialRequestOptions;
+    const options = transformRequestOptions(optionsRes.data);
     const credential = await navigator.credentials.get(options);
     if (!credential || !(credential instanceof PublicKeyCredential)) {
       return { success: false, error: "Failed to get passkey" };
     }
     const response = credential.response as AuthenticatorAssertionResponse;
     const payload = {
-      id: credential.id,
-      rawId: bufferToBase64url(credential.rawId),
-      type: credential.type,
+      ...serializeCredential(credential),
       response: {
         clientDataJSON: bufferToBase64url(response.clientDataJSON),
         authenticatorData: bufferToBase64url(response.authenticatorData),
@@ -159,13 +219,7 @@ export async function performPasskeyLogin(remember = false): Promise<
     }
     return { success: true, user };
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Login failed";
-    if (
-      String(message).toLowerCase().includes("cancel") ||
-      (err as { name?: string })?.name === "NotAllowedError"
-    ) {
-      return { success: false, error: "Cancelled" };
-    }
+    const message = getWebAuthnErrorMessage(err, "Login failed");
     return { success: false, error: message };
   }
 }
@@ -198,16 +252,14 @@ export function usePasskeys() {
     async (name: string): Promise<{ success: boolean; error?: string }> => {
       try {
         const optionsRes = await api.post("/auth/passkeys/register/options");
-        const options = transformOptions(optionsRes.data) as CredentialCreationOptions;
+        const options = transformCreationOptions(optionsRes.data);
         const credential = await navigator.credentials.create(options);
         if (!credential || !(credential instanceof PublicKeyCredential)) {
           return { success: false, error: "Failed to create passkey" };
         }
         const response = credential.response as AuthenticatorAttestationResponse;
         const payload = {
-          id: credential.id,
-          rawId: bufferToBase64url(credential.rawId),
-          type: credential.type,
+          ...serializeCredential(credential),
           response: {
             clientDataJSON: bufferToBase64url(response.clientDataJSON),
             attestationObject: bufferToBase64url(response.attestationObject),
@@ -220,10 +272,7 @@ export function usePasskeys() {
         await fetchPasskeys();
         return { success: true };
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Registration failed";
-        if (String(message).toLowerCase().includes("cancel") || (err as { name?: string })?.name === "NotAllowedError") {
-          return { success: false, error: "Cancelled" };
-        }
+        const message = getWebAuthnErrorMessage(err, "Registration failed");
         return { success: false, error: message };
       }
     },

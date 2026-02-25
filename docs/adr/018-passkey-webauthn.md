@@ -46,6 +46,19 @@ User clicks "Sign in with Passkey" on login page: request options from `/auth/pa
 - **Backend**: `backend/app/Services/Auth/PasskeyService.php`, `backend/app/Http/Controllers/Api/PasskeyController.php`, `backend/app/Models/User.php` (WebAuthnAuthenticatable trait), `backend/config/settings-schema.php` (auth.passkey_mode), `backend/routes/api.php` (auth passkey routes), `backend/database/migrations/2026_01_30_000022_create_webauthn_credentials_table.php`
 - **Frontend**: `frontend/lib/use-passkeys.ts`, `frontend/components/auth/passkey-register-dialog.tsx`, `frontend/components/auth/passkey-login-button.tsx`, `frontend/app/(dashboard)/user/security/page.tsx` (Passkeys card), `frontend/app/(auth)/login/page.tsx` (passkey login button), `frontend/app/(dashboard)/configuration/security/page.tsx` (admin passkey mode), `frontend/lib/app-config.tsx` (passkeyMode)
 
+### Attestation Strategy
+
+Attestation is set to `"none"` by design. This is standard for consumer-facing applications where the goal is user authentication, not device identity verification. Certificate chain verification (attestation types `direct` or `enterprise`) adds complexity and is primarily useful for enterprise deployments that need to restrict authentication to specific hardware vendors (e.g., only YubiKeys). To enable attestation verification, configure it via the Laragear WebAuthn config at `backend/config/webauthn.php`.
+
+### Passkey Sync Behavior
+
+Modern passkeys are discoverable credentials that sync across devices via platform providers:
+- **Apple**: iCloud Keychain (across iPhone, iPad, Mac)
+- **Google**: Google Password Manager (across Android, Chrome)
+- **Microsoft**: Windows Hello (Windows devices)
+
+This means a single registered passkey may authenticate from multiple devices without re-registration. Deleting a passkey server-side removes access but does not remove the credential from the user's sync provider. Users should be informed that removing a passkey on the server only disables authentication — the credential data persists in their password manager until manually deleted there.
+
 ## Consequences
 
 - Users can sign in with passkeys when enabled, improving security and UX.

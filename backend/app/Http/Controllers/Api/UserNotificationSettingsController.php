@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\NotificationTemplate;
+use App\Models\PushSubscription;
 use App\Models\SystemSetting;
+use App\Models\User;
 use App\Services\Notifications\NotificationChannelMetadata;
 use App\Services\Notifications\NotificationOrchestrator;
 use Illuminate\Http\JsonResponse;
@@ -31,7 +33,8 @@ class UserNotificationSettingsController extends Controller
 
         $channelIds = $this->getAvailableChannelIds($channelConfig, $smsProvider);
 
-        $channels = collect($channelIds)->map(function (string $id) use ($channelConfig, $userSettings) {
+        $user = $request->user();
+        $channels = collect($channelIds)->map(function (string $id) use ($channelConfig, $userSettings, $user) {
             $config = $channelConfig[$id] ?? [];
 
             return [
@@ -39,7 +42,7 @@ class UserNotificationSettingsController extends Controller
                 'name' => $this->getChannelName($id),
                 'description' => $this->getChannelDescription($id),
                 'enabled' => (bool) ($userSettings["{$id}_enabled"] ?? false),
-                'configured' => $this->isChannelConfigured($id, $config, $userSettings),
+                'configured' => $this->isChannelConfigured($id, $config, $userSettings, $user),
                 'usage_accepted' => (bool) ($userSettings["{$id}_usage_accepted"] ?? false),
                 'settings' => $this->getChannelSettings($id, $userSettings),
             ];
@@ -100,34 +103,94 @@ class UserNotificationSettingsController extends Controller
     }
 
     /**
-     * Store Web Push subscription from the frontend.
+     * Store Web Push subscription from the frontend (upserts by endpoint).
      */
     public function storeWebPushSubscription(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'endpoint' => ['required', 'string'],
+            'endpoint' => ['required', 'string', 'max:2048'],
             'keys' => ['required', 'array'],
-            'keys.p256dh' => ['required', 'string'],
-            'keys.auth' => ['required', 'string'],
+            'keys.p256dh' => ['required', 'string', 'max:512'],
+            'keys.auth' => ['required', 'string', 'max:512'],
         ]);
 
         $user = $request->user();
-        $user->setSetting(self::GROUP, 'webpush_subscription', $validated);
+        $userAgent = $request->userAgent();
+
+        PushSubscription::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'endpoint_hash' => PushSubscription::hashEndpoint($validated['endpoint']),
+            ],
+            [
+                'endpoint' => $validated['endpoint'],
+                'p256dh' => $validated['keys']['p256dh'],
+                'auth' => $validated['keys']['auth'],
+                'user_agent' => $userAgent,
+                'device_name' => PushSubscription::detectDeviceName($userAgent),
+            ]
+        );
+
         $user->setSetting(self::GROUP, 'webpush_enabled', true);
 
         return response()->json(['message' => 'Subscription saved']);
     }
 
     /**
-     * Remove Web Push subscription.
+     * Remove a Web Push subscription by endpoint.
      */
     public function destroyWebPushSubscription(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'endpoint' => ['required', 'string'],
+        ]);
+
         $user = $request->user();
-        $user->settings()
-            ->where('group', self::GROUP)
-            ->whereIn('key', ['webpush_subscription', 'webpush_enabled'])
+        $user->pushSubscriptions()
+            ->where('endpoint_hash', PushSubscription::hashEndpoint($validated['endpoint']))
             ->delete();
+
+        // If no subscriptions remain, disable webpush
+        if (!$user->pushSubscriptions()->exists()) {
+            $user->setSetting(self::GROUP, 'webpush_enabled', false);
+        }
+
+        return response()->json(['message' => 'Subscription removed']);
+    }
+
+    /**
+     * List all Web Push subscriptions (devices) for the current user.
+     */
+    public function listWebPushSubscriptions(Request $request): JsonResponse
+    {
+        $subscriptions = $request->user()->pushSubscriptions()
+            ->orderByDesc('last_used_at')
+            ->get()
+            ->map(fn (PushSubscription $sub) => [
+                'id' => $sub->id,
+                'device_name' => $sub->device_name,
+                'created_at' => $sub->created_at?->toISOString(),
+                'last_used_at' => $sub->last_used_at?->toISOString(),
+            ]);
+
+        return response()->json(['subscriptions' => $subscriptions]);
+    }
+
+    /**
+     * Remove a specific Web Push subscription by ID.
+     */
+    public function destroyWebPushSubscriptionById(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        $deleted = $user->pushSubscriptions()->where('id', $id)->delete();
+
+        if ($deleted === 0) {
+            return response()->json(['message' => 'Subscription not found'], 404);
+        }
+
+        if (!$user->pushSubscriptions()->exists()) {
+            $user->setSetting(self::GROUP, 'webpush_enabled', false);
+        }
 
         return response()->json(['message' => 'Subscription removed']);
     }
@@ -240,15 +303,14 @@ class UserNotificationSettingsController extends Controller
         return filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }
 
-    private function isChannelConfigured(string $id, array $config, array $userSettings): bool
+    private function isChannelConfigured(string $id, array $config, array $userSettings, ?User $user = null): bool
     {
         if ($this->isAlwaysAvailableChannel($id)) {
             return true;
         }
 
         if ($id === 'webpush') {
-            $sub = $userSettings['webpush_subscription'] ?? null;
-            return !empty($sub);
+            return $user ? $user->pushSubscriptions()->exists() : false;
         }
 
         $required = $this->getRequiredSettings($id);

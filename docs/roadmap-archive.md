@@ -8,6 +8,7 @@ High-priority work complete. Only optional/lower-priority items remain.
 
 | Roadmap | Completed | Remaining Work |
 |---------|-----------|----------------|
+| Passkeys Code Review | 2026-02-24 | None — review complete. Added 15 backend tests, delete confirmation, rename UI, error handling refactor, input trimming, ARIA attributes, ADR-018 documentation. |
 | [Notification System Review](plans/notification-system-review.md) | 2026-02-22 | Remaining: Phase 9 — 48 code review fixes (7 high security/data integrity, 17 medium correctness, 21 low polish) |
 | Integration Usage Dashboard | 2026-02-14 | Optional: additional LLM pricing presets, broadcasting instrumentation via event listener |
 | [Changelog Page](plans/changelog-roadmap.md) | 2026-02-14 | Optional: Phase 4 (auto-generate from GitHub releases, "What's New" modal) |

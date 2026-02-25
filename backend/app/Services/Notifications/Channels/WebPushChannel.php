@@ -27,24 +27,88 @@ class WebPushChannel implements ChannelInterface
         $title = $resolved['title'];
         $message = $resolved['body'];
 
-        $subscriptionData = $user->getSetting('notifications', 'webpush_subscription');
+        $subscriptions = $user->pushSubscriptions()->get();
 
-        if (!$subscriptionData) {
-            throw new \RuntimeException('Web Push subscription not configured for user');
-        }
-
-        if (is_string($subscriptionData)) {
-            $subscriptionData = json_decode($subscriptionData, true);
-        }
-
-        if (!isset($subscriptionData['endpoint']) || !isset($subscriptionData['keys'])) {
-            throw new \RuntimeException('Invalid Web Push subscription format');
+        if ($subscriptions->isEmpty()) {
+            throw new \RuntimeException('No Web Push subscriptions for user');
         }
 
         if (!$this->publicKey || !$this->privateKey) {
             throw new \RuntimeException('VAPID keys not configured');
         }
 
+        $payload = $this->buildPayload($title, $message, $type, $data, $user);
+
+        $auth = [
+            'VAPID' => [
+                'subject' => $this->subject ?: config('app.url'),
+                'publicKey' => $this->publicKey,
+                'privateKey' => $this->privateKey,
+            ],
+        ];
+
+        $webPush = new WebPush($auth, ['TTL' => 86400], 30);
+        $results = [];
+        $anySuccess = false;
+
+        foreach ($subscriptions as $sub) {
+            $subscription = Subscription::create([
+                'endpoint' => $sub->endpoint,
+                'publicKey' => $sub->p256dh,
+                'authToken' => $sub->auth,
+            ]);
+
+            $report = $webPush->sendOneNotification($subscription, $payload);
+
+            if ($report->isSuccess()) {
+                $sub->update(['last_used_at' => now()]);
+                $anySuccess = true;
+                $results[] = ['endpoint' => $sub->endpoint, 'device' => $sub->device_name, 'sent' => true];
+            } elseif ($report->isSubscriptionExpired()) {
+                $sub->delete();
+                $results[] = ['endpoint' => $sub->endpoint, 'device' => $sub->device_name, 'expired' => true];
+                Log::info('Expired Web Push subscription removed', [
+                    'subscription_id' => $sub->id,
+                    'user_id' => $user->id,
+                    'device' => $sub->device_name,
+                ]);
+            } else {
+                Log::warning('WebPush send failed for subscription', [
+                    'subscription_id' => $sub->id,
+                    'user_id' => $user->id,
+                    'reason' => $report->getReason(),
+                ]);
+                $results[] = ['endpoint' => $sub->endpoint, 'device' => $sub->device_name, 'error' => $report->getReason()];
+            }
+        }
+
+        if (!$anySuccess && !empty($results)) {
+            $allExpired = collect($results)->every(fn ($r) => $r['expired'] ?? false);
+            if ($allExpired) {
+                $user->setSetting('notifications', 'webpush_enabled', false);
+                throw new \RuntimeException('All Web Push subscriptions expired');
+            }
+        }
+
+        return [
+            'subscriptions_sent' => count(array_filter($results, fn ($r) => $r['sent'] ?? false)),
+            'details' => $results,
+        ];
+    }
+
+    public function getName(): string
+    {
+        return 'Web Push';
+    }
+
+    public function isAvailableFor(User $user): bool
+    {
+        return config('notifications.channels.webpush.enabled', false)
+            && $user->pushSubscriptions()->exists();
+    }
+
+    private function buildPayload(string $title, string $message, string $type, array $data, User $user): string
+    {
         $payloadArray = [
             'title' => $title,
             'body' => $message,
@@ -69,7 +133,6 @@ class WebPushChannel implements ChannelInterface
 
             if (strlen($payload) > $maxPayloadBytes) {
                 // Binary search for the right character length that fits the byte limit.
-                // mb_substr counts characters but json_encode may expand them (\uXXXX).
                 $lo = 50;
                 $hi = mb_strlen($payloadArray['body']);
                 while ($lo < $hi) {
@@ -86,54 +149,7 @@ class WebPushChannel implements ChannelInterface
             }
         }
 
-        $subscription = Subscription::create([
-            'endpoint' => $subscriptionData['endpoint'],
-            'publicKey' => $subscriptionData['keys']['p256dh'],
-            'authToken' => $subscriptionData['keys']['auth'],
-        ]);
-
-        $auth = [
-            'VAPID' => [
-                'subject' => $this->subject ?: config('app.url'),
-                'publicKey' => $this->publicKey,
-                'privateKey' => $this->privateKey,
-            ],
-        ];
-
-        $webPush = new WebPush($auth, ['TTL' => 86400], 30);
-
-        $report = $webPush->sendOneNotification($subscription, $payload);
-
-        if (!$report->isSuccess()) {
-            $reason = $report->getReason();
-
-            if ($report->isSubscriptionExpired()) {
-                $user->settings()
-                    ->where('group', 'notifications')
-                    ->whereIn('key', ['webpush_subscription', 'webpush_enabled'])
-                    ->delete();
-
-                throw new \RuntimeException('Web Push subscription expired and has been removed');
-            }
-
-            throw new \RuntimeException('Web Push failed: ' . ($reason ?: 'Unknown error'));
-        }
-
-        return [
-            'endpoint' => $subscriptionData['endpoint'],
-            'sent' => true,
-        ];
-    }
-
-    public function getName(): string
-    {
-        return 'Web Push';
-    }
-
-    public function isAvailableFor(User $user): bool
-    {
-        return config('notifications.channels.webpush.enabled', false)
-            && !empty($user->getSetting('notifications', 'webpush_subscription'));
+        return $payload;
     }
 
     private function resolveContent(User $user, string $type, string $title, string $message, array $data): array

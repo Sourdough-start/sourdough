@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
 import { OfflineIndicator } from "@/components/offline-indicator";
 import { InstallPrompt } from "@/components/install-prompt";
+import { PostInstallPushPrompt } from "@/components/post-install-push-prompt";
 import { SidebarProvider, useSidebar } from "@/components/sidebar-context";
 import { SearchProvider } from "@/components/search/search-provider";
 import { WizardProvider } from "@/components/onboarding/wizard-provider";
@@ -21,9 +22,10 @@ function AppShellContent({ children }: AppShellProps) {
   const { isOffline } = useOnline();
 
   return (
-    <div className={cn("min-h-screen bg-background", isOffline && "pt-10")}>
+    <div className={cn("min-h-screen bg-background overflow-x-hidden", isOffline && "pt-10")}>
       <OfflineIndicator />
       <InstallPrompt />
+      <PostInstallPushPrompt />
       <PageTitleManager />
       <Sidebar />
       <div

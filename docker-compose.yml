@@ -48,6 +48,20 @@ services:
       - SCOUT_DRIVER=meilisearch
       # Auth: passkey mode (disabled | optional | required; requires HTTPS in production)
       - AUTH_PASSKEY_MODE=${AUTH_PASSKEY_MODE:-disabled}
+      # Broadcasting (Laravel Reverb — real-time WebSocket updates)
+      - BROADCAST_CONNECTION=reverb
+      - REVERB_APP_ID=sourdough
+      - REVERB_APP_KEY=sourdough-key
+      - REVERB_APP_SECRET=sourdough-secret
+      - REVERB_HOST=127.0.0.1
+      - REVERB_PORT=6001
+      - REVERB_SCHEME=http
+      - REVERB_SERVER_HOST=0.0.0.0
+      - REVERB_SERVER_PORT=6001
+      # Frontend Reverb config (passed to Next.js)
+      # NEXT_PUBLIC_REVERB_HOST and NEXT_PUBLIC_REVERB_PORT are intentionally omitted —
+      # clients connect via window.location (hostname + port) through the Nginx /app proxy
+      - NEXT_PUBLIC_REVERB_APP_KEY=sourdough-key
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/api/health"]

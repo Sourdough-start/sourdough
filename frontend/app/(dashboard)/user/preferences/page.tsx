@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { Moon, Sun, Monitor, Loader2, Palette, Bell, Brain, Send, Smartphone, Download, Globe, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { Moon, Sun, Monitor, Loader2, Palette, Bell, Brain, Send, Smartphone, Download, Globe, ChevronDown, SlidersHorizontal, Trash2 } from "lucide-react";
 import { SaveButton } from "@/components/ui/save-button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Link from "next/link";
@@ -130,6 +130,8 @@ export default function PreferencesPage() {
   const [webpushLoading, setWebpushLoading] = useState(false);
   const [webpushPermission, setWebpushPermission] = useState<NotificationPermission | "unsupported">("unsupported");
   const [installPrompting, setInstallPrompting] = useState(false);
+  const [pushDevices, setPushDevices] = useState<Array<{ id: number; device_name: string; created_at: string | null; last_used_at: string | null }>>([]);
+  const [removingDeviceId, setRemovingDeviceId] = useState<number | null>(null);
   const [typePreferences, setTypePreferences] = useState<Record<string, Record<string, boolean>>>({});
   const [typePrefsOpen, setTypePrefsOpen] = useState(false);
   const { features, novu } = useAppConfig();
@@ -170,6 +172,29 @@ export default function PreferencesPage() {
       setChannelsLoading(false);
     }
   }, []);
+
+  const fetchPushDevices = useCallback(async () => {
+    try {
+      const response = await api.get("/user/webpush-subscriptions");
+      setPushDevices(response.data?.subscriptions ?? []);
+    } catch {
+      setPushDevices([]);
+    }
+  }, []);
+
+  const removeDevice = async (deviceId: number) => {
+    setRemovingDeviceId(deviceId);
+    try {
+      await api.delete(`/user/webpush-subscription/${deviceId}`);
+      await fetchPushDevices();
+      await fetchChannels();
+      toast.success("Device removed");
+    } catch {
+      toast.error("Failed to remove device");
+    } finally {
+      setRemovingDeviceId(null);
+    }
+  };
 
   const fetchPreferences = useCallback(async () => {
     try {
@@ -249,7 +274,8 @@ export default function PreferencesPage() {
 
   useEffect(() => {
     fetchChannels();
-  }, [fetchChannels]);
+    fetchPushDevices();
+  }, [fetchChannels, fetchPushDevices]);
 
   useEffect(() => {
     fetchTypePreferences();
@@ -359,6 +385,7 @@ export default function PreferencesPage() {
       });
       setWebpushPermission(getPermissionStatus());
       await fetchChannels();
+      await fetchPushDevices();
       toast.success("Browser notifications enabled");
     } catch (err: unknown) {
       const msg = err && typeof err === "object" && "response" in err
@@ -377,15 +404,22 @@ export default function PreferencesPage() {
   const disableWebPush = async () => {
     setWebpushLoading(true);
     try {
-      await api.delete("/user/webpush-subscription");
-      await unsubscribe();
-      await api.put("/user/notification-settings", {
-        channel: "webpush",
-        enabled: false,
-      });
-      setWebpushPermission(getPermissionStatus());
-      await fetchChannels();
-      toast.success("Browser notifications disabled");
+      const endpoint = await unsubscribe();
+      if (endpoint) {
+        await api.delete("/user/webpush-subscription", { data: { endpoint } });
+        // The backend auto-disables webpush_enabled when the last subscription is removed,
+        // so we don't unconditionally set enabled=false here (which would silence other devices).
+        setWebpushPermission(getPermissionStatus());
+        await fetchChannels();
+        await fetchPushDevices();
+        toast.success("Browser notifications disabled on this device");
+      } else {
+        // No local subscription found (e.g., cleared site data or different browser).
+        // Refresh the device list so the user can remove stale devices manually.
+        await fetchChannels();
+        await fetchPushDevices();
+        toast.info("No subscription found on this browser. Use the device list below to remove other devices.");
+      }
     } catch (err: unknown) {
       const msg = err && typeof err === "object" && "response" in err
         ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
@@ -719,19 +753,53 @@ export default function PreferencesPage() {
                     )}
                   </div>
                   {channel.id === "webpush" && channel.configured && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => testChannel("webpush")}
-                      disabled={testingChannel === "webpush" || isOffline}
-                    >
-                      {testingChannel === "webpush" ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Send className="mr-2 h-4 w-4" />
+                    <div className="space-y-3">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => testChannel("webpush")}
+                        disabled={testingChannel === "webpush" || isOffline}
+                      >
+                        {testingChannel === "webpush" ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="mr-2 h-4 w-4" />
+                        )}
+                        Test
+                      </Button>
+                      {pushDevices.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-muted-foreground">Registered Devices</p>
+                          <div className="space-y-1">
+                            {pushDevices.map((device) => (
+                              <div key={device.id} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
+                                <div className="min-w-0 flex-1">
+                                  <span className="font-medium">{device.device_name || "Unknown Device"}</span>
+                                  {device.last_used_at && (
+                                    <span className="ml-2 text-xs text-muted-foreground">
+                                      Last used {new Date(device.last_used_at).toLocaleDateString()}
+                                    </span>
+                                  )}
+                                </div>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-7 w-7 shrink-0"
+                                  onClick={() => removeDevice(device.id)}
+                                  disabled={removingDeviceId === device.id || isOffline}
+                                >
+                                  {removingDeviceId === device.id ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  )}
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       )}
-                      Test
-                    </Button>
+                    </div>
                   )}
                   {channel.id === "webpush" && !channel.configured && (
                     <WebPushHelperText webpushEnabled={!!features?.webpushEnabled} />

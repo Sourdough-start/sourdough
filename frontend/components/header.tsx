@@ -20,7 +20,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-14 items-center justify-between md:justify-end pl-4 pr-5 sm:pr-6 md:px-4 gap-2">
+      <div className="flex h-14 w-full items-center justify-between md:justify-end px-4 gap-2 overflow-hidden">
         <Button
           variant="ghost"
           size="icon"
@@ -37,7 +37,7 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="md:hidden h-9 gap-1.5 px-2 text-muted-foreground hover:text-foreground"
+                className="md:hidden h-9 gap-1.5 px-2 shrink-0 text-muted-foreground hover:text-foreground"
                 onClick={() => setSearchOpen(true)}
                 title="Search"
                 aria-label="Search"
@@ -52,9 +52,11 @@ export function Header() {
               </div>
             </>
           )}
-          <HelpIcon />
+          <HelpIcon className="shrink-0" />
           <NotificationBell />
-          <ThemeToggle />
+          <div className="hidden sm:block">
+            <ThemeToggle />
+          </div>
           <UserDropdown />
         </div>
       </div>

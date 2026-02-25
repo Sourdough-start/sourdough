@@ -18,32 +18,32 @@ function getAuthEndpoint(): string {
 
 /**
  * Returns a configured Laravel Echo instance for real-time notifications, or null
- * when Pusher is not configured (BROADCAST_CONNECTION=null or missing PUSHER_APP_KEY).
+ * when Reverb is not configured (missing NEXT_PUBLIC_REVERB_APP_KEY).
  * Use only in browser (e.g. inside useEffect).
  */
 export function getEcho(): Echo<"pusher"> | null {
   if (typeof window === "undefined") return null;
 
-  const key = process.env.NEXT_PUBLIC_PUSHER_APP_KEY;
-  const cluster = process.env.NEXT_PUBLIC_PUSHER_APP_CLUSTER || "mt1";
+  const key = process.env.NEXT_PUBLIC_REVERB_APP_KEY;
   if (!key || key === "") return null;
 
   if (echoInstance) return echoInstance;
 
   (window as Window).Pusher = Pusher;
 
+  const wsHost = process.env.NEXT_PUBLIC_REVERB_HOST || window.location.hostname;
+  const scheme = process.env.NEXT_PUBLIC_REVERB_SCHEME || (window.location.protocol === "https:" ? "https" : "http");
+  const wsPort = process.env.NEXT_PUBLIC_REVERB_PORT || window.location.port || (scheme === "https" ? "443" : "80");
+
   echoInstance = new Echo({
     broadcaster: "pusher",
     key,
-    cluster,
-    forceTLS: true,
+    wsHost,
+    wsPort: parseInt(wsPort),
+    wssPort: parseInt(wsPort),
+    forceTLS: scheme === "https",
+    enabledTransports: ["ws", "wss"],
     authEndpoint: getAuthEndpoint(),
-    auth: {
-      headers: {
-        Accept: "application/json",
-        "X-Requested-With": "XMLHttpRequest",
-      },
-    },
     authorizer: (channel: { name: string }) => ({
       authorize: (
         socketId: string,
