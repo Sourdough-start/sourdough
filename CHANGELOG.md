@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.6.4] - 2026-02-24
+
+### Fixed
+- Migrate Semgrep to direct CLI with rule exclusions, fix flaky GraphQL error test
 ## [0.6.3] - 2026-02-24
 
 ### Fixed
