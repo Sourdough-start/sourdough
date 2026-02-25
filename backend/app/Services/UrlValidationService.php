@@ -70,23 +70,37 @@ class UrlValidationService
      */
     public function validateUrl(string $url): bool
     {
+        return $this->validateAndResolve($url) !== null;
+    }
+
+    /**
+     * Validate a URL and return the resolved IP for DNS pinning.
+     *
+     * Use this instead of validateUrl() when you will make an HTTP request,
+     * then pass the result to pinnedOptions() to prevent DNS rebinding attacks.
+     *
+     * @param string $url The URL to validate
+     * @return array{url: string, host: string, ip: string, port: int}|null Resolved data, or null if validation fails
+     */
+    public function validateAndResolve(string $url): ?array
+    {
         $parsed = parse_url($url);
 
         if ($parsed === false || empty($parsed['host'])) {
-            return false;
+            return null;
         }
 
         // Check scheme
         $scheme = strtolower($parsed['scheme'] ?? '');
         if (!in_array($scheme, self::ALLOWED_SCHEMES, true)) {
-            return false;
+            return null;
         }
 
         $host = strtolower($parsed['host']);
 
         // Check blocked hostnames
         if (in_array($host, self::BLOCKED_HOSTS, true)) {
-            return false;
+            return null;
         }
 
         // Resolve hostname to IP addresses
@@ -94,21 +108,50 @@ class UrlValidationService
 
         if (empty($ips)) {
             // Cannot resolve - might be DNS rebinding or invalid host
-            return false;
+            return null;
         }
 
         // Check each resolved IP
         foreach ($ips as $ip) {
             if ($this->isPrivateOrReservedIp($ip)) {
-                return false;
+                return null;
             }
         }
 
-        return true;
+        $port = $parsed['port'] ?? ($scheme === 'https' ? 443 : 80);
+
+        return [
+            'url' => $url,
+            'host' => $host,
+            'ip' => $ips[0],
+            'port' => (int) $port,
+        ];
+    }
+
+    /**
+     * Build Guzzle/HTTP options that pin DNS to a pre-resolved IP.
+     *
+     * This prevents DNS rebinding attacks by ensuring the HTTP client
+     * uses the same IP address that was validated, bypassing re-resolution.
+     *
+     * @param array{host: string, ip: string, port: int} $resolved Result from validateAndResolve()
+     * @return array Guzzle request options with CURLOPT_RESOLVE
+     */
+    public function pinnedOptions(array $resolved): array
+    {
+        return [
+            'curl' => [
+                CURLOPT_RESOLVE => [
+                    "{$resolved['host']}:{$resolved['port']}:{$resolved['ip']}",
+                ],
+            ],
+        ];
     }
 
     /**
      * Safely fetch content from a URL after validation.
+     *
+     * Uses DNS pinning via CURLOPT_RESOLVE to prevent DNS rebinding attacks.
      *
      * @param string $url The URL to fetch
      * @param int $timeout Timeout in seconds (default 10)
@@ -116,7 +159,9 @@ class UrlValidationService
      */
     public function fetchContent(string $url, int $timeout = 10): ?string
     {
-        if (!$this->validateUrl($url)) {
+        $resolved = $this->validateAndResolve($url);
+
+        if ($resolved === null) {
             Log::warning('URL validation failed for SSRF protection', [
                 'url' => $url,
             ]);
@@ -125,21 +170,27 @@ class UrlValidationService
 
         try {
             $response = Http::timeout($timeout)
-                ->withOptions([
-                    'allow_redirects' => [
-                        'max' => 3,
-                        'strict' => true,
-                        'referer' => false,
-                        'protocols' => ['http', 'https'],
-                        'on_redirect' => function ($request, $response, $uri) {
-                            // Validate redirect target
-                            $redirectUrl = (string) $uri;
-                            if (!$this->validateUrl($redirectUrl)) {
-                                throw new \RuntimeException('Redirect to unsafe URL blocked');
-                            }
-                        },
-                    ],
-                ])
+                ->withOptions(array_merge(
+                    $this->pinnedOptions($resolved),
+                    [
+                        'allow_redirects' => [
+                            'max' => 3,
+                            'strict' => true,
+                            'referer' => false,
+                            'protocols' => ['http', 'https'],
+                            'on_redirect' => function ($request, $response, $uri) {
+                                // Validate redirect target for SSRF protection.
+                                // Note: DNS pinning cannot be applied mid-redirect chain in Guzzle,
+                                // so redirect targets are validated but not pinned. The TOCTOU window
+                                // is very small (milliseconds) and requires attacker-controlled DNS.
+                                $redirectUrl = (string) $uri;
+                                if ($this->validateAndResolve($redirectUrl) === null) {
+                                    throw new \RuntimeException('Redirect to unsafe URL blocked');
+                                }
+                            },
+                        ],
+                    ]
+                ))
                 ->get($url);
 
             if ($response->successful()) {

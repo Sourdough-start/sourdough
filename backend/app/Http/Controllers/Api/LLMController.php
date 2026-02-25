@@ -402,7 +402,11 @@ class LLMController extends Controller
 
         $user = $request->user();
 
-        // Handle image upload or URL (validate URL for SSRF before passing to any provider)
+        // Handle image upload or URL
+        // Note: validateUrl() (not validateAndResolve) is intentional here. The URL is passed
+        // to the external LLM provider which fetches it — our server does not make the HTTP
+        // request, so DNS pinning is not applicable. The validation prevents sending internal
+        // URLs to external providers.
         $imageData = null;
         if ($request->hasFile('image')) {
             $imageData = base64_encode(file_get_contents($request->file('image')->path()));

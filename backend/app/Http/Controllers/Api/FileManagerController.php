@@ -8,6 +8,7 @@ use App\Services\AuditService;
 use App\Services\StorageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class FileManagerController extends Controller
@@ -35,10 +36,8 @@ class FileManagerController extends Controller
             $result = $this->storageService->listFiles($path, $page, $perPage);
             return response()->json($result);
         } catch (\Throwable $e) {
-            return response()->json([
-                'message' => 'Failed to list files.',
-                'error' => $e->getMessage(),
-            ], 500);
+            Log::error('File listing failed', ['path' => $path, 'exception' => $e]);
+            return response()->json(['message' => 'Failed to list files.'], 500);
         }
     }
 
@@ -127,7 +126,8 @@ class FileManagerController extends Controller
                     'size' => $result['size'],
                 ]);
             } catch (\Throwable $e) {
-                $errors[] = $file->getClientOriginalName() . ': ' . $e->getMessage();
+                Log::error('File upload failed', ['filename' => $file->getClientOriginalName(), 'exception' => $e]);
+                $errors[] = $file->getClientOriginalName() . ': upload failed.';
             }
         }
 
@@ -160,7 +160,8 @@ class FileManagerController extends Controller
         } catch (\InvalidArgumentException $e) {
             return response()->json(['message' => $e->getMessage()], 400);
         } catch (\Throwable $e) {
-            return response()->json(['message' => 'Download failed.', 'error' => $e->getMessage()], 500);
+            Log::error('File download failed', ['path' => $path, 'exception' => $e]);
+            return response()->json(['message' => 'Download failed.'], 500);
         }
     }
 
@@ -175,10 +176,8 @@ class FileManagerController extends Controller
             $this->auditService->log('file.deleted', null, [], ['path' => $path]);
             return response()->json(['message' => 'Deleted.']);
         } catch (\Throwable $e) {
-            return response()->json([
-                'message' => 'Delete failed.',
-                'error' => $e->getMessage(),
-            ], 500);
+            Log::error('File deletion failed', ['path' => $path, 'exception' => $e]);
+            return response()->json(['message' => 'Delete failed.'], 500);
         }
     }
 
@@ -202,10 +201,8 @@ class FileManagerController extends Controller
             $this->auditService->log('file.renamed', null, ['path' => $path], ['path' => $newPath]);
             return response()->json(['message' => 'Renamed.', 'path' => $newPath]);
         } catch (\Throwable $e) {
-            return response()->json([
-                'message' => 'Rename failed.',
-                'error' => $e->getMessage(),
-            ], 500);
+            Log::error('File rename failed', ['path' => $path, 'newName' => $newName, 'exception' => $e]);
+            return response()->json(['message' => 'Rename failed.'], 500);
         }
     }
 
@@ -229,10 +226,8 @@ class FileManagerController extends Controller
             $this->auditService->log('file.moved', null, ['path' => $path], ['path' => $newPath]);
             return response()->json(['message' => 'Moved.', 'path' => $newPath]);
         } catch (\Throwable $e) {
-            return response()->json([
-                'message' => 'Move failed.',
-                'error' => $e->getMessage(),
-            ], 500);
+            Log::error('File move failed', ['path' => $path, 'destination' => $destination, 'exception' => $e]);
+            return response()->json(['message' => 'Move failed.'], 500);
         }
     }
 

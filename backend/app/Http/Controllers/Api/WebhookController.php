@@ -9,6 +9,7 @@ use App\Services\UrlValidationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class WebhookController extends Controller
 {
@@ -117,8 +118,9 @@ class WebhookController extends Controller
      */
     public function test(Webhook $webhook): JsonResponse
     {
-        // Validate URL for SSRF protection before making request
-        if (!$this->urlValidator->validateUrl($webhook->url)) {
+        // Validate URL and resolve DNS for SSRF protection (pins DNS to prevent rebinding)
+        $resolved = $this->urlValidator->validateAndResolve($webhook->url);
+        if ($resolved === null) {
             return response()->json([
                 'message' => 'Webhook test failed: URL points to an internal or private address',
                 'success' => false,
@@ -138,6 +140,7 @@ class WebhookController extends Controller
 
             $response = Http::timeout(10)
                 ->withHeaders($headers)
+                ->withOptions($this->urlValidator->pinnedOptions($resolved))
                 ->post($webhook->url, $payload);
 
             // Log the delivery
@@ -157,17 +160,19 @@ class WebhookController extends Controller
                 'status_code' => $response->status(),
             ]);
         } catch (\Exception $e) {
-            // Log failed delivery
+            Log::error('Webhook test failed', ['webhook_id' => $webhook->id, 'exception' => $e]);
+
+            // Log failed delivery (generic message to avoid leaking internal details)
             $webhook->deliveries()->create([
                 'event' => 'webhook.test',
                 'payload' => $payload ?? [],
                 'response_code' => null,
-                'response_body' => $e->getMessage(),
+                'response_body' => 'Connection failed',
                 'success' => false,
             ]);
 
             return response()->json([
-                'message' => 'Webhook test failed: ' . $e->getMessage(),
+                'message' => 'Webhook test failed',
                 'success' => false,
             ], 500);
         }

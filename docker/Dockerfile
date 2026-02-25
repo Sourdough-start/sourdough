@@ -153,6 +153,11 @@ EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost/api/health || exit 1
 
+# Note: supervisord runs as root to manage child processes and bind port 80.
+# All child services (nginx, php-fpm, node, queue, scheduler, meilisearch)
+# run as www-data. See supervisord.conf for per-service user directives.
+# For additional hardening, run with: --security-opt=no-new-privileges:true
+
 # Entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
 

@@ -43,7 +43,7 @@
     "@tiptap/react": "^2.2.0",
     "@tiptap/starter-kit": "^2.2.0",
     "@types/dompurify": "^3.0.5",
-    "axios": "^1.6.8",
+    "axios": "^1.7.9",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "cmdk": "^1.1.1",
