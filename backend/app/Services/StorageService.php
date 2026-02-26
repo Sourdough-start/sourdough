@@ -24,6 +24,79 @@ class StorageService
     ];
 
     /**
+     * Default file-type whitelist when no types are configured (blocks executables).
+     */
+    private const DEFAULT_ALLOWED_TYPES = [
+        // Documents
+        'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp', 'rtf', 'txt', 'csv',
+        // Images
+        'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico', 'tiff', 'tif',
+        // Audio
+        'mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a',
+        // Video
+        'mp4', 'webm', 'avi', 'mov', 'mkv', 'wmv',
+        // Archives
+        'zip', 'rar', '7z', 'tar', 'gz',
+        // Other common safe types
+        'json', 'xml', 'yaml', 'yml', 'md',
+    ];
+
+    /**
+     * Return the effective upload policy from storage settings.
+     *
+     * @return array{max_bytes: int, allowed_extensions: array<string>}
+     */
+    public function getUploadPolicy(): array
+    {
+        $settings = SystemSetting::getGroup('storage');
+        $maxBytes = (int) ($settings['max_upload_size'] ?? 10485760);
+        $allowedTypes = $settings['allowed_file_types'] ?? [];
+
+        return [
+            'max_bytes' => $maxBytes,
+            'allowed_extensions' => !empty($allowedTypes) ? $allowedTypes : self::DEFAULT_ALLOWED_TYPES,
+        ];
+    }
+
+    /**
+     * Validate a single uploaded file against an upload policy.
+     * Returns a string error message, or null if valid.
+     */
+    public function validateUpload(UploadedFile $file, array $policy): ?string
+    {
+        if ($file->getSize() > $policy['max_bytes']) {
+            return $file->getClientOriginalName() . ': exceeds max size.';
+        }
+
+        $ext = strtolower($file->getClientOriginalExtension());
+        if (!in_array($ext, array_map('strtolower', $policy['allowed_extensions']), true)) {
+            return $file->getClientOriginalName() . ': file type not allowed.';
+        }
+
+        if (!$this->validateMimeType($file, $ext)) {
+            return $file->getClientOriginalName() . ': file type does not match content.';
+        }
+
+        return null;
+    }
+
+    /**
+     * Validate that file MIME type matches the claimed extension.
+     * Prevents extension spoofing attacks.
+     */
+    private function validateMimeType(UploadedFile $file, string $extension): bool
+    {
+        $mimeType = $file->getMimeType();
+        $extensionMimeMap = config('mime-types');
+
+        if (!isset($extensionMimeMap[$extension])) {
+            return false;
+        }
+
+        return in_array($mimeType, $extensionMimeMap[$extension], true);
+    }
+
+    /**
      * Get provider-specific settings from the storage group.
      */
     public function getProviderConfig(string $provider): array
@@ -495,5 +568,385 @@ class StorageService
         }
 
         return null;
+    }
+
+    // -------------------------------------------------------------------------
+    // Storage health, cleanup, analytics & stats
+    // -------------------------------------------------------------------------
+
+    /**
+     * Get storage health status (permissions, disk space).
+     */
+    public function getHealth(): array
+    {
+        $storagePath = storage_path();
+        $diskFree = disk_free_space($storagePath);
+        $diskTotal = disk_total_space($storagePath);
+        $diskFree = $diskFree !== false ? (int) $diskFree : 0;
+        $diskTotal = $diskTotal !== false ? (int) $diskTotal : 0;
+        $diskUsedPercent = $diskTotal > 0
+            ? round((1 - $diskFree / $diskTotal) * 100, 1)
+            : 0;
+
+        $checks = [
+            'writable' => is_writable($storagePath),
+            'disk_free_bytes' => $diskFree,
+            'disk_total_bytes' => $diskTotal,
+            'disk_used_percent' => $diskUsedPercent,
+        ];
+
+        $checks['status'] = $checks['writable'] && $checks['disk_used_percent'] < 90 ? 'healthy' : 'warning';
+        $checks['disk_free_formatted'] = $this->formatBytes($checks['disk_free_bytes']);
+        $checks['disk_total_formatted'] = $this->formatBytes($checks['disk_total_bytes']);
+
+        return $checks;
+    }
+
+    /**
+     * Get cleanup suggestions (local driver only).
+     */
+    public function getCleanupSuggestions(): array
+    {
+        $driver = SystemSetting::get('driver', 'local', 'storage');
+        $suggestions = [
+            'cache' => ['count' => 0, 'size' => 0, 'description' => 'Framework cache files'],
+            'temp' => ['count' => 0, 'size' => 0, 'description' => 'Temporary files older than 7 days'],
+            'old_backups' => ['count' => 0, 'size' => 0, 'description' => 'Backups beyond retention policy'],
+        ];
+        $totalReclaimable = 0;
+
+        if ($driver !== 'local') {
+            return [
+                'suggestions' => $suggestions,
+                'total_reclaimable' => 0,
+                'note' => 'Cleanup available for local storage only.',
+            ];
+        }
+
+        $cachePath = storage_path('framework/cache/data');
+        if (is_dir($cachePath)) {
+            $cacheSize = $this->getDirectorySize($cachePath);
+            $cacheCount = $this->countFilesInDir($cachePath);
+            $suggestions['cache'] = [
+                'count' => $cacheCount,
+                'size' => $cacheSize,
+                'size_formatted' => $this->formatBytes($cacheSize),
+                'description' => 'Framework cache files',
+            ];
+            $totalReclaimable += $cacheSize;
+        }
+
+        $tempPath = storage_path('app/temp');
+        if (is_dir($tempPath)) {
+            $cutoff = time() - (7 * 24 * 60 * 60);
+            [$tempCount, $tempSize] = $this->getOldFilesInDir($tempPath, $cutoff);
+            $suggestions['temp'] = [
+                'count' => $tempCount,
+                'size' => $tempSize,
+                'size_formatted' => $this->formatBytes($tempSize),
+                'description' => 'Temporary files older than 7 days',
+            ];
+            $totalReclaimable += $tempSize;
+        }
+
+        $backupsPath = storage_path('app/backups');
+        if (is_dir($backupsPath)) {
+            $keepCount = (int) config('backup.scheduled.retention.keep_count', 10);
+            $keepDays = (int) config('backup.scheduled.retention.keep_days', 30);
+            $cutoff = time() - ($keepDays * 24 * 60 * 60);
+            $backupFiles = [];
+            foreach (glob($backupsPath . '/*.zip') ?: [] as $f) {
+                $mtime = filemtime($f);
+                $backupFiles[] = ['path' => $f, 'mtime' => $mtime, 'size' => filesize($f)];
+            }
+            usort($backupFiles, fn ($a, $b) => $b['mtime'] <=> $a['mtime']);
+            $toRemove = [];
+            foreach (array_slice($backupFiles, $keepCount) as $f) {
+                if ($f['mtime'] < $cutoff) {
+                    $toRemove[] = $f;
+                }
+            }
+            $oldBackupSize = array_sum(array_column($toRemove, 'size'));
+            $suggestions['old_backups'] = [
+                'count' => count($toRemove),
+                'size' => $oldBackupSize,
+                'size_formatted' => $this->formatBytes($oldBackupSize),
+                'description' => 'Backups beyond retention policy',
+            ];
+            $totalReclaimable += $oldBackupSize;
+        }
+
+        return [
+            'suggestions' => $suggestions,
+            'total_reclaimable' => $totalReclaimable,
+            'total_reclaimable_formatted' => $this->formatBytes($totalReclaimable),
+        ];
+    }
+
+    /**
+     * Execute cleanup for a given type.
+     *
+     * @return array{files_removed: int, bytes_freed: int}
+     *
+     * @throws \InvalidArgumentException if driver is not local
+     */
+    public function executeCleanup(string $type): array
+    {
+        $driver = SystemSetting::get('driver', 'local', 'storage');
+        if ($driver !== 'local') {
+            throw new \InvalidArgumentException('Cleanup available for local storage only.');
+        }
+
+        $freed = 0;
+        $count = 0;
+
+        if ($type === 'cache') {
+            $cachePath = storage_path('framework/cache/data');
+            if (is_dir($cachePath)) {
+                $freed = $this->getDirectorySize($cachePath);
+                $count = $this->countFilesInDir($cachePath);
+                $this->deleteDirectoryContents($cachePath);
+            }
+        } elseif ($type === 'temp') {
+            $tempPath = storage_path('app/temp');
+            if (is_dir($tempPath)) {
+                $cutoff = time() - (7 * 24 * 60 * 60);
+                [$count, $freed] = $this->deleteOldFilesInDir($tempPath, $cutoff);
+            }
+        } elseif ($type === 'old_backups') {
+            $backupsPath = storage_path('app/backups');
+            $keepCount = (int) config('backup.scheduled.retention.keep_count', 10);
+            $keepDays = (int) config('backup.scheduled.retention.keep_days', 30);
+            $cutoff = time() - ($keepDays * 24 * 60 * 60);
+            $backupFiles = [];
+            foreach (glob($backupsPath . '/*.zip') ?: [] as $f) {
+                $backupFiles[] = ['path' => $f, 'mtime' => filemtime($f), 'size' => filesize($f)];
+            }
+            usort($backupFiles, fn ($a, $b) => $b['mtime'] <=> $a['mtime']);
+            foreach (array_slice($backupFiles, $keepCount) as $f) {
+                if ($f['mtime'] < $cutoff) {
+                    unlink($f['path']);
+                    $count++;
+                    $freed += $f['size'];
+                }
+            }
+        }
+
+        return ['files_removed' => $count, 'bytes_freed' => $freed];
+    }
+
+    /**
+     * Get storage analytics (by type, top files, recent files).
+     * Local driver only.
+     */
+    public function getAnalytics(): array
+    {
+        $driver = SystemSetting::get('driver', 'local', 'storage');
+        $analytics = [
+            'driver' => $driver,
+            'by_type' => [],
+            'top_files' => [],
+            'recent_files' => [],
+        ];
+
+        if ($driver === 'local') {
+            $disk = Storage::disk('local');
+            $allFiles = $disk->allFiles();
+
+            $byType = [];
+            $filesWithMeta = [];
+
+            foreach ($allFiles as $file) {
+                try {
+                    $size = $disk->size($file);
+                    $lastModified = $disk->lastModified($file);
+                    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION)) ?: 'none';
+                    $byType[$ext] = ($byType[$ext] ?? 0) + $size;
+                    $filesWithMeta[] = [
+                        'path' => $file,
+                        'size' => $size,
+                        'lastModified' => $lastModified,
+                        'name' => basename($file),
+                    ];
+                } catch (\Throwable $e) {
+                    continue;
+                }
+            }
+
+            arsort($byType);
+            $analytics['by_type'] = $byType;
+
+            usort($filesWithMeta, fn ($a, $b) => $b['size'] <=> $a['size']);
+            $topFiles = array_slice($filesWithMeta, 0, 10);
+            foreach ($topFiles as &$f) {
+                $f['size_formatted'] = $this->formatBytes($f['size']);
+                $f['lastModifiedFormatted'] = date('Y-m-d H:i:s', $f['lastModified']);
+            }
+            $analytics['top_files'] = $topFiles;
+
+            usort($filesWithMeta, fn ($a, $b) => $b['lastModified'] <=> $a['lastModified']);
+            $recentFiles = array_slice($filesWithMeta, 0, 10);
+            foreach ($recentFiles as &$f) {
+                $f['size_formatted'] = $this->formatBytes($f['size']);
+                $f['lastModifiedFormatted'] = date('Y-m-d H:i:s', $f['lastModified']);
+            }
+            $analytics['recent_files'] = $recentFiles;
+        } else {
+            $analytics['note'] = 'Analytics available for local storage only';
+        }
+
+        return $analytics;
+    }
+
+    /**
+     * Get storage usage statistics.
+     */
+    public function getStats(): array
+    {
+        $driver = SystemSetting::get('driver', 'local', 'storage');
+        $stats = [
+            'driver' => $driver,
+            'total_size' => 0,
+            'file_count' => 0,
+        ];
+
+        if ($driver === 'local') {
+            $files = Storage::disk('local')->allFiles();
+            $stats['file_count'] = count($files);
+
+            foreach ($files as $file) {
+                $stats['total_size'] += Storage::disk('local')->size($file);
+            }
+
+            $breakdown = [];
+            $directories = ['app', 'app/public', 'app/backups', 'framework/cache', 'framework/sessions', 'logs'];
+
+            foreach ($directories as $dir) {
+                $fullPath = storage_path($dir);
+                if (is_dir($fullPath)) {
+                    $size = $this->getDirectorySize($fullPath);
+                    $breakdown[$dir] = [
+                        'size' => $size,
+                        'size_formatted' => $this->formatBytes($size),
+                    ];
+                }
+            }
+            $stats['breakdown'] = $breakdown;
+        } elseif (in_array($driver, ['s3', 'gcs', 'azure', 'do_spaces', 'minio', 'b2'], true)) {
+            $stats['note'] = 'Cloud storage statistics require provider SDK integration';
+        }
+
+        // Format size
+        $stats['total_size_formatted'] = $this->formatBytes($stats['total_size']);
+
+        return $stats;
+    }
+
+    // -------------------------------------------------------------------------
+    // Filesystem helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * Get total size of a directory recursively (bytes).
+     */
+    private function getDirectorySize(string $path): int
+    {
+        $size = 0;
+
+        if (! is_dir($path)) {
+            return 0;
+        }
+
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
+            if ($file->isFile()) {
+                $size += $file->getSize();
+            }
+        }
+
+        return $size;
+    }
+
+    private function countFilesInDir(string $path): int
+    {
+        $count = 0;
+        if (! is_dir($path)) {
+            return 0;
+        }
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
+            if ($file->isFile()) {
+                $count++;
+            }
+        }
+        return $count;
+    }
+
+    /**
+     * @return array{int, int} [count, total_size]
+     */
+    private function getOldFilesInDir(string $path, int $cutoffTimestamp): array
+    {
+        $count = 0;
+        $size = 0;
+        if (! is_dir($path)) {
+            return [0, 0];
+        }
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
+            if ($file->isFile() && $file->getMTime() < $cutoffTimestamp) {
+                $count++;
+                $size += $file->getSize();
+            }
+        }
+        return [$count, $size];
+    }
+
+    private function deleteDirectoryContents(string $path): void
+    {
+        if (! is_dir($path)) {
+            return;
+        }
+        foreach (new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS | \RecursiveDirectoryIterator::CATCH_GET_CHILD),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        ) as $file) {
+            if ($file->isDir()) {
+                rmdir($file->getRealPath());
+            } else {
+                unlink($file->getRealPath());
+            }
+        }
+    }
+
+    /**
+     * @return array{int, int} [count, bytes_freed]
+     */
+    private function deleteOldFilesInDir(string $path, int $cutoffTimestamp): array
+    {
+        $count = 0;
+        $freed = 0;
+        if (! is_dir($path)) {
+            return [0, 0];
+        }
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
+            if ($file->isFile() && $file->getMTime() < $cutoffTimestamp) {
+                $freed += $file->getSize();
+                unlink($file->getRealPath());
+                $count++;
+            }
+        }
+        return [$count, $freed];
+    }
+
+    /**
+     * Format bytes to human-readable format.
+     */
+    private function formatBytes(int $bytes, int $precision = 2): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
+            $bytes /= 1024;
+        }
+
+        return round($bytes, $precision) . ' ' . $units[$i];
     }
 }

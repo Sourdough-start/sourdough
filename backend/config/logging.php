@@ -18,6 +18,8 @@ return [
         'access_days' => (int) env('ACCESS_LOG_RETENTION_DAYS', 2190),
     ],
 
+    'broadcast_enabled' => (bool) env('LOG_BROADCAST_ENABLED', false),
+
     'hipaa_access_logging_enabled' => (bool) env('HIPAA_ACCESS_LOGGING_ENABLED', true),
 
     'deprecations' => [

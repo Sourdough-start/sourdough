@@ -122,6 +122,30 @@ class TwoFactorService
     }
 
     /**
+     * Verify a 2FA code (TOTP or recovery) during login.
+     *
+     * @throws \RuntimeException with user-facing message on validation failure
+     */
+    public function completePendingVerification(User $user, string $code, bool $isRecoveryCode): void
+    {
+        if ($isRecoveryCode) {
+            if (!preg_match('/^[A-Z0-9]{4}-[A-Z0-9]{4}$/i', $code)) {
+                throw new \RuntimeException('Invalid recovery code format');
+            }
+            if (!$this->verifyRecoveryCode($user, strtoupper($code))) {
+                throw new \RuntimeException('Invalid recovery code');
+            }
+        } else {
+            if (!preg_match('/^\d{6}$/', $code)) {
+                throw new \RuntimeException('Verification code must be 6 digits');
+            }
+            if (!$this->verifyCode($user, $code)) {
+                throw new \RuntimeException('Invalid verification code');
+            }
+        }
+    }
+
+    /**
      * Regenerate recovery codes.
      */
     public function regenerateRecoveryCodes(User $user): array

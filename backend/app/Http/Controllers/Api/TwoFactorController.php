@@ -143,37 +143,16 @@ class TwoFactorController extends Controller
             ], 400);
         }
 
-        $code = $request->code;
-        // Use explicit flag if provided, otherwise fall back to format detection
-        $isRecoveryCode = $request->boolean('is_recovery_code', false);
-
-        // Additional format validation based on code type
-        if ($isRecoveryCode) {
-            // Recovery codes should match format: XXXX-XXXX
-            if (!preg_match('/^[A-Z0-9]{4}-[A-Z0-9]{4}$/i', $code)) {
-                return response()->json([
-                    'message' => 'Invalid recovery code format',
-                ], 400);
-            }
-
-            if (!$this->twoFactorService->verifyRecoveryCode($user, strtoupper($code))) {
-                return response()->json([
-                    'message' => 'Invalid recovery code',
-                ], 400);
-            }
-        } else {
-            // TOTP codes should be exactly 6 digits
-            if (!preg_match('/^\d{6}$/', $code)) {
-                return response()->json([
-                    'message' => 'Verification code must be 6 digits',
-                ], 400);
-            }
-
-            if (!$this->twoFactorService->verifyCode($user, $code)) {
-                return response()->json([
-                    'message' => 'Invalid verification code',
-                ], 400);
-            }
+        try {
+            $this->twoFactorService->completePendingVerification(
+                $user,
+                $request->code,
+                $request->boolean('is_recovery_code', false)
+            );
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 400);
         }
 
         // Clear 2FA session, set verified flag, and login user

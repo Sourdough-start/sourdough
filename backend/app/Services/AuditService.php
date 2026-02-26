@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Events\AuditLogCreated;
 use App\Models\AuditLog;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class AuditService
@@ -145,6 +147,103 @@ class AuditService
     ): ?AuditLog {
         $request = $request ?? (app()->bound(Request::class) ? request() : null);
         return $this->log($action, $model, $oldValues, $newValues, null, $request, $severity);
+    }
+
+    /**
+     * Build a filtered audit log query.
+     *
+     * @param array<string, mixed> $filters  Keys: user_id, action, severity, correlation_id, date_from, date_to
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function buildFilteredQuery(array $filters): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = AuditLog::with('user');
+
+        if (!empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+        if (!empty($filters['action'])) {
+            $query->where('action', 'like', "%{$filters['action']}%");
+        }
+        if (!empty($filters['severity'])) {
+            $query->where('severity', $filters['severity']);
+        }
+        if (isset($filters['correlation_id']) && $filters['correlation_id'] !== '') {
+            $query->where('correlation_id', $filters['correlation_id']);
+        }
+        if (!empty($filters['date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['date_from']);
+        }
+        if (!empty($filters['date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['date_to']);
+        }
+
+        return $query->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get filtered audit logs for export.
+     *
+     * @param array<string, mixed> $filters  Keys: user_id, action, severity, correlation_id, date_from, date_to
+     */
+    public function queryForExport(array $filters): Collection
+    {
+        return $this->buildFilteredQuery($filters)->get();
+    }
+
+    /**
+     * Get audit log statistics for a date range.
+     */
+    public function getStats(string $dateFrom, string $dateTo): array
+    {
+        $baseQuery = AuditLog::whereBetween('created_at', [$dateFrom, $dateTo . ' 23:59:59']);
+
+        return [
+            'total_actions' => (clone $baseQuery)->count(),
+            'actions_by_type' => (clone $baseQuery)
+                ->select('action', DB::raw('count(*) as count'))
+                ->groupBy('action')
+                ->orderByDesc('count')
+                ->limit(10)
+                ->get()
+                ->pluck('count', 'action'),
+            'actions_by_user' => (clone $baseQuery)
+                ->whereNotNull('user_id')
+                ->select('user_id', DB::raw('count(*) as count'))
+                ->groupBy('user_id')
+                ->orderByDesc('count')
+                ->limit(10)
+                ->with('user:id,name,email')
+                ->get()
+                ->map(fn ($item) => [
+                    'user' => $item->user,
+                    'count' => $item->count,
+                ]),
+            'by_severity' => (clone $baseQuery)
+                ->select('severity', DB::raw('count(*) as count'))
+                ->groupBy('severity')
+                ->get()
+                ->pluck('count', 'severity'),
+            'daily_trends' => (clone $baseQuery)
+                ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
+                ->groupByRaw('DATE(created_at)')
+                ->orderBy('date')
+                ->get()
+                ->pluck('count', 'date'),
+            'recent_warnings' => (clone $baseQuery)
+                ->whereIn('severity', ['warning', 'error', 'critical'])
+                ->with('user:id,name,email')
+                ->orderByDesc('created_at')
+                ->limit(5)
+                ->get()
+                ->map(fn ($log) => [
+                    'id' => $log->id,
+                    'action' => $log->action,
+                    'severity' => $log->severity,
+                    'created_at' => $log->created_at->toIso8601String(),
+                    'user' => $log->user,
+                ]),
+        ];
     }
 
     /**

@@ -93,6 +93,7 @@ export default function LogRetentionPage() {
       })
       .catch(() => toast.error("Failed to load log retention settings"))
       .finally(() => setIsLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSave = async () => {

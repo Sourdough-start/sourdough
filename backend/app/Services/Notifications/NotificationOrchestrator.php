@@ -523,6 +523,52 @@ class NotificationOrchestrator
     }
 
     /**
+     * Update a per-type, per-channel notification preference for a user.
+     *
+     * @return array{preferences: array}
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function setTypePreference(User $user, string $type, string $channel, bool $enabled): array
+    {
+        if (!self::isKnownChannel($channel)) {
+            throw new \InvalidArgumentException("Unknown channel: {$channel}");
+        }
+
+        $knownTypes = cache()->remember('notification_known_types', 300, function () {
+            return \App\Models\NotificationTemplate::query()
+                ->distinct()
+                ->pluck('type')
+                ->toArray();
+        });
+
+        if (!in_array($type, $knownTypes, true)) {
+            throw new \InvalidArgumentException("Unknown notification type: {$type}");
+        }
+
+        $prefs = $user->getSetting('notifications', 'type_preferences', []);
+        if (!is_array($prefs)) {
+            $prefs = [];
+        }
+
+        if ($enabled) {
+            unset($prefs[$type][$channel]);
+            if (isset($prefs[$type]) && empty($prefs[$type])) {
+                unset($prefs[$type]);
+            }
+        } else {
+            if (!isset($prefs[$type])) {
+                $prefs[$type] = [];
+            }
+            $prefs[$type][$channel] = false;
+        }
+
+        $user->setSetting('notifications', 'type_preferences', $prefs);
+
+        return ['preferences' => $prefs];
+    }
+
+    /**
      * Resolve a channel instance (public for use by SendNotificationChannelJob).
      */
     public function resolveChannel(string $channel): ?ChannelInterface

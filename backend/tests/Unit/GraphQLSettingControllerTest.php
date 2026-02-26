@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\GraphQLSettingController;
 use App\Services\ApiKeyService;
 use App\Services\AuditService;
 use App\Services\SettingService;
+use App\Services\UsageStatsService;
 
 describe('GraphQLSettingController', function () {
 
@@ -11,10 +12,12 @@ describe('GraphQLSettingController', function () {
         $this->settingService = $this->createMock(SettingService::class);
         $this->auditService = $this->createMock(AuditService::class);
         $this->apiKeyService = $this->createMock(ApiKeyService::class);
+        $this->usageStatsService = $this->createMock(UsageStatsService::class);
         $this->controller = new GraphQLSettingController(
             $this->settingService,
             $this->auditService,
             $this->apiKeyService,
+            $this->usageStatsService,
         );
     });
 

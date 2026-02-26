@@ -8,10 +8,13 @@ use App\Services\AuditService;
 use App\Services\StorageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class StorageSettingController extends Controller
 {
+    public function __construct(
+        private StorageService $storageService,
+    ) {}
+
     /**
      * Get storage settings.
      */
@@ -46,27 +49,13 @@ class StorageSettingController extends Controller
      */
     public function health(): JsonResponse
     {
-        $storagePath = storage_path();
-        $diskFree = disk_free_space($storagePath);
-        $diskTotal = disk_total_space($storagePath);
-        $diskFree = $diskFree !== false ? (int) $diskFree : 0;
-        $diskTotal = $diskTotal !== false ? (int) $diskTotal : 0;
-        $diskUsedPercent = $diskTotal > 0
-            ? round((1 - $diskFree / $diskTotal) * 100, 1)
-            : 0;
-
-        $checks = [
-            'writable' => is_writable($storagePath),
-            'disk_free_bytes' => $diskFree,
-            'disk_total_bytes' => $diskTotal,
-            'disk_used_percent' => $diskUsedPercent,
-        ];
-
-        $checks['status'] = $checks['writable'] && $checks['disk_used_percent'] < 90 ? 'healthy' : 'warning';
-        $checks['disk_free_formatted'] = $this->formatBytes($checks['disk_free_bytes']);
-        $checks['disk_total_formatted'] = $this->formatBytes($checks['disk_total_bytes']);
-
-        return response()->json($checks);
+        try {
+            return response()->json($this->storageService->getHealth());
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => 'Unable to get storage health: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -80,7 +69,7 @@ class StorageSettingController extends Controller
 
         $driver = $validated['driver'];
         $config = $request->except(['driver']);
-        $result = $this->storageService()->testConnection($driver, $config);
+        $result = $this->storageService->testConnection($driver, $config);
 
         if ($result['success']) {
             return response()->json(['success' => true]);
@@ -142,91 +131,13 @@ class StorageSettingController extends Controller
         ]);
     }
 
-    private function storageService(): StorageService
-    {
-        return app(StorageService::class);
-    }
-
     /**
      * Get cleanup suggestions (local driver only).
      */
     public function cleanupSuggestions(): JsonResponse
     {
         try {
-            $driver = SystemSetting::get('driver', 'local', 'storage');
-            $suggestions = [
-                'cache' => ['count' => 0, 'size' => 0, 'description' => 'Framework cache files'],
-                'temp' => ['count' => 0, 'size' => 0, 'description' => 'Temporary files older than 7 days'],
-                'old_backups' => ['count' => 0, 'size' => 0, 'description' => 'Backups beyond retention policy'],
-            ];
-            $totalReclaimable = 0;
-
-            if ($driver !== 'local') {
-                return response()->json([
-                    'suggestions' => $suggestions,
-                    'total_reclaimable' => 0,
-                    'note' => 'Cleanup available for local storage only.',
-                ]);
-            }
-
-            $cachePath = storage_path('framework/cache/data');
-            if (is_dir($cachePath)) {
-                $cacheSize = $this->getDirectorySize($cachePath);
-                $cacheCount = $this->countFilesInDir($cachePath);
-                $suggestions['cache'] = [
-                    'count' => $cacheCount,
-                    'size' => $cacheSize,
-                    'size_formatted' => $this->formatBytes($cacheSize),
-                    'description' => 'Framework cache files',
-                ];
-                $totalReclaimable += $cacheSize;
-            }
-
-            $tempPath = storage_path('app/temp');
-            if (is_dir($tempPath)) {
-                $cutoff = time() - (7 * 24 * 60 * 60);
-                [$tempCount, $tempSize] = $this->getOldFilesInDir($tempPath, $cutoff);
-                $suggestions['temp'] = [
-                    'count' => $tempCount,
-                    'size' => $tempSize,
-                    'size_formatted' => $this->formatBytes($tempSize),
-                    'description' => 'Temporary files older than 7 days',
-                ];
-                $totalReclaimable += $tempSize;
-            }
-
-            $backupsPath = storage_path('app/backups');
-            if (is_dir($backupsPath)) {
-                $keepCount = (int) config('backup.scheduled.retention.keep_count', 10);
-                $keepDays = (int) config('backup.scheduled.retention.keep_days', 30);
-                $cutoff = time() - ($keepDays * 24 * 60 * 60);
-                $backupFiles = [];
-                foreach (glob($backupsPath . '/*.zip') ?: [] as $f) {
-                    $mtime = filemtime($f);
-                    $backupFiles[] = ['path' => $f, 'mtime' => $mtime, 'size' => filesize($f)];
-                }
-                usort($backupFiles, fn ($a, $b) => $b['mtime'] <=> $a['mtime']);
-                $toRemove = [];
-                foreach (array_slice($backupFiles, $keepCount) as $f) {
-                    if ($f['mtime'] < $cutoff) {
-                        $toRemove[] = $f;
-                    }
-                }
-                $oldBackupSize = array_sum(array_column($toRemove, 'size'));
-                $suggestions['old_backups'] = [
-                    'count' => count($toRemove),
-                    'size' => $oldBackupSize,
-                    'size_formatted' => $this->formatBytes($oldBackupSize),
-                    'description' => 'Backups beyond retention policy',
-                ];
-                $totalReclaimable += $oldBackupSize;
-            }
-
-            return response()->json([
-                'suggestions' => $suggestions,
-                'total_reclaimable' => $totalReclaimable,
-                'total_reclaimable_formatted' => $this->formatBytes($totalReclaimable),
-            ]);
+            return response()->json($this->storageService->getCleanupSuggestions());
         } catch (\Throwable $e) {
             return response()->json([
                 'error' => 'Unable to get cleanup suggestions: ' . $e->getMessage(),
@@ -242,61 +153,24 @@ class StorageSettingController extends Controller
         $validated = $request->validate([
             'type' => ['required', 'string', 'in:cache,temp,old_backups'],
         ]);
-        $type = $validated['type'];
-
-        $driver = SystemSetting::get('driver', 'local', 'storage');
-        if ($driver !== 'local') {
-            return response()->json(['message' => 'Cleanup available for local storage only.'], 422);
-        }
 
         try {
-            $freed = 0;
-            $count = 0;
-
-            if ($type === 'cache') {
-                $cachePath = storage_path('framework/cache/data');
-                if (is_dir($cachePath)) {
-                    $freed = $this->getDirectorySize($cachePath);
-                    $count = $this->countFilesInDir($cachePath);
-                    $this->deleteDirectoryContents($cachePath);
-                }
-            } elseif ($type === 'temp') {
-                $tempPath = storage_path('app/temp');
-                if (is_dir($tempPath)) {
-                    $cutoff = time() - (7 * 24 * 60 * 60);
-                    [$count, $freed] = $this->deleteOldFilesInDir($tempPath, $cutoff);
-                }
-            } elseif ($type === 'old_backups') {
-                $backupsPath = storage_path('app/backups');
-                $keepCount = (int) config('backup.scheduled.retention.keep_count', 10);
-                $keepDays = (int) config('backup.scheduled.retention.keep_days', 30);
-                $cutoff = time() - ($keepDays * 24 * 60 * 60);
-                $backupFiles = [];
-                foreach (glob($backupsPath . '/*.zip') ?: [] as $f) {
-                    $backupFiles[] = ['path' => $f, 'mtime' => filemtime($f), 'size' => filesize($f)];
-                }
-                usort($backupFiles, fn ($a, $b) => $b['mtime'] <=> $a['mtime']);
-                foreach (array_slice($backupFiles, $keepCount) as $f) {
-                    if ($f['mtime'] < $cutoff) {
-                        unlink($f['path']);
-                        $count++;
-                        $freed += $f['size'];
-                    }
-                }
-            }
+            $result = $this->storageService->executeCleanup($validated['type']);
 
             app(AuditService::class)->log('storage.cleanup', null, [], [
-                'type' => $type,
-                'files_removed' => $count,
-                'bytes_freed' => $freed,
+                'type' => $validated['type'],
+                'files_removed' => $result['files_removed'],
+                'bytes_freed' => $result['bytes_freed'],
             ]);
 
             return response()->json([
                 'message' => 'Cleanup completed.',
-                'files_removed' => $count,
-                'bytes_freed' => $freed,
-                'bytes_freed_formatted' => $this->formatBytes($freed),
+                'files_removed' => $result['files_removed'],
+                'bytes_freed' => $result['bytes_freed'],
+                'bytes_freed_formatted' => $this->formatBytesForResponse($result['bytes_freed']),
             ]);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
         } catch (\Throwable $e) {
             return response()->json([
                 'message' => 'Cleanup failed.',
@@ -307,66 +181,11 @@ class StorageSettingController extends Controller
 
     /**
      * Get storage analytics (by type, top files, recent files).
-     * Local driver only.
      */
     public function analytics(): JsonResponse
     {
         try {
-            $driver = SystemSetting::get('driver', 'local', 'storage');
-            $analytics = [
-                'driver' => $driver,
-                'by_type' => [],
-                'top_files' => [],
-                'recent_files' => [],
-            ];
-
-            if ($driver === 'local') {
-                $disk = Storage::disk('local');
-                $allFiles = $disk->allFiles();
-
-                $byType = [];
-                $filesWithMeta = [];
-
-                foreach ($allFiles as $file) {
-                    try {
-                        $size = $disk->size($file);
-                        $lastModified = $disk->lastModified($file);
-                        $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION)) ?: 'none';
-                        $byType[$ext] = ($byType[$ext] ?? 0) + $size;
-                        $filesWithMeta[] = [
-                            'path' => $file,
-                            'size' => $size,
-                            'lastModified' => $lastModified,
-                            'name' => basename($file),
-                        ];
-                    } catch (\Throwable $e) {
-                        continue;
-                    }
-                }
-
-                arsort($byType);
-                $analytics['by_type'] = $byType;
-
-                usort($filesWithMeta, fn ($a, $b) => $b['size'] <=> $a['size']);
-                $topFiles = array_slice($filesWithMeta, 0, 10);
-                foreach ($topFiles as &$f) {
-                    $f['size_formatted'] = $this->formatBytes($f['size']);
-                    $f['lastModifiedFormatted'] = date('Y-m-d H:i:s', $f['lastModified']);
-                }
-                $analytics['top_files'] = $topFiles;
-
-                usort($filesWithMeta, fn ($a, $b) => $b['lastModified'] <=> $a['lastModified']);
-                $recentFiles = array_slice($filesWithMeta, 0, 10);
-                foreach ($recentFiles as &$f) {
-                    $f['size_formatted'] = $this->formatBytes($f['size']);
-                    $f['lastModifiedFormatted'] = date('Y-m-d H:i:s', $f['lastModified']);
-                }
-                $analytics['recent_files'] = $recentFiles;
-            } else {
-                $analytics['note'] = 'Analytics available for local storage only';
-            }
-
-            return response()->json($analytics);
+            return response()->json($this->storageService->getAnalytics());
         } catch (\Throwable $e) {
             return response()->json([
                 'error' => 'Unable to retrieve storage analytics: ' . $e->getMessage(),
@@ -380,43 +199,7 @@ class StorageSettingController extends Controller
     public function stats(): JsonResponse
     {
         try {
-            $driver = SystemSetting::get('driver', 'local', 'storage');
-            $stats = [
-                'driver' => $driver,
-                'total_size' => 0,
-                'file_count' => 0,
-            ];
-
-            if ($driver === 'local') {
-                $files = Storage::disk('local')->allFiles();
-                $stats['file_count'] = count($files);
-
-                foreach ($files as $file) {
-                    $stats['total_size'] += Storage::disk('local')->size($file);
-                }
-
-                $breakdown = [];
-                $directories = ['app', 'app/public', 'app/backups', 'framework/cache', 'framework/sessions', 'logs'];
-
-                foreach ($directories as $dir) {
-                    $fullPath = storage_path($dir);
-                    if (is_dir($fullPath)) {
-                        $size = $this->getDirectorySize($fullPath);
-                        $breakdown[$dir] = [
-                            'size' => $size,
-                            'size_formatted' => $this->formatBytes($size),
-                        ];
-                    }
-                }
-                $stats['breakdown'] = $breakdown;
-            } elseif (in_array($driver, ['s3', 'gcs', 'azure', 'do_spaces', 'minio', 'b2'], true)) {
-                $stats['note'] = 'Cloud storage statistics require provider SDK integration';
-            }
-
-            // Format size
-            $stats['total_size_formatted'] = $this->formatBytes($stats['total_size']);
-
-            return response()->json($stats);
+            return response()->json($this->storageService->getStats());
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Unable to retrieve storage statistics: ' . $e->getMessage(),
@@ -425,99 +208,9 @@ class StorageSettingController extends Controller
     }
 
     /**
-     * Get total size of a directory recursively (bytes).
+     * Simple byte formatting for controller-level response decoration.
      */
-    private function getDirectorySize(string $path): int
-    {
-        $size = 0;
-
-        if (! is_dir($path)) {
-            return 0;
-        }
-
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
-            if ($file->isFile()) {
-                $size += $file->getSize();
-            }
-        }
-
-        return $size;
-    }
-
-    private function countFilesInDir(string $path): int
-    {
-        $count = 0;
-        if (! is_dir($path)) {
-            return 0;
-        }
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
-            if ($file->isFile()) {
-                $count++;
-            }
-        }
-        return $count;
-    }
-
-    /**
-     * @return array{int, int} [count, total_size]
-     */
-    private function getOldFilesInDir(string $path, int $cutoffTimestamp): array
-    {
-        $count = 0;
-        $size = 0;
-        if (! is_dir($path)) {
-            return [0, 0];
-        }
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
-            if ($file->isFile() && $file->getMTime() < $cutoffTimestamp) {
-                $count++;
-                $size += $file->getSize();
-            }
-        }
-        return [$count, $size];
-    }
-
-    private function deleteDirectoryContents(string $path): void
-    {
-        if (! is_dir($path)) {
-            return;
-        }
-        foreach (new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS | \RecursiveDirectoryIterator::CATCH_GET_CHILD),
-            \RecursiveIteratorIterator::CHILD_FIRST
-        ) as $file) {
-            if ($file->isDir()) {
-                rmdir($file->getRealPath());
-            } else {
-                unlink($file->getRealPath());
-            }
-        }
-    }
-
-    /**
-     * @return array{int, int} [count, bytes_freed]
-     */
-    private function deleteOldFilesInDir(string $path, int $cutoffTimestamp): array
-    {
-        $count = 0;
-        $freed = 0;
-        if (! is_dir($path)) {
-            return [0, 0];
-        }
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
-            if ($file->isFile() && $file->getMTime() < $cutoffTimestamp) {
-                $freed += $file->getSize();
-                unlink($file->getRealPath());
-                $count++;
-            }
-        }
-        return [$count, $freed];
-    }
-
-    /**
-     * Format bytes to human-readable format.
-     */
-    private function formatBytes(int $bytes, int $precision = 2): string
+    private function formatBytesForResponse(int $bytes, int $precision = 2): string
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
 

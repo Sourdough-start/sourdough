@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\AuditService;
+use App\Services\EmailConfigService;
 use App\Services\SettingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -58,7 +59,8 @@ class MailSettingController extends Controller
 
     public function __construct(
         private SettingService $settingService,
-        private AuditService $auditService
+        private AuditService $auditService,
+        private EmailConfigService $emailConfigService
     ) {}
 
     /**
@@ -146,7 +148,7 @@ class MailSettingController extends Controller
         ]);
 
         $settings = $this->settingService->getGroup(self::GROUP);
-        $this->applyMailConfigForRequest($settings);
+        $this->emailConfigService->applySettingsToConfig($settings);
 
         try {
             Mail::raw('This is a test email from your application.', function ($message) use ($validated, $settings) {
@@ -175,62 +177,6 @@ class MailSettingController extends Controller
             return response()->json([
                 'message' => 'Failed to send test email: ' . $message,
             ], 500);
-        }
-    }
-
-    /**
-     * Apply mail settings to config for the current request (e.g. test email).
-     */
-    private function applyMailConfigForRequest(array $settings): void
-    {
-        if (isset($settings['mailer'])) {
-            config(['mail.default' => $settings['mailer']]);
-        }
-
-        // SMTP
-        config([
-            'mail.mailers.smtp.host' => $settings['smtp_host'] ?? config('mail.mailers.smtp.host'),
-            'mail.mailers.smtp.port' => $settings['smtp_port'] ?? config('mail.mailers.smtp.port'),
-            'mail.mailers.smtp.encryption' => $settings['smtp_encryption'] ?? config('mail.mailers.smtp.encryption'),
-            'mail.mailers.smtp.username' => $settings['smtp_username'] ?? config('mail.mailers.smtp.username'),
-            'mail.mailers.smtp.password' => $settings['smtp_password'] ?? config('mail.mailers.smtp.password'),
-        ]);
-
-        // Mailgun
-        if (!empty($settings['mailgun_domain'])) {
-            config(['services.mailgun.domain' => $settings['mailgun_domain']]);
-        }
-        if (!empty($settings['mailgun_secret'])) {
-            config(['services.mailgun.secret' => $settings['mailgun_secret']]);
-        }
-
-        // SendGrid
-        if (!empty($settings['sendgrid_api_key'])) {
-            config(['services.sendgrid.api_key' => $settings['sendgrid_api_key']]);
-        }
-
-        // SES
-        if (!empty($settings['ses_key'])) {
-            config(['services.ses.key' => $settings['ses_key']]);
-        }
-        if (!empty($settings['ses_secret'])) {
-            config(['services.ses.secret' => $settings['ses_secret']]);
-        }
-        if (!empty($settings['ses_region'])) {
-            config(['services.ses.region' => $settings['ses_region']]);
-        }
-
-        // Postmark
-        if (!empty($settings['postmark_token'])) {
-            config(['services.postmark.token' => $settings['postmark_token']]);
-        }
-
-        // From address/name
-        if (isset($settings['from_address'])) {
-            config(['mail.from.address' => $settings['from_address']]);
-        }
-        if (isset($settings['from_name'])) {
-            config(['mail.from.name' => $settings['from_name']]);
         }
     }
 }

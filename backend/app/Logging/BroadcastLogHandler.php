@@ -15,7 +15,7 @@ class BroadcastLogHandler extends AbstractProcessingHandler
 
     protected function write(LogRecord $record): void
     {
-        if (! filter_var(env('LOG_BROADCAST_ENABLED', false), FILTER_VALIDATE_BOOLEAN)) {
+        if (! config('logging.broadcast_enabled', false)) {
             return;
         }
 

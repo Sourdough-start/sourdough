@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Api\StripePaymentController;
 use App\Models\Payment;
-use App\Models\StripeCustomer;
 use App\Services\SettingService;
 use App\Services\Stripe\StripeService;
 
@@ -81,15 +80,8 @@ describe('StripePaymentController', function () {
 
         it('creates payment intent and local payment record', function () {
             config(['stripe.currency' => 'usd']);
-            config(['stripe.application_fee_percent' => 1.0]);
 
             $user = createUser();
-
-            // Create local StripeCustomer record so foreign key works
-            StripeCustomer::create([
-                'user_id' => $user->id,
-                'stripe_customer_id' => 'cus_123',
-            ]);
 
             $this->settingService
                 ->method('get')
@@ -97,14 +89,10 @@ describe('StripePaymentController', function () {
                 ->willReturn('acct_connected_123');
 
             $this->stripeService
-                ->method('createCustomer')
-                ->willReturn(['success' => true, 'customer_id' => 'cus_123']);
-
-            $this->stripeService
-                ->method('createPaymentIntent')
+                ->method('initiatePayment')
                 ->willReturn([
                     'success' => true,
-                    'payment_intent_id' => 'pi_test_123',
+                    'payment_id' => 42,
                     'client_secret' => 'pi_test_123_secret',
                 ]);
 
@@ -119,26 +107,17 @@ describe('StripePaymentController', function () {
 
             expect($response->getStatusCode())->toBe(201);
             expect($data['client_secret'])->toBe('pi_test_123_secret');
-            expect($data['payment_id'])->toBeGreaterThan(0);
-
-            // Verify local Payment record was created
-            $payment = Payment::find($data['payment_id']);
-            expect($payment)->not->toBeNull();
-            expect($payment->user_id)->toBe($user->id);
-            expect($payment->stripe_payment_intent_id)->toBe('pi_test_123');
-            expect($payment->amount)->toBe(1000);
-            expect($payment->status)->toBe('requires_payment_method');
-            expect($payment->application_fee_amount)->toBe(10); // 1% of 1000
+            expect($data['payment_id'])->toBe(42);
         });
 
-        it('returns 500 when customer creation fails', function () {
+        it('returns 500 when initiatePayment fails', function () {
             $this->settingService
                 ->method('get')
                 ->with('stripe', 'connected_account_id')
                 ->willReturn('acct_connected_123');
 
             $this->stripeService
-                ->method('createCustomer')
+                ->method('initiatePayment')
                 ->willReturn(['success' => false, 'error' => 'Stripe API error']);
 
             $request = Illuminate\Http\Request::create('/api/payments/intent', 'POST', [

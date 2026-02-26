@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Traits\ApiResponseTrait;
 use App\Models\Payment;
-use App\Models\StripeCustomer;
 use App\Services\SettingService;
 use App\Services\Stripe\StripeService;
 use Illuminate\Http\JsonResponse;
@@ -64,47 +63,23 @@ class StripePaymentController extends Controller
             return $this->errorResponse('No connected Stripe account configured', 422);
         }
 
-        // Get or create Stripe customer for this user
-        $customerResult = $this->stripeService->createCustomer($request->user());
-        if (! $customerResult['success']) {
-            return $this->errorResponse($customerResult['error'] ?? 'Failed to create Stripe customer', 500);
-        }
-
         $currency = $validated['currency'] ?? config('stripe.currency', 'usd');
 
-        $result = $this->stripeService->createPaymentIntent([
-            'amount' => $validated['amount'],
-            'currency' => $currency,
-            'connected_account_id' => $connectedAccountId,
-            'customer_id' => $customerResult['customer_id'],
-            'description' => $validated['description'] ?? null,
-            'metadata' => $validated['metadata'] ?? [],
-        ]);
+        $result = $this->stripeService->initiatePayment(
+            user: $request->user(),
+            amount: $validated['amount'],
+            currency: $currency,
+            connectedAccountId: $connectedAccountId,
+            description: $validated['description'] ?? null,
+            metadata: $validated['metadata'] ?? [],
+        );
 
-        if (! $result['success']) {
-            return $this->errorResponse($result['error'] ?? 'Failed to create payment intent', 500);
+        if (!$result['success']) {
+            return $this->errorResponse($result['error'] ?? 'Payment failed', 500);
         }
 
-        // Look up the local StripeCustomer record to get its DB ID for the foreign key
-        $stripeCustomer = StripeCustomer::where('stripe_customer_id', $customerResult['customer_id'])->first();
-
-        $feePercent = (float) config('stripe.application_fee_percent', 1.0);
-
-        $payment = Payment::create([
-            'user_id' => $request->user()->id,
-            'stripe_customer_id' => $stripeCustomer?->id,
-            'stripe_payment_intent_id' => $result['payment_intent_id'],
-            'amount' => $validated['amount'],
-            'currency' => $currency,
-            'status' => 'requires_payment_method',
-            'description' => $validated['description'] ?? null,
-            'metadata' => $validated['metadata'] ?? null,
-            'stripe_account_id' => $connectedAccountId,
-            'application_fee_amount' => (int) round($validated['amount'] * ($feePercent / 100)),
-        ]);
-
         return $this->dataResponse([
-            'payment_id' => $payment->id,
+            'payment_id' => $result['payment_id'],
             'client_secret' => $result['client_secret'],
         ], 201);
     }

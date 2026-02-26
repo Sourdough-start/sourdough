@@ -1,5 +1,3 @@
-"use client";
-
 import { User, Bell, Mail, Key, Bot, Webhook, FileText, Users, MessageSquareText, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 

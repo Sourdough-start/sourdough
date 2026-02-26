@@ -5,12 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Traits\ApiResponseTrait;
 use App\Models\ApiToken;
-use App\Models\IntegrationUsage;
-use App\Models\User;
 use App\Services\ApiKeyService;
 use App\Services\AuditService;
 use App\Services\SettingService;
-use Carbon\Carbon;
+use App\Services\UsageStatsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -23,7 +21,8 @@ class GraphQLSettingController extends Controller
     public function __construct(
         private SettingService $settingService,
         private AuditService $auditService,
-        private ApiKeyService $apiKeyService
+        private ApiKeyService $apiKeyService,
+        private UsageStatsService $usageStatsService
     ) {}
 
     /**
@@ -70,42 +69,8 @@ class GraphQLSettingController extends Controller
      */
     public function adminApiKeys(Request $request): JsonResponse
     {
-        $query = ApiToken::withTrashed()
-            ->whereNotNull('key_prefix')
-            ->where('key_prefix', 'like', 'sk_%')
-            ->with('user:id,name,email');
-
-        if ($request->filled('status')) {
-            match ($request->input('status')) {
-                'active' => $query->active(),
-                'expired' => $query->expired(),
-                'revoked' => $query->revoked(),
-                default => null,
-            };
-        }
-
-        if ($request->filled('user_id')) {
-            $query->where('user_id', $request->input('user_id'));
-        }
-
-        if ($request->filled('user')) {
-            $search = str_replace(['%', '_'], ['\\%', '\\_'], $request->input('user'));
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->input('expiring_soon') === 'true') {
-            $query->whereNotNull('expires_at')
-                ->where('expires_at', '>', now())
-                ->where('expires_at', '<=', now()->addDays(7))
-                ->whereNull('revoked_at');
-        }
-
-        $query->orderByDesc('created_at');
-
-        $keys = $query->paginate($request->input('per_page', 50));
+        $filters = $request->only(['status', 'user_id', 'user', 'expiring_soon']);
+        $keys = $this->apiKeyService->listAdminKeys($filters, (int) $request->input('per_page', 50));
 
         $keys->getCollection()->transform(function (ApiToken $token) {
             return [
@@ -121,7 +86,7 @@ class GraphQLSettingController extends Controller
                 'last_used_at' => $token->last_used_at?->toIso8601String(),
                 'expires_at' => $token->expires_at?->toIso8601String(),
                 'revoked_at' => $token->revoked_at?->toIso8601String(),
-                'status' => $this->getKeyStatus($token),
+                'status' => $this->apiKeyService->getKeyStatus($token),
             ];
         });
 
@@ -202,85 +167,7 @@ class GraphQLSettingController extends Controller
     public function usageStats(Request $request): JsonResponse
     {
         $days = (int) $request->input('days', 30);
-        $days = min(max($days, 1), 365);
 
-        $total7d = IntegrationUsage::byIntegration('api')
-            ->where('created_at', '>=', now()->subDays(7))
-            ->sum('quantity');
-
-        $total30d = IntegrationUsage::byIntegration('api')
-            ->where('created_at', '>=', now()->subDays(30))
-            ->sum('quantity');
-
-        // Daily breakdown for chart
-        $daily = IntegrationUsage::byIntegration('api')
-            ->where('created_at', '>=', now()->subDays($days))
-            ->selectRaw("DATE(created_at) as date, SUM(quantity) as count")
-            ->groupBy('date')
-            ->orderBy('date')
-            ->pluck('count', 'date')
-            ->toArray();
-
-        // Top 10 users by request count
-        $topUserRows = IntegrationUsage::byIntegration('api')
-            ->where('created_at', '>=', now()->subDays($days))
-            ->whereNotNull('user_id')
-            ->selectRaw('user_id, SUM(quantity) as total_requests')
-            ->groupBy('user_id')
-            ->orderByDesc('total_requests')
-            ->limit(10)
-            ->get();
-
-        $userIds = $topUserRows->pluck('user_id')->all();
-        $users = User::select('id', 'name', 'email')
-            ->whereIn('id', $userIds)
-            ->get()
-            ->keyBy('id');
-
-        $topUsers = $topUserRows->map(function ($row) use ($users) {
-            $user = $users->get($row->user_id);
-
-            return [
-                'user_id' => $row->user_id,
-                'name' => $user?->name ?? "User #{$row->user_id}",
-                'email' => $user?->email,
-                'total_requests' => (int) $row->total_requests,
-            ];
-        });
-
-        // Top 10 query names — use DB-appropriate JSON extraction
-        $driver = IntegrationUsage::query()->getConnection()->getDriverName();
-        $jsonExpr = match ($driver) {
-            'pgsql' => "metadata->>'query_name'",
-            default => "JSON_EXTRACT(metadata, '$.query_name')",
-        };
-        $topQueries = IntegrationUsage::byIntegration('api')
-            ->where('created_at', '>=', now()->subDays($days))
-            ->whereNotNull('metadata')
-            ->selectRaw("{$jsonExpr} as query_name, SUM(quantity) as total_requests")
-            ->groupBy('query_name')
-            ->orderByDesc('total_requests')
-            ->limit(10)
-            ->get()
-            ->filter(fn ($row) => $row->query_name !== null)
-            ->map(fn ($row) => [
-                // SQLite's JSON_EXTRACT returns double-quoted strings; trim them
-                'query_name' => trim($row->query_name, '"'),
-                'total_requests' => (int) $row->total_requests,
-            ])
-            ->values();
-
-        return $this->dataResponse([
-            'total_7d' => (int) $total7d,
-            'total_30d' => (int) $total30d,
-            'daily' => $daily,
-            'top_users' => $topUsers,
-            'top_queries' => $topQueries,
-        ]);
-    }
-
-    private function getKeyStatus(ApiToken $token): string
-    {
-        return $this->apiKeyService->getKeyStatus($token);
+        return $this->dataResponse($this->usageStatsService->getApiUsageStats($days));
     }
 }

@@ -66,6 +66,64 @@ class EmailConfigService
     }
 
     /**
+     * Apply mail settings to Laravel runtime config for the current request.
+     *
+     * @param array<string, mixed> $settings  Settings keyed by schema names (mailer, smtp_host, etc.)
+     */
+    public function applySettingsToConfig(array $settings): void
+    {
+        if (isset($settings['mailer'])) {
+            config(['mail.default' => $settings['mailer']]);
+        }
+
+        // SMTP
+        config([
+            'mail.mailers.smtp.host' => $settings['smtp_host'] ?? config('mail.mailers.smtp.host'),
+            'mail.mailers.smtp.port' => $settings['smtp_port'] ?? config('mail.mailers.smtp.port'),
+            'mail.mailers.smtp.encryption' => $settings['smtp_encryption'] ?? config('mail.mailers.smtp.encryption'),
+            'mail.mailers.smtp.username' => $settings['smtp_username'] ?? config('mail.mailers.smtp.username'),
+            'mail.mailers.smtp.password' => $settings['smtp_password'] ?? config('mail.mailers.smtp.password'),
+        ]);
+
+        // Mailgun
+        if (!empty($settings['mailgun_domain'])) {
+            config(['services.mailgun.domain' => $settings['mailgun_domain']]);
+        }
+        if (!empty($settings['mailgun_secret'])) {
+            config(['services.mailgun.secret' => $settings['mailgun_secret']]);
+        }
+
+        // SendGrid
+        if (!empty($settings['sendgrid_api_key'])) {
+            config(['services.sendgrid.api_key' => $settings['sendgrid_api_key']]);
+        }
+
+        // SES
+        if (!empty($settings['ses_key'])) {
+            config(['services.ses.key' => $settings['ses_key']]);
+        }
+        if (!empty($settings['ses_secret'])) {
+            config(['services.ses.secret' => $settings['ses_secret']]);
+        }
+        if (!empty($settings['ses_region'])) {
+            config(['services.ses.region' => $settings['ses_region']]);
+        }
+
+        // Postmark
+        if (!empty($settings['postmark_token'])) {
+            config(['services.postmark.token' => $settings['postmark_token']]);
+        }
+
+        // From address/name
+        if (isset($settings['from_address'])) {
+            config(['mail.from.address' => $settings['from_address']]);
+        }
+        if (isset($settings['from_name'])) {
+            config(['mail.from.name' => $settings['from_name']]);
+        }
+    }
+
+    /**
      * @param array<string, mixed> $settings
      * @return array<string>
      */

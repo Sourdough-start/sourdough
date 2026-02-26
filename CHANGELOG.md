@@ -5,29 +5,88 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
-
-
 ## [0.6.4] - 2026-02-24
 
 ### Fixed
-- Migrate Semgrep to direct CLI with rule exclusions, fix flaky GraphQL error test
+- Migrated Semgrep from GitHub Action to direct CLI with rule exclusions for cleaner CI
+- Fixed flaky GraphQL error test
+
 ## [0.6.3] - 2026-02-24
 
 ### Fixed
-- Resolve Semgrep CI findings with nosemgrep suppressions and shared security headers include
+- Resolved Semgrep CI findings with nosemgrep suppressions for false positives
+- Added shared security headers Nginx include file
+
 ## [0.6.2] - 2026-02-24
 
+### Security
+- SSRF protection hardening with DNS pinning to prevent DNS rebinding attacks
+- Internal error details no longer leak to API responses
+- Added security headers to Nginx configuration
+
+## [0.6.1] - 2026-02-24
+
 ### Changed
-- Migrate passkey auth to Laragear WebAuthn request types
+- Migrated passkey authentication from custom PasskeyService to Laragear WebAuthn typed request classes
+- Simplified PasskeyController register/login flows using built-in request methods
+- Added Auth::logout() and session invalidation when disabled user attempts passkey login
+- Updated User model and auth config for WebAuthn compatibility
+
+## [0.6.0] - 2026-02-23
+
+### Added
+- GraphQL introspection enabled for development tooling
+- Release test gates — push.ps1 now runs backend and frontend tests before releasing
+- Passkeys code review task added to roadmap
 
 ### Fixed
-- Harden SSRF protection with DNS pinning, suppress internal error leaks, add nginx security headers
+- Registered Lighthouse service provider in bootstrap/providers.php for Laravel 11 GraphQL routes
+- Removed incorrect @field directives from GraphQL schema to allow Lighthouse auto-discovery
+- Fixed RefreshDatabase transaction isolation so test data is visible to GraphQL HTTP requests
+- Added context-based user resolution for GraphQL resolvers with auth guard fallback
+- Fixed DisableIntrospection to use int constants with explicit feature gate in tests
+
+## [0.5.2] - 2026-02-22
+
+### Fixed
+- Corrected Lighthouse error handlers and Stripe webhook test expectations
+
+## [0.5.1] - 2026-02-22
+
+### Fixed
+- Resolved CI test failures in Stripe webhook, GraphQL, and API key tests
+
+## [0.5.0] - 2026-02-22
+
+### Added
+- Stripe Connect integration with 1% application fee, Connect onboarding, webhooks, payment history, and settings UI
+- GraphQL API via Lighthouse with queries and mutations for notifications, profile, and settings
+- Notification delivery tracking across all notification channels
+- API key management — create, revoke, and manage API keys for programmatic access
+- PWA improvements for enhanced progressive web app experience
+
+## [0.4.0] - 2026-02-15
+
+### Added
+- Notification system overhaul with per-user settings, timezone support, and channel management
+- Push subscription expiry detection that auto-removes stale subscriptions
 
 ### Changed
-- Release v0.6.1
-- Release v0.6.0
-## [0.3.0] - 2026-02-15
+- Replaced hand-rolled RFC 8291 WebPush payload encryption with minishlink/web-push library
+- Release tooling — push.ps1 now auto-detects branch, guards against detached HEAD, supports non-interactive mode
+
+### Fixed
+- Fixed TypeScript error in notifications page by properly casting Object.values() result
+- Updated composer.lock to include minishlink/web-push dependencies
+
+## [0.3.1] - 2026-02-15
+
+### Added
+- Service worker cache versioning — release pipeline auto-updates CACHE_VERSION in sw.js
+- Service worker cleans up old versioned caches on activate
+- Expanded add-searchable-model recipe with dedicated search methods, validation, and Scout config
+
+## [0.3.0] - 2026-02-16
 
 ### Fixed
 - SystemSetting model returned string "null" instead of PHP null when settings were cleared, causing broken images in branding after logo deletion
@@ -36,6 +95,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - SystemSetting value getter now uses json_last_error() instead of null-coalescing operator for correct null handling
 - Frontend branding settings and app-config provider sanitize the string "null" as defense-in-depth
+
+## [0.2.0] - 2026-02-15
+
+### Added
+- Integration Usage Dashboard with cost tracking across LLM, Email, SMS, Storage, and Broadcasting providers
+- Usage stats API with date range, integration, and provider filters
+- Stacked area chart for cost trends and sortable provider breakdown table
+- Cost alert budgets with daily scheduled checks and admin notifications
+- CSV export of filtered usage data
+- Monthly cost dashboard widget with sparkline trend
+- Per-user cost attribution for LLM and SMS integrations
+- "Get Cooking" tiered setup wizard for new project customization
+- Changelog page in Configuration area for viewing version history
+
+### Changed
+- Dark mode fixes across configuration pages for consistent theme adherence
+
+### Fixed
+- Fixed theme preference race condition — use localStorage as single source of truth instead of stale API values
 
 ## [0.1.26] - 2026-02-14
 

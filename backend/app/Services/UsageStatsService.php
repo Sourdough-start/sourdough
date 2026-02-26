@@ -76,6 +76,88 @@ class UsageStatsService
     }
 
     /**
+     * Get API-specific usage statistics for the GraphQL admin dashboard.
+     *
+     * @return array{total_7d: int, total_30d: int, daily: array, top_users: array, top_queries: array}
+     */
+    public function getApiUsageStats(int $days = 30): array
+    {
+        $days = min(max($days, 1), 365);
+
+        $total7d = IntegrationUsage::byIntegration('api')
+            ->where('created_at', '>=', now()->subDays(7))
+            ->sum('quantity');
+
+        $total30d = IntegrationUsage::byIntegration('api')
+            ->where('created_at', '>=', now()->subDays(30))
+            ->sum('quantity');
+
+        $daily = IntegrationUsage::byIntegration('api')
+            ->where('created_at', '>=', now()->subDays($days))
+            ->selectRaw("DATE(created_at) as date, SUM(quantity) as count")
+            ->groupBy('date')
+            ->orderBy('date')
+            ->pluck('count', 'date')
+            ->toArray();
+
+        // Top 10 users by request count
+        $topUserRows = IntegrationUsage::byIntegration('api')
+            ->where('created_at', '>=', now()->subDays($days))
+            ->whereNotNull('user_id')
+            ->selectRaw('user_id, SUM(quantity) as total_requests')
+            ->groupBy('user_id')
+            ->orderByDesc('total_requests')
+            ->limit(10)
+            ->get();
+
+        $userIds = $topUserRows->pluck('user_id')->all();
+        $users = User::select('id', 'name', 'email')
+            ->whereIn('id', $userIds)
+            ->get()
+            ->keyBy('id');
+
+        $topUsers = $topUserRows->map(function ($row) use ($users) {
+            $user = $users->get($row->user_id);
+            return [
+                'user_id' => $row->user_id,
+                'name' => $user?->name ?? "User #{$row->user_id}",
+                'email' => $user?->email,
+                'total_requests' => (int) $row->total_requests,
+            ];
+        });
+
+        // Top 10 query names — use DB-appropriate JSON extraction
+        $driver = IntegrationUsage::query()->getConnection()->getDriverName();
+        $jsonExpr = match ($driver) {
+            'pgsql' => "metadata->>'query_name'",
+            default => "JSON_EXTRACT(metadata, '$.query_name')",
+        };
+        $topQueries = IntegrationUsage::byIntegration('api')
+            ->where('created_at', '>=', now()->subDays($days))
+            ->whereNotNull('metadata')
+            ->selectRaw("{$jsonExpr} as query_name, SUM(quantity) as total_requests")
+            ->groupBy('query_name')
+            ->orderByDesc('total_requests')
+            ->limit(10)
+            ->get()
+            ->filter(fn ($row) => $row->query_name !== null)
+            ->map(fn ($row) => [
+                // SQLite's JSON_EXTRACT returns double-quoted strings; trim them
+                'query_name' => trim($row->query_name, '"'),
+                'total_requests' => (int) $row->total_requests,
+            ])
+            ->values();
+
+        return [
+            'total_7d' => (int) $total7d,
+            'total_30d' => (int) $total30d,
+            'daily' => $daily,
+            'top_users' => $topUsers,
+            'top_queries' => $topQueries,
+        ];
+    }
+
+    /**
      * Get detailed breakdown for a single integration type.
      * For LLM: by model. For SMS: by country. For others: by provider.
      */

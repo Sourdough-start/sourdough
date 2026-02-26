@@ -5,6 +5,7 @@ namespace App\Services\LLM;
 use App\Models\User;
 use App\Models\AIProvider;
 use App\Models\AIRequestLog;
+use App\Services\UrlValidationService;
 use App\Services\UsageTrackingService;
 use App\Services\LLM\Providers\AnthropicProvider;
 use App\Services\LLM\Providers\OpenAIProvider;
@@ -17,6 +18,77 @@ use Illuminate\Support\Facades\Log;
 class LLMOrchestrator
 {
     private array $providerInstances = [];
+
+    /**
+     * Persist user LLM mode and provider overrides.
+     */
+    public function updateUserConfig(User $user, ?string $mode, ?array $providers): void
+    {
+        if ($mode !== null) {
+            $user->setSetting('defaults', 'llm_mode', $mode);
+        }
+
+        if ($providers !== null) {
+            foreach ($providers as $providerConfig) {
+                $data = [
+                    'provider' => $providerConfig['provider'],
+                ];
+
+                if (isset($providerConfig['api_key'])) {
+                    $data['api_key'] = $providerConfig['api_key'];
+                }
+                if (isset($providerConfig['model'])) {
+                    $data['model'] = $providerConfig['model'];
+                }
+                if (isset($providerConfig['is_enabled'])) {
+                    $data['is_enabled'] = $providerConfig['is_enabled'];
+                }
+                if (isset($providerConfig['is_primary'])) {
+                    $data['is_primary'] = $providerConfig['is_primary'];
+
+                    // Ensure only one primary
+                    if ($providerConfig['is_primary']) {
+                        $user->aiProviders()
+                            ->where('provider', '!=', $providerConfig['provider'])
+                            ->update(['is_primary' => false]);
+                    }
+                }
+
+                $user->aiProviders()->updateOrCreate(
+                    ['provider' => $providerConfig['provider']],
+                    $data
+                );
+            }
+        }
+    }
+
+    /**
+     * Resolve image input from a request: returns [imageData, mimeType].
+     * imageData is base64 string for uploads, or the URL string for URL-based images.
+     *
+     * Note: validateUrl() (not validateAndResolve) is intentional here. The URL is passed
+     * to the external LLM provider which fetches it — our server does not make the HTTP
+     * request, so DNS pinning is not applicable.
+     *
+     * @return array{0: string, 1: string|null}
+     * @throws \InvalidArgumentException if URL fails SSRF validation
+     */
+    public function resolveImageInput(\Illuminate\Http\Request $request, UrlValidationService $urlValidator): array
+    {
+        if ($request->hasFile('image')) {
+            return [
+                base64_encode(file_get_contents($request->file('image')->path())),
+                $request->file('image')->getMimeType(),
+            ];
+        }
+
+        $imageUrl = $request->input('image_url');
+        if (!$urlValidator->validateUrl($imageUrl)) {
+            throw new \InvalidArgumentException('Image URL is not allowed (invalid or internal address).');
+        }
+
+        return [$imageUrl, null];
+    }
 
     /**
      * Execute an LLM query.

@@ -41,6 +41,7 @@ export function SSOButtons({ onLoad }: SSOButtonsProps) {
     };
 
     fetchProviders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Don't show placeholders while loading—form is visible; SSO buttons appear when ready.

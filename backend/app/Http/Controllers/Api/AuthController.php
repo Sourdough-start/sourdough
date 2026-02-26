@@ -7,6 +7,7 @@ use App\Http\Traits\ApiResponseTrait;
 use App\Enums\Permission;
 use App\Models\User;
 use App\Services\AuditService;
+use App\Services\Auth\AuthService;
 use App\Services\EmailConfigService;
 use App\Services\GroupService;
 use App\Services\NovuService;
@@ -28,6 +29,7 @@ class AuthController extends Controller
 
     public function __construct(
         private AuditService $auditService,
+        private AuthService $authService,
         private NovuService $novuService,
         private SettingService $settingService
     ) {}
@@ -105,16 +107,20 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (!Auth::attempt($credentials, $request->boolean('remember'))) {
+        $result = $this->authService->attemptLogin(
+            $credentials['email'],
+            $credentials['password'],
+            $request->boolean('remember'),
+        );
+
+        if (!$result['authenticated'] && !isset($result['user'])) {
             $this->auditService->logAuth('login_failed', null, ['email' => $credentials['email']], 'warning');
             return $this->errorResponse('Invalid credentials', 401);
         }
 
-        $user = Auth::user();
+        if ($result['disabled'] ?? false) {
+            $this->auditService->logAuth('login_failed', $result['user'], ['reason' => 'account_disabled'], 'warning');
 
-        if ($user->isDisabled()) {
-            $this->auditService->logAuth('login_failed', $user, ['reason' => 'account_disabled'], 'warning');
-            
             try {
                 Auth::guard('web')->logout();
                 if ($request->hasSession()) {
@@ -123,17 +129,15 @@ class AuthController extends Controller
             } catch (\Exception $e) {
                 // Session not available in test environment
             }
-            
+
             return $this->errorResponse('This account has been disabled. Please contact your administrator.', 403);
         }
 
-        // Check if 2FA is enabled
-        if ($user->hasTwoFactorEnabled()) {
-            // Store user ID in session for 2FA verification
+        if ($result['requires_2fa'] ?? false) {
             if ($request->hasSession()) {
-                $request->session()->put('2fa:user_id', $user->id);
+                $request->session()->put('2fa:user_id', $result['user']->id);
             }
-            
+
             try {
                 Auth::guard('web')->logout();
             } catch (\Exception $e) {
@@ -147,11 +151,10 @@ class AuthController extends Controller
             $request->session()->regenerate();
         }
 
-        $this->auditService->logAuth('login', $user);
+        $this->auditService->logAuth('login', $result['user']);
+        $this->novuService->syncSubscriber($result['user']);
 
-        $this->novuService->syncSubscriber($user);
-
-        return $this->successResponse('Login successful', ['user' => $user]);
+        return $this->successResponse('Login successful', ['user' => $result['user']]);
     }
 
     /**

@@ -41,7 +41,7 @@ class PasskeyController extends Controller
     /**
      * Get registration (attestation) options for adding a new passkey.
      */
-    public function registerOptions(AttestationRequest $request)
+    public function registerOptions(AttestationRequest $request): JsonResponse
     {
         return $request->toCreate();
     }
@@ -114,7 +114,7 @@ class PasskeyController extends Controller
      * Get login (assertion) options for passkey authentication.
      * Optional email narrows to that user's credentials (non-discoverable flow).
      */
-    public function loginOptions(AssertionRequest $request)
+    public function loginOptions(AssertionRequest $request): JsonResponse
     {
         if ($this->settingService->get('auth', 'passkey_mode', 'disabled') === 'disabled') {
             return $this->errorResponse('Passkey sign-in is not enabled', 403);

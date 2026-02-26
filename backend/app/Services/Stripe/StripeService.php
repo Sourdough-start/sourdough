@@ -161,6 +161,61 @@ class StripeService
     }
 
     /**
+     * Initiate a full payment flow: create/find Stripe customer, create payment intent,
+     * and persist the local Payment record.
+     *
+     * @return array{success: bool, payment_id?: int, client_secret?: string, error?: string}
+     */
+    public function initiatePayment(
+        User $user,
+        int $amount,
+        string $currency,
+        string $connectedAccountId,
+        ?string $description = null,
+        array $metadata = []
+    ): array {
+        $customerResult = $this->createCustomer($user);
+        if (!$customerResult['success']) {
+            return ['success' => false, 'error' => $customerResult['error'] ?? 'Failed to create Stripe customer'];
+        }
+
+        $result = $this->createPaymentIntent([
+            'amount' => $amount,
+            'currency' => $currency,
+            'connected_account_id' => $connectedAccountId,
+            'customer_id' => $customerResult['customer_id'],
+            'description' => $description,
+            'metadata' => $metadata,
+        ]);
+
+        if (!$result['success']) {
+            return ['success' => false, 'error' => $result['error'] ?? 'Failed to create payment intent'];
+        }
+
+        $stripeCustomer = StripeCustomer::where('stripe_customer_id', $customerResult['customer_id'])->first();
+        $feePercent = (float) config('stripe.application_fee_percent', 1.0);
+
+        $payment = Payment::create([
+            'user_id' => $user->id,
+            'stripe_customer_id' => $stripeCustomer?->id,
+            'stripe_payment_intent_id' => $result['payment_intent_id'],
+            'amount' => $amount,
+            'currency' => $currency,
+            'status' => 'requires_payment_method',
+            'description' => $description,
+            'metadata' => !empty($metadata) ? $metadata : null,
+            'stripe_account_id' => $connectedAccountId,
+            'application_fee_amount' => (int) round($amount * ($feePercent / 100)),
+        ]);
+
+        return [
+            'success' => true,
+            'payment_id' => $payment->id,
+            'client_secret' => $result['client_secret'],
+        ];
+    }
+
+    /**
      * Refund a payment intent (full or partial).
      *
      * @return array{success: bool, refund_id?: string, error?: string}

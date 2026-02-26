@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\ApiToken;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 
 class ApiKeyService
@@ -168,6 +169,49 @@ class ApiKeyService
         }
 
         return $count;
+    }
+
+    /**
+     * List all API keys across all users with filters and pagination (admin).
+     *
+     * @param array<string, mixed> $filters  Keys: status, user_id, user, expiring_soon
+     */
+    public function listAdminKeys(array $filters, int $perPage = 50): LengthAwarePaginator
+    {
+        $query = ApiToken::withTrashed()
+            ->whereNotNull('key_prefix')
+            ->where('key_prefix', 'like', 'sk_%')
+            ->with('user:id,name,email');
+
+        if (!empty($filters['status'])) {
+            match ($filters['status']) {
+                'active' => $query->active(),
+                'expired' => $query->expired(),
+                'revoked' => $query->revoked(),
+                default => null,
+            };
+        }
+
+        if (!empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+
+        if (!empty($filters['user'])) {
+            $search = str_replace(['%', '_'], ['\\%', '\\_'], $filters['user']);
+            $query->whereHas('user', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if (($filters['expiring_soon'] ?? null) === 'true') {
+            $query->whereNotNull('expires_at')
+                ->where('expires_at', '>', now())
+                ->where('expires_at', '<=', now()->addDays(7))
+                ->whereNull('revoked_at');
+        }
+
+        return $query->orderByDesc('created_at')->paginate($perPage);
     }
 
     /**

@@ -68,44 +68,11 @@ class LLMController extends Controller
             'providers.*.is_primary' => ['sometimes', 'boolean'],
         ]);
 
-        $user = $request->user();
-
-        if (isset($validated['mode'])) {
-            $user->setSetting('defaults', 'llm_mode', $validated['mode']);
-        }
-
-        if (isset($validated['providers'])) {
-            foreach ($validated['providers'] as $providerConfig) {
-                $data = [
-                    'provider' => $providerConfig['provider'],
-                ];
-
-                if (isset($providerConfig['api_key'])) {
-                    $data['api_key'] = $providerConfig['api_key'];
-                }
-                if (isset($providerConfig['model'])) {
-                    $data['model'] = $providerConfig['model'];
-                }
-                if (isset($providerConfig['is_enabled'])) {
-                    $data['is_enabled'] = $providerConfig['is_enabled'];
-                }
-                if (isset($providerConfig['is_primary'])) {
-                    $data['is_primary'] = $providerConfig['is_primary'];
-
-                    // Ensure only one primary
-                    if ($providerConfig['is_primary']) {
-                        $user->aiProviders()
-                            ->where('provider', '!=', $providerConfig['provider'])
-                            ->update(['is_primary' => false]);
-                    }
-                }
-
-                $user->aiProviders()->updateOrCreate(
-                    ['provider' => $providerConfig['provider']],
-                    $data
-                );
-            }
-        }
+        $this->orchestrator->updateUserConfig(
+            $request->user(),
+            $validated['mode'] ?? null,
+            $validated['providers'] ?? null
+        );
 
         return response()->json([
             'message' => 'LLM configuration updated',
@@ -138,33 +105,7 @@ class LLMController extends Controller
             ], 400);
         }
 
-        $settings = [];
-        if (isset($validated['base_url']) && ! empty($validated['base_url'])) {
-            $settings['base_url'] = $validated['base_url'];
-        }
-        if (isset($validated['endpoint']) && ! empty($validated['endpoint'])) {
-            $settings['endpoint'] = $validated['endpoint'];
-        }
-        if (isset($validated['region']) && ! empty($validated['region'])) {
-            $settings['region'] = $validated['region'];
-        }
-        if (isset($validated['access_key']) && ! empty($validated['access_key'])) {
-            $settings['access_key'] = $validated['access_key'];
-        }
-        if (isset($validated['secret_key']) && ! empty($validated['secret_key'])) {
-            $settings['secret_key'] = $validated['secret_key'];
-        }
-        if ($validated['provider'] === 'azure' && ! empty($validated['model'])) {
-            $settings['deployment'] = $validated['model'];
-        }
-        if ($validated['provider'] === 'bedrock') {
-            if (! empty($validated['access_key'])) {
-                $settings['access_key_id'] = $validated['access_key'];
-            }
-            if (! empty($validated['secret_key'])) {
-                $settings['secret_access_key'] = $validated['secret_key'];
-            }
-        }
+        $settings = $this->buildProviderSettings($validated, $validated['provider']);
 
         $provider = $user->aiProviders()->create([
             'provider' => $validated['provider'],
@@ -210,59 +151,16 @@ class LLMController extends Controller
 
         // Merge provider-specific fields into the settings JSON column
         $settingsFields = ['base_url', 'endpoint', 'region', 'access_key', 'secret_key'];
-        $hasSettingsUpdate = false;
-        foreach ($settingsFields as $field) {
-            if (isset($validated[$field])) {
-                $hasSettingsUpdate = true;
-                break;
-            }
-        }
+        $hasSettingsUpdate = collect($settingsFields)->contains(fn ($f) => isset($validated[$f]));
 
         if ($hasSettingsUpdate || (isset($validated['model']) && $providerModel->provider === 'azure')) {
-            $settings = $providerModel->settings ?? [];
-
-            foreach (['base_url', 'endpoint', 'region'] as $field) {
-                if (isset($validated[$field])) {
-                    if (!empty($validated[$field])) {
-                        $settings[$field] = $validated[$field];
-                    } else {
-                        unset($settings[$field]);
-                    }
-                    unset($validated[$field]);
-                }
-            }
-
-            // Handle Bedrock AWS credentials (map to access_key_id / secret_access_key)
-            if (isset($validated['access_key'])) {
-                if (!empty($validated['access_key'])) {
-                    $settings['access_key'] = $validated['access_key'];
-                    if ($providerModel->provider === 'bedrock') {
-                        $settings['access_key_id'] = $validated['access_key'];
-                    }
-                } else {
-                    unset($settings['access_key'], $settings['access_key_id']);
-                }
-                unset($validated['access_key']);
-            }
-
-            if (isset($validated['secret_key'])) {
-                if (!empty($validated['secret_key'])) {
-                    $settings['secret_key'] = $validated['secret_key'];
-                    if ($providerModel->provider === 'bedrock') {
-                        $settings['secret_access_key'] = $validated['secret_key'];
-                    }
-                } else {
-                    unset($settings['secret_key'], $settings['secret_access_key']);
-                }
-                unset($validated['secret_key']);
-            }
-
-            // Update Azure deployment name when model changes
-            if (isset($validated['model']) && $providerModel->provider === 'azure') {
-                $settings['deployment'] = $validated['model'];
-            }
-
+            $settings = $this->buildProviderSettings($validated, $providerModel->provider, $providerModel->settings ?? []);
             $validated['settings'] = !empty($settings) ? $settings : null;
+
+            // Remove settings fields from $validated so they don't get passed to update()
+            foreach ($settingsFields as $field) {
+                unset($validated[$field]);
+            }
         }
 
         $providerModel->update($validated);
@@ -290,6 +188,52 @@ class LLMController extends Controller
         }
 
         return response()->json(['message' => 'Provider removed']);
+    }
+
+    /**
+     * Build the settings JSON array from validated input.
+     */
+    private function buildProviderSettings(array $validated, string $providerName, array $existing = []): array
+    {
+        $settings = $existing;
+
+        foreach (['base_url', 'endpoint', 'region'] as $field) {
+            if (isset($validated[$field])) {
+                if (!empty($validated[$field])) {
+                    $settings[$field] = $validated[$field];
+                } else {
+                    unset($settings[$field]);
+                }
+            }
+        }
+
+        if (isset($validated['access_key'])) {
+            if (!empty($validated['access_key'])) {
+                $settings['access_key'] = $validated['access_key'];
+                if ($providerName === 'bedrock') {
+                    $settings['access_key_id'] = $validated['access_key'];
+                }
+            } else {
+                unset($settings['access_key'], $settings['access_key_id']);
+            }
+        }
+
+        if (isset($validated['secret_key'])) {
+            if (!empty($validated['secret_key'])) {
+                $settings['secret_key'] = $validated['secret_key'];
+                if ($providerName === 'bedrock') {
+                    $settings['secret_access_key'] = $validated['secret_key'];
+                }
+            } else {
+                unset($settings['secret_key'], $settings['secret_access_key']);
+            }
+        }
+
+        if (isset($validated['model']) && $providerName === 'azure') {
+            $settings['deployment'] = $validated['model'];
+        }
+
+        return $settings;
     }
 
     /**
@@ -400,32 +344,18 @@ class LLMController extends Controller
             'provider' => ['sometimes', 'string'],
         ]);
 
-        $user = $request->user();
-
-        // Handle image upload or URL
-        // Note: validateUrl() (not validateAndResolve) is intentional here. The URL is passed
-        // to the external LLM provider which fetches it — our server does not make the HTTP
-        // request, so DNS pinning is not applicable. The validation prevents sending internal
-        // URLs to external providers.
-        $imageData = null;
-        if ($request->hasFile('image')) {
-            $imageData = base64_encode(file_get_contents($request->file('image')->path()));
-            $mimeType = $request->file('image')->getMimeType();
-        } elseif (isset($validated['image_url'])) {
-            $imageUrl = $validated['image_url'];
-            if (!$this->urlValidator->validateUrl($imageUrl)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Image URL is not allowed (invalid or internal address).',
-                ], 400);
-            }
-            $imageData = $imageUrl;
-            $mimeType = null;
+        try {
+            [$imageData, $mimeType] = $this->orchestrator->resolveImageInput($request, $this->urlValidator);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 400);
         }
 
         try {
             $result = $this->orchestrator->visionQuery(
-                user: $user,
+                user: $request->user(),
                 prompt: $validated['prompt'],
                 imageData: $imageData,
                 mimeType: $mimeType ?? 'image/jpeg',

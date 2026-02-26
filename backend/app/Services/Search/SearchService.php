@@ -901,6 +901,61 @@ class SearchService
     }
 
     /**
+     * Reindex a single model or all models and return a structured report.
+     *
+     * @return array{success: bool, message: string, model?: string, models?: array, count?: int, output?: string}
+     */
+    public function reindexAndReport(?string $model = null): array
+    {
+        if ($model !== null) {
+            if ($model === 'pages') {
+                $result = $this->syncPagesToIndex();
+                if (!($result['success'] ?? false)) {
+                    return ['success' => false, 'message' => 'Pages sync failed'];
+                }
+
+                return [
+                    'success' => true,
+                    'message' => "Pages index synced ({$result['count']} pages).",
+                    'model' => 'pages',
+                    'count' => $result['count'],
+                ];
+            }
+
+            $result = $this->reindexModel($model);
+            if (!$result['success']) {
+                return ['success' => false, 'message' => $result['error'] ?? 'Reindex failed'];
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Index reindexed successfully.',
+                'model' => $model,
+                'output' => $result['output'] ?? null,
+            ];
+        }
+
+        $results = $this->reindexAll();
+        $failed = array_filter($results, fn (array $r) => !($r['success'] ?? false));
+        if ($failed !== []) {
+            $messages = array_map(fn (array $r) => $r['error'] ?? 'Unknown error', $failed);
+
+            return ['success' => false, 'message' => 'Reindex failed: ' . implode('; ', $messages)];
+        }
+
+        $pagesResult = $this->syncPagesToIndex();
+        if ($pagesResult['success']) {
+            $results['pages'] = ['success' => true, 'output' => "Synced {$pagesResult['count']} pages"];
+        }
+
+        return [
+            'success' => true,
+            'message' => 'All indexes reindexed successfully.',
+            'models' => array_keys($results),
+        ];
+    }
+
+    /**
      * Reindex all searchable models.
      *
      * @return array<string, array{success: bool, output?: string, error?: string}>

@@ -5,15 +5,17 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\AccessLog;
 use App\Models\AuditLog;
+use App\Services\AccessLogService;
 use App\Services\AuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AccessLogController extends Controller
 {
     public function __construct(
-        private AuditService $auditService
+        private AuditService $auditService,
+        private AccessLogService $accessLogService
     ) {}
 
     /**
@@ -22,84 +24,20 @@ class AccessLogController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->input('per_page', config('app.pagination.audit_log', 50));
-        $userId = $request->input('user_id');
-        $action = $request->input('action');
-        $resourceType = $request->input('resource_type');
-        $correlationId = $request->input('correlation_id');
-        $dateFrom = $request->input('date_from');
-        $dateTo = $request->input('date_to');
+        $filters = $request->only(['user_id', 'action', 'resource_type', 'correlation_id', 'date_from', 'date_to']);
 
-        $query = AccessLog::with('user')
-            ->orderBy('created_at', 'desc');
-
-        if ($userId) {
-            $query->where('user_id', $userId);
-        }
-
-        if ($action) {
-            $query->where('action', $action);
-        }
-
-        if ($resourceType) {
-            $query->where('resource_type', $resourceType);
-        }
-
-        if ($correlationId !== null && $correlationId !== '') {
-            $query->where('correlation_id', $correlationId);
-        }
-
-        if ($dateFrom) {
-            $query->whereDate('created_at', '>=', $dateFrom);
-        }
-
-        if ($dateTo) {
-            $query->whereDate('created_at', '<=', $dateTo);
-        }
-
-        $logs = $query->paginate($perPage);
-
-        return response()->json($logs);
+        return response()->json(
+            $this->accessLogService->buildFilteredQuery($filters)->paginate($perPage)
+        );
     }
 
     /**
      * Export access logs as CSV.
      */
-    public function export(Request $request)
+    public function export(Request $request): StreamedResponse
     {
-        $userId = $request->input('user_id');
-        $action = $request->input('action');
-        $resourceType = $request->input('resource_type');
-        $correlationId = $request->input('correlation_id');
-        $dateFrom = $request->input('date_from');
-        $dateTo = $request->input('date_to');
-
-        $query = AccessLog::with('user');
-
-        if ($userId) {
-            $query->where('user_id', $userId);
-        }
-
-        if ($action) {
-            $query->where('action', $action);
-        }
-
-        if ($resourceType) {
-            $query->where('resource_type', $resourceType);
-        }
-
-        if ($correlationId !== null && $correlationId !== '') {
-            $query->where('correlation_id', $correlationId);
-        }
-
-        if ($dateFrom) {
-            $query->whereDate('created_at', '>=', $dateFrom);
-        }
-
-        if ($dateTo) {
-            $query->whereDate('created_at', '<=', $dateTo);
-        }
-
-        $logs = $query->orderBy('created_at', 'desc')->get();
+        $filters = $request->only(['user_id', 'action', 'resource_type', 'correlation_id', 'date_from', 'date_to']);
+        $logs = $this->accessLogService->queryForExport($filters);
 
         $filename = 'access_logs_' . date('Y-m-d_His') . '.csv';
 
@@ -152,42 +90,8 @@ class AccessLogController extends Controller
     {
         $dateFrom = $request->input('date_from', now()->subDays(30)->format('Y-m-d'));
         $dateTo = $request->input('date_to', now()->format('Y-m-d'));
-        $baseQuery = AccessLog::whereBetween('created_at', [$dateFrom, $dateTo . ' 23:59:59']);
 
-        $stats = [
-            'total' => (clone $baseQuery)->count(),
-            'by_action' => (clone $baseQuery)
-                ->select('action', DB::raw('count(*) as count'))
-                ->groupBy('action')
-                ->orderByDesc('count')
-                ->get()
-                ->pluck('count', 'action'),
-            'by_resource_type' => (clone $baseQuery)
-                ->select('resource_type', DB::raw('count(*) as count'))
-                ->groupBy('resource_type')
-                ->orderByDesc('count')
-                ->get()
-                ->pluck('count', 'resource_type'),
-            'by_user' => (clone $baseQuery)
-                ->select('user_id', DB::raw('count(*) as count'))
-                ->groupBy('user_id')
-                ->orderByDesc('count')
-                ->limit(10)
-                ->with('user:id,name,email')
-                ->get()
-                ->map(fn ($item) => [
-                    'user' => $item->user,
-                    'count' => $item->count,
-                ]),
-            'daily_trends' => (clone $baseQuery)
-                ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
-                ->groupByRaw('DATE(created_at)')
-                ->orderBy('date')
-                ->get()
-                ->pluck('count', 'date'),
-        ];
-
-        return response()->json($stats);
+        return response()->json($this->accessLogService->getStats($dateFrom, $dateTo));
     }
 
     /**
