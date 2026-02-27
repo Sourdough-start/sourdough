@@ -201,6 +201,11 @@ export default function PreferencesPage() {
       await api.delete(`/user/webpush-subscription/${deviceId}`);
       await fetchPushDevices();
       await fetchChannels();
+      // Always mark as unsubscribed after removing any device so the
+      // "Add This Device" button reappears. The browser PushSubscription
+      // persists after server-side deletion, so re-adding will reuse it
+      // without prompting for permission again.
+      setCurrentDeviceSubscribed(false);
       toast.success("Device removed");
     } catch {
       toast.error("Failed to remove device");
@@ -688,7 +693,7 @@ export default function PreferencesPage() {
                     </div>
                     {channel.id === "webpush" ? (
                       <div className="flex items-center gap-2">
-                        {channel.configured ? (
+                        {channel.configured || currentDeviceSubscribed ? (
                           <Switch
                             checked={channel.enabled}
                             onCheckedChange={(enabled) => toggleChannel("webpush", enabled)}
@@ -729,10 +734,10 @@ export default function PreferencesPage() {
                       </div>
                     )}
                   </div>
-                  {channel.id === "webpush" && (channel.configured || currentDeviceSubscribed) && (
+                  {channel.id === "webpush" && (
                     <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        {currentDeviceSubscribed && (
+                      {currentDeviceSubscribed && (
+                        <div className="flex items-center gap-2">
                           <Button
                             size="sm"
                             variant="outline"
@@ -746,8 +751,8 @@ export default function PreferencesPage() {
                             )}
                             Test
                           </Button>
-                        )}
-                      </div>
+                        </div>
+                      )}
                       {pushDevices.length > 0 && (
                         <div className="space-y-2">
                           <p className="text-sm font-medium text-muted-foreground">Registered Devices</p>

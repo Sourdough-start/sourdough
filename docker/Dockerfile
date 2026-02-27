@@ -85,6 +85,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         bcmath \
         intl \
         opcache \
+        pcntl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Meilisearch binary (Debian/glibc required; Alpine/musl incompatible)
