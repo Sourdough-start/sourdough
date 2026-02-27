@@ -258,11 +258,15 @@ export function usePasskeys() {
           return { success: false, error: "Failed to create passkey" };
         }
         const response = credential.response as AuthenticatorAttestationResponse;
+        const transports = typeof response.getTransports === "function"
+          ? response.getTransports()
+          : undefined;
         const payload = {
           ...serializeCredential(credential),
           response: {
             clientDataJSON: bufferToBase64url(response.clientDataJSON),
             attestationObject: bufferToBase64url(response.attestationObject),
+            transports,
           },
         };
         await api.post("/auth/passkeys/register", {

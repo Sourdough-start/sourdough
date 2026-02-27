@@ -143,7 +143,7 @@ export default function PreferencesPage() {
   const [webpushLoading, setWebpushLoading] = useState(false);
   const [currentDeviceSubscribed, setCurrentDeviceSubscribed] = useState(false);
   const [installPrompting, setInstallPrompting] = useState(false);
-  const [pushDevices, setPushDevices] = useState<Array<{ id: number; device_name: string; created_at: string | null; last_used_at: string | null }>>([]);
+  const [pushDevices, setPushDevices] = useState<Array<{ id: number; device_name: string; endpoint: string; created_at: string | null; last_used_at: string | null }>>([]);
   const [removingDeviceId, setRemovingDeviceId] = useState<number | null>(null);
   const [typePreferences, setTypePreferences] = useState<Record<string, Record<string, boolean>>>({});
   const [typePrefsOpen, setTypePrefsOpen] = useState(false);
@@ -189,9 +189,20 @@ export default function PreferencesPage() {
   const fetchPushDevices = useCallback(async () => {
     try {
       const response = await api.get("/user/webpush-subscriptions");
-      setPushDevices(response.data?.subscriptions ?? []);
+      const devices = response.data?.subscriptions ?? [];
+      setPushDevices(devices);
+      // Derive whether the current browser is registered by matching
+      // the browser's push subscription endpoint against server devices.
+      const localSub = await getSubscription();
+      if (localSub) {
+        const match = devices.some((d: { endpoint: string }) => d.endpoint === localSub.endpoint);
+        setCurrentDeviceSubscribed(match);
+      } else {
+        setCurrentDeviceSubscribed(false);
+      }
     } catch {
       setPushDevices([]);
+      setCurrentDeviceSubscribed(false);
     }
   }, []);
 
@@ -201,11 +212,6 @@ export default function PreferencesPage() {
       await api.delete(`/user/webpush-subscription/${deviceId}`);
       await fetchPushDevices();
       await fetchChannels();
-      // Always mark as unsubscribed after removing any device so the
-      // "Add This Device" button reappears. The browser PushSubscription
-      // persists after server-side deletion, so re-adding will reuse it
-      // without prompting for permission again.
-      setCurrentDeviceSubscribed(false);
       toast.success("Device removed");
     } catch {
       toast.error("Failed to remove device");
@@ -299,9 +305,8 @@ export default function PreferencesPage() {
     fetchTypePreferences();
   }, [fetchTypePreferences]);
 
-  useEffect(() => {
-    getSubscription().then((sub) => setCurrentDeviceSubscribed(!!sub));
-  }, []);
+  // currentDeviceSubscribed is derived in fetchPushDevices() by matching
+  // the browser's push subscription endpoint against server-registered devices.
 
   const toggleChannel = async (channelId: string, enabled: boolean) => {
     const name = channels.find((c) => c.id === channelId)?.name ?? channelId;

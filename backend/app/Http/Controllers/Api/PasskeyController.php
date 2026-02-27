@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Traits\ApiResponseTrait;
-use App\Models\User;
 use App\Services\AuditService;
 use App\Services\Auth\PasskeyService;
 use App\Services\SettingService;
@@ -16,7 +15,7 @@ use Illuminate\Support\Facades\Log;
 use Laragear\WebAuthn\Http\Requests\AssertedRequest;
 use Laragear\WebAuthn\Http\Requests\AssertionRequest;
 use Laragear\WebAuthn\Http\Requests\AttestationRequest;
-use Laragear\WebAuthn\Http\Requests\AttestedRequest;
+use App\Http\Requests\SafeAttestedRequest;
 
 class PasskeyController extends Controller
 {
@@ -42,15 +41,21 @@ class PasskeyController extends Controller
     /**
      * Get registration (attestation) options for adding a new passkey.
      */
-    public function registerOptions(AttestationRequest $request): Responsable
+    public function registerOptions(AttestationRequest $request): Responsable|JsonResponse
     {
-        return $request->toCreate();
+        try {
+            return $request->toCreate();
+        } catch (\Throwable $e) {
+            Log::error('Passkey registration options failed', ['error' => $e->getMessage()]);
+
+            return $this->errorResponse('Failed to generate passkey options. Please try again.', 500);
+        }
     }
 
     /**
      * Complete passkey registration.
      */
-    public function register(AttestedRequest $request): JsonResponse
+    public function register(SafeAttestedRequest $request): JsonResponse
     {
         $name = trim($request->input('name', 'Passkey')) ?: 'Passkey';
 
@@ -123,7 +128,13 @@ class PasskeyController extends Controller
 
         $email = $request->input('email');
 
-        return $request->toVerify($email ? ['email' => $email] : null);
+        try {
+            return $request->toVerify($email ? ['email' => $email] : null);
+        } catch (\Throwable $e) {
+            Log::error('Passkey login options failed', ['error' => $e->getMessage()]);
+
+            return $this->errorResponse('Failed to generate login options. Please try again.', 500);
+        }
     }
 
     /**

@@ -168,6 +168,7 @@ class UserNotificationSettingsController extends Controller
             ->map(fn (PushSubscription $sub) => [
                 'id' => $sub->id,
                 'device_name' => $sub->device_name,
+                'endpoint' => $sub->endpoint,
                 'created_at' => $sub->created_at?->toISOString(),
                 'last_used_at' => $sub->last_used_at?->toISOString(),
             ]);
