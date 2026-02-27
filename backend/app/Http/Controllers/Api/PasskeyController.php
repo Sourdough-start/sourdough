@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\AuditService;
 use App\Services\Auth\PasskeyService;
 use App\Services\SettingService;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,7 +42,7 @@ class PasskeyController extends Controller
     /**
      * Get registration (attestation) options for adding a new passkey.
      */
-    public function registerOptions(AttestationRequest $request): JsonResponse
+    public function registerOptions(AttestationRequest $request): Responsable
     {
         return $request->toCreate();
     }
@@ -114,7 +115,7 @@ class PasskeyController extends Controller
      * Get login (assertion) options for passkey authentication.
      * Optional email narrows to that user's credentials (non-discoverable flow).
      */
-    public function loginOptions(AssertionRequest $request): JsonResponse
+    public function loginOptions(AssertionRequest $request): JsonResponse|Responsable
     {
         if ($this->settingService->get('auth', 'passkey_mode', 'disabled') === 'disabled') {
             return $this->errorResponse('Passkey sign-in is not enabled', 403);

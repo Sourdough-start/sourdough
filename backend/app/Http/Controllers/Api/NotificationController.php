@@ -169,48 +169,55 @@ class NotificationController extends Controller
      */
     public function diagnosePush(Request $request): JsonResponse
     {
-        $user = $request->user();
-        $channel = 'webpush';
+        try {
+            $user = $request->user();
+            $channel = 'webpush';
 
-        $channelInstance = $this->notificationOrchestrator->resolveChannel($channel);
-        $channelEnabled = config('notifications.channels.webpush.enabled', false);
-        $vapidPublicKeySet = !empty(config('notifications.channels.webpush.public_key'));
-        $vapidPrivateKeySet = !empty(config('notifications.channels.webpush.private_key'));
+            $channelInstance = $this->notificationOrchestrator->resolveChannel($channel);
+            $channelEnabled = config('notifications.channels.webpush.enabled', false);
+            $vapidPublicKeySet = !empty(config('notifications.channels.webpush.public_key'));
+            $vapidPrivateKeySet = !empty(config('notifications.channels.webpush.private_key'));
 
-        $availableToUsers = filter_var(
-            \App\Models\SystemSetting::get('channel_webpush_available', false, 'notifications'),
-            FILTER_VALIDATE_BOOLEAN
-        );
+            $availableToUsers = filter_var(
+                \App\Models\SystemSetting::get('channel_webpush_available', false, 'notifications'),
+                FILTER_VALIDATE_BOOLEAN
+            );
 
-        $userEnabled = (bool) $user->getSetting('notifications', 'webpush_enabled', false);
-        $subscriptionCount = $user->pushSubscriptions()->count();
-        $isAvailableFor = $channelInstance?->isAvailableFor($user) ?? false;
+            $userEnabled = (bool) $user->getSetting('notifications', 'webpush_enabled', false);
+            $subscriptionCount = $user->pushSubscriptions()->count();
+            $isAvailableFor = $channelInstance?->isAvailableFor($user) ?? false;
 
-        $queueEnabled = (bool) \App\Models\SystemSetting::get(
-            'queue_enabled',
-            config('notifications.queue.enabled', true),
-            'notifications'
-        );
+            $queueEnabled = (bool) \App\Models\SystemSetting::get(
+                'queue_enabled',
+                config('notifications.queue.enabled', true),
+                'notifications'
+            );
 
-        $recentDeliveries = \App\Models\NotificationDelivery::where('user_id', $user->id)
-            ->where('channel', $channel)
-            ->orderByDesc('attempted_at')
-            ->limit(5)
-            ->get(['status', 'error', 'notification_type', 'attempted_at']);
+            $recentDeliveries = \App\Models\NotificationDelivery::where('user_id', $user->id)
+                ->where('channel', $channel)
+                ->orderByDesc('attempted_at')
+                ->limit(5)
+                ->get(['status', 'error', 'notification_type', 'attempted_at']);
 
-        return response()->json([
-            'gates' => [
-                'channel_enabled' => $channelEnabled,
-                'vapid_public_key_set' => $vapidPublicKeySet,
-                'vapid_private_key_set' => $vapidPrivateKeySet,
-                'available_to_users' => $availableToUsers,
-                'user_enabled' => $userEnabled,
-                'subscription_count' => $subscriptionCount,
-                'is_available_for_user' => $isAvailableFor,
-            ],
-            'queue_enabled' => $queueEnabled,
-            'recent_deliveries' => $recentDeliveries,
-        ]);
+            return response()->json([
+                'gates' => [
+                    'channel_enabled' => $channelEnabled,
+                    'vapid_public_key_set' => $vapidPublicKeySet,
+                    'vapid_private_key_set' => $vapidPrivateKeySet,
+                    'available_to_users' => $availableToUsers,
+                    'user_enabled' => $userEnabled,
+                    'subscription_count' => $subscriptionCount,
+                    'is_available_for_user' => $isAvailableFor,
+                ],
+                'queue_enabled' => $queueEnabled,
+                'recent_deliveries' => $recentDeliveries,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'trace' => app()->isProduction() ? null : $e->getTraceAsString(),
+            ], 500);
+        }
     }
 
     /**
