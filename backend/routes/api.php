@@ -243,6 +243,9 @@ Route::middleware(['auth:sanctum', 'verified', '2fa.setup'])->group(function () 
 
         // Test notification (throttled: 5 per minute)
         Route::post('/test/{channel}', [NotificationController::class, 'test'])->middleware('throttle:5,1');
+
+        // Push notification diagnostic
+        Route::get('/diagnose-push', [NotificationController::class, 'diagnosePush']);
     });
     
     // LLM/AI (permission: settings.view / settings.edit)

@@ -41,7 +41,10 @@ ENV APP_BUILD_SHA=${BUILD_SHA}
 ENV APP_BUILD_TIME=${BUILD_TIME}
 ENV APP_ENV=production
 ENV APP_DEBUG=false
-ENV LOG_CHANNEL=stderr
+ENV LOG_CHANNEL=stack
+ENV LOG_STACK=daily,broadcast
+ENV LOG_BROADCAST_ENABLED=true
+ENV BROADCAST_CONNECTION=reverb
 # Meilisearch defaults (can be overridden at runtime)
 ENV MEILI_ENV=production
 ENV MEILI_MASTER_KEY=""

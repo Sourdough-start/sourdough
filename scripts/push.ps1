@@ -216,17 +216,22 @@ if ($Commits.Count -gt 0) {
 
     # Insert the new entry after the header block in CHANGELOG.md
     if (Test-Path $ChangelogFile) {
-        $ChangelogContent = Get-Content $ChangelogFile -Raw
+        $OriginalContent = Get-Content $ChangelogFile -Raw
+        $ChangelogContent = $OriginalContent
         # Insert after the header (first blank line before first ## entry)
-        $HeaderPattern = '(?s)(^# Changelog.*?adheres to \[Semantic Versioning\]\([^)]+\)\.\s*\n)'
+        $HeaderPattern = '(?s)(^# Changelog.*?adheres to \[Semantic Versioning\]\([^)]+\)\.\s*\r?\n)'
         if ($ChangelogContent -match $HeaderPattern) {
             $ChangelogContent = $ChangelogContent -replace $HeaderPattern, "`$1$Entry"
         } else {
             # Fallback: insert after first line
-            $ChangelogContent = $ChangelogContent -replace '(^# Changelog\s*\n)', "`$1$Entry"
+            $ChangelogContent = $ChangelogContent -replace '(^# Changelog\s*\r?\n)', "`$1$Entry"
         }
-        Set-Content -Path $ChangelogFile -Value $ChangelogContent -NoNewline
-        Write-Host "Added changelog entry for v$NewVersion ($($Commits.Count) commits)" -ForegroundColor Green
+        if ($ChangelogContent -ne $OriginalContent) {
+            Set-Content -Path $ChangelogFile -Value $ChangelogContent -NoNewline
+            Write-Host "Added changelog entry for v$NewVersion ($($Commits.Count) commits)" -ForegroundColor Green
+        } else {
+            Write-Warning "Failed to update CHANGELOG.md - header pattern not matched. Update manually."
+        }
     }
 } else {
     Write-Host "No commits found since last tag, skipping changelog update" -ForegroundColor Yellow

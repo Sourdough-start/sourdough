@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.5] - 2026-02-26
+
+### Fixed
+- Always show native push notification regardless of window focus
+
+## [0.7.4] - 2026-02-26
+
+### Fixed
+- Separate webpush channel toggle from device management
+
+## [0.7.3] - 2026-02-26
+
+### Fixed
+- Improve PWA push notifications and multi-device UX
+
 ## [0.7.2] - 2026-02-26
 
 ### Changed
@@ -12,6 +27,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add error boundary pages for auth, dashboard, and root layouts
 - Extract storage, AI, and security page components into reusable modules
 - Add new services: AuthService, SSOSettingService, SSOTestService, WebhookService, NotificationTemplateSampleService
+
+## [0.7.1] - 2026-02-25
+
+### Fixed
+- Improve multi-device push subscriptions and service worker updates
+
+## [0.7.0] - 2026-02-24
+
+### Added
+- Laravel Reverb WebSocket support for real-time broadcasting
+- Multi-device push subscription management
+- Passkey authentication improvements
+
+### Fixed
+- Exclude missing-user-entrypoint Semgrep rule variant
 
 ## [0.6.4] - 2026-02-24
 

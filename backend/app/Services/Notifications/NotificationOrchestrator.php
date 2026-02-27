@@ -95,18 +95,32 @@ class NotificationOrchestrator
                 $channelInstance = $this->resolveChannel($channel);
 
                 if (!$channelInstance || !$this->isChannelEnabled($channel)) {
+                    Log::debug("Notification channel {$channel} skipped: not resolved or not enabled", [
+                        'user_id' => $user->id, 'type' => $type,
+                        'resolved' => $channelInstance !== null,
+                        'enabled' => $this->isChannelEnabled($channel),
+                    ]);
                     continue;
                 }
 
                 if (!$this->isChannelAvailableToUsers($channel)) {
+                    Log::debug("Notification channel {$channel} skipped: not available to users", [
+                        'user_id' => $user->id, 'type' => $type,
+                    ]);
                     continue;
                 }
 
                 if (!$this->isUserChannelEnabled($user, $channel, $type)) {
+                    Log::debug("Notification channel {$channel} skipped: not enabled by user", [
+                        'user_id' => $user->id, 'type' => $type,
+                    ]);
                     continue;
                 }
 
                 if (!$channelInstance->isAvailableFor($user)) {
+                    Log::debug("Notification channel {$channel} skipped: not available for user", [
+                        'user_id' => $user->id, 'type' => $type,
+                    ]);
                     continue;
                 }
 
@@ -244,18 +258,32 @@ class NotificationOrchestrator
                 $channelInstance = $this->resolveChannel($channel);
 
                 if (!$channelInstance || !$this->isChannelEnabled($channel)) {
+                    Log::debug("Notification channel {$channel} skipped: not resolved or not enabled", [
+                        'user_id' => $user->id, 'type' => $type,
+                        'resolved' => $channelInstance !== null,
+                        'enabled' => $this->isChannelEnabled($channel),
+                    ]);
                     continue;
                 }
 
                 if (!$this->isChannelAvailableToUsers($channel)) {
+                    Log::debug("Notification channel {$channel} skipped: not available to users", [
+                        'user_id' => $user->id, 'type' => $type,
+                    ]);
                     continue;
                 }
 
                 if (!$this->isUserChannelEnabled($user, $channel, $type)) {
+                    Log::debug("Notification channel {$channel} skipped: not enabled by user", [
+                        'user_id' => $user->id, 'type' => $type,
+                    ]);
                     continue;
                 }
 
                 if (!$channelInstance->isAvailableFor($user)) {
+                    Log::debug("Notification channel {$channel} skipped: not available for user", [
+                        'user_id' => $user->id, 'type' => $type,
+                    ]);
                     continue;
                 }
 
