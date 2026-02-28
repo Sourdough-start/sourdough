@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.7.11] - 2026-02-27
+
+### Added
+- Theming engine, auth UI redesign, dashboard widget improvements
 ## [0.7.8] - 2026-02-26
 
 ### Changed
