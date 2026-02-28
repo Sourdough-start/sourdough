@@ -36,6 +36,7 @@ class BrandingController extends Controller
             'favicon_url' => ['sometimes', 'nullable', 'string'],
             'primary_color' => ['sometimes', 'nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'secondary_color' => ['sometimes', 'nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_theme' => ['sometimes', 'nullable', 'string', 'max:50'],
             'dark_mode_default' => ['sometimes', 'boolean'],
             'custom_css' => ['sometimes', 'nullable', 'string'],
         ]);
@@ -44,7 +45,7 @@ class BrandingController extends Controller
 
         foreach ($validated as $key => $value) {
             // Logo, favicon URLs, colors, and custom CSS are public
-            $isPublic = in_array($key, ['logo_url', 'logo_url_dark', 'favicon_url', 'primary_color', 'secondary_color', 'dark_mode_default', 'custom_css']);
+            $isPublic = in_array($key, ['logo_url', 'logo_url_dark', 'favicon_url', 'primary_color', 'secondary_color', 'color_theme', 'dark_mode_default', 'custom_css']);
             
             SystemSetting::set($key, $value, 'branding', $user->id, $isPublic);
         }

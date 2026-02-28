@@ -346,11 +346,11 @@ export default function BrandingSettingsPage() {
             Color Theme
           </CardTitle>
           <CardDescription>
-            Choose your mode and color palette.
+            Set the color theme for all users.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ThemePicker />
+          <ThemePicker mode="global" />
         </CardContent>
       </Card>
 

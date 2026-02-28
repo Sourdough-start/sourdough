@@ -41,7 +41,7 @@ import { HelpLink } from "@/components/help/help-link";
 import { useInstallPrompt } from "@/lib/use-install-prompt";
 import { TIMEZONES } from "@/lib/timezones";
 import { setUserTimezone } from "@/lib/utils";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemePicker } from "@/components/theme-picker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { getTypesByCategory } from "@/lib/notification-types";
@@ -560,11 +560,11 @@ export default function PreferencesPage() {
             Appearance
           </CardTitle>
           <CardDescription>
-            Choose your preferred display mode.
+            Choose your preferred mode and color theme.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ThemeToggle />
+          <ThemePicker />
         </CardContent>
       </Card>
 

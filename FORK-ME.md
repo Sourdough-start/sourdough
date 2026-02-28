@@ -65,7 +65,7 @@ This codebase is **optimized for AI coding assistants**. The documentation struc
 |----------|---------|
 | `docs/ai/README.md` | Development workflows and quick links |
 | `docs/ai/context-loading.md` | Which files to read for each task type |
-| `docs/ai/recipes/` | 39 step-by-step implementation guides |
+| `docs/ai/recipes/` | 47 step-by-step implementation guides |
 | `docs/ai/patterns/` | Code patterns with copy-paste examples |
 | `docs/ai/anti-patterns/` | Common mistakes to avoid |
 
@@ -127,7 +127,7 @@ Use the AI development guide (`docs/ai/README.md`) to add your own features. The
 - Adding configuration pages
 - Adding notification channels
 - Adding dashboard widgets
-- And 35 more...
+- And 43 more...
 
 ## What to Keep
 
@@ -167,7 +167,7 @@ docs/
 │   ├── context-loading.md   # Which files to read per task
 │   ├── patterns/            # Code patterns
 │   ├── anti-patterns/       # What to avoid
-│   └── recipes/             # 39 step-by-step guides
+│   └── recipes/             # 47 step-by-step guides
 ├── adr/                     # Architecture Decision Records
 ├── features.md              # Feature documentation
 ├── architecture.md          # Architecture overview

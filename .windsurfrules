@@ -7,7 +7,7 @@ Sourdough is a Laravel 11 + Next.js 14 starter framework optimized for AI-assist
 Before any implementation:
 1. Read CLAUDE.md -> docs/overview.md -> docs/ai/README.md
 2. Check docs/ai/context-loading.md for task-specific files
-3. Find recipes in docs/ai/recipes/ (32 step-by-step guides)
+3. Find recipes in docs/ai/recipes/ (47 step-by-step guides)
 4. Follow patterns in docs/ai/patterns/README.md
 
 ## Project Structure
@@ -99,7 +99,7 @@ Never use docker run directly - use docker-compose.
 
 - docs/ai/README.md - AI development guide (start here)
 - docs/ai/context-loading.md - Files to read per task type
-- docs/ai/recipes/ - 32 step-by-step implementation guides
+- docs/ai/recipes/ - 47 step-by-step implementation guides
 - docs/ai/patterns/README.md - Code patterns with examples
 - docs/architecture.md - ADRs and architecture decisions
 - docs/quick-reference.md - Commands and conventions

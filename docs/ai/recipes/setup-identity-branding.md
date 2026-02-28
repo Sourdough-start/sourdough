@@ -441,7 +441,7 @@ tags: <APP_SLUG>:test
 
 If the user chose non-default fonts, update `frontend/config/fonts.ts`:
 
-1. Change the import to the chosen fonts from `next/font/google`
+1. Change the import to the chosen fonts from `next/font/google` (exception: Geist fonts — see note below)
 2. Update `bodyFont` and `headingFont` with the new font constructors
 3. Adjust `weight` arrays as needed (check Google Fonts for available weights)
 
@@ -459,7 +459,7 @@ If the user chose non-default fonts, update `frontend/config/fonts.ts`:
 | Creative & bold | `Poppins` | `Abril_Fatface` | `["400"]` |
 | Soft & readable | `Nunito` | `Merriweather` | `["400", "700"]` |
 
-**Note for Geist fonts:** These are not from `next/font/google` — they come from the `geist` npm package. If selected, install with `npm install geist` and import from `geist/font/sans` and `geist/font/mono`.
+**Note for Geist fonts:** These are not from `next/font/google` — they come from the `geist` npm package. If selected, you **must** install the package first: `npm install geist` (inside the `frontend/` directory), then import from `geist/font/sans` and `geist/font/mono` instead of `next/font/google`.
 
 ---
 

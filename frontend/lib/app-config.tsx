@@ -32,6 +32,7 @@ interface AppConfigState {
   faviconUrl: string | null;
   primaryColor: string | null;
   secondaryColor: string | null;
+  colorTheme: string | null;
   customCss: string | null;
   features: AppConfigFeatures | null;
   novu: NovuPublicConfig | null;
@@ -82,6 +83,7 @@ function useAppConfigQuery() {
           faviconUrl: sanitize(branding.favicon_url),
           primaryColor: sanitize(branding.primary_color),
           secondaryColor: sanitize(branding.secondary_color),
+          colorTheme: sanitize(branding.color_theme),
           customCss: sanitize(branding.custom_css),
           novu,
           features: features
@@ -109,6 +111,7 @@ function useAppConfigQuery() {
           faviconUrl: null,
           primaryColor: null,
           secondaryColor: null,
+          colorTheme: null,
           customCss: null,
           novu: null,
           features: null,
@@ -135,6 +138,7 @@ export function AppConfigProvider({ children }: { children: React.ReactNode }) {
   const faviconUrl = query.data?.faviconUrl || null;
   const primaryColor = query.data?.primaryColor || null;
   const secondaryColor = query.data?.secondaryColor || null;
+  const colorTheme = query.data?.colorTheme || null;
   const customCss = query.data?.customCss || null;
   const features = query.data?.features ?? null;
   const novu = query.data?.novu ?? null;
@@ -143,6 +147,19 @@ export function AppConfigProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (query.data && !query.isLoading) {
       applyThemeColors(primaryColor || undefined, secondaryColor || undefined);
+
+      // Apply color theme: user override (localStorage) > global branding > "default"
+      const userOverride = localStorage.getItem("sourdough-color-theme");
+      const effective = userOverride || colorTheme || "default";
+      document.documentElement.setAttribute("data-theme", effective);
+
+      // Cache global theme in localStorage so the inline script can use it
+      // on subsequent page loads to prevent a flash from "default" to the real theme
+      if (colorTheme) {
+        localStorage.setItem("sourdough-global-color-theme", colorTheme);
+      } else {
+        localStorage.removeItem("sourdough-global-color-theme");
+      }
 
       // Update theme-color meta tag (styles mobile address bar / status bar)
       let metaTheme = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
@@ -153,7 +170,7 @@ export function AppConfigProvider({ children }: { children: React.ReactNode }) {
       }
       metaTheme.content = primaryColor || '#3b82f6';
     }
-  }, [primaryColor, secondaryColor, query.data, query.isLoading]);
+  }, [primaryColor, secondaryColor, colorTheme, query.data, query.isLoading]);
 
   // Update favicon and related icons when they change
   React.useEffect(() => {
@@ -209,6 +226,7 @@ export function AppConfigProvider({ children }: { children: React.ReactNode }) {
     faviconUrl,
     primaryColor,
     secondaryColor,
+    colorTheme,
     customCss,
     features,
     novu,
@@ -239,6 +257,7 @@ export function useAppConfig(): AppConfigState {
       faviconUrl: null,
       primaryColor: null,
       secondaryColor: null,
+      colorTheme: null,
       customCss: null,
       features: null,
       novu: null,

@@ -702,6 +702,7 @@ backend/app/Http/Controllers/Api/BrandingController.php  # Branding API (logo, d
 
 **Read first:**
 ```
+docs/adr/019-progressive-web-app.md               # PWA architecture decisions
 docs/plans/pwa-roadmap.md                         # PWA phases and tasks
 frontend/public/manifest.json                     # Static manifest (API route overrides at /api/manifest)
 frontend/app/api/manifest/route.ts                # Dynamic manifest (branding, full icon set, shortcuts, share_target)

@@ -124,8 +124,8 @@ Schema::create('examples', function (Blueprint $table) {
 ## Run & Verify
 
 ```bash
-docker-compose exec app php /var/www/html/backend/artisan migrate
-docker-compose exec app php /var/www/html/backend/artisan route:list --path=examples
+docker exec sourdough-dev bash -c "cd /var/www/html/backend && php artisan migrate"
+docker exec sourdough-dev bash -c "cd /var/www/html/backend && php artisan route:list --path=examples"
 ```
 
 ## Checklist

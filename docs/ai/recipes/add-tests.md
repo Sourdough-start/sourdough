@@ -207,13 +207,13 @@ class ExampleFactory extends Factory
 
 ```bash
 # Inside Docker container
-docker-compose exec app php /var/www/html/backend/artisan test
+docker exec sourdough-dev bash -c "cd /var/www/html/backend && php artisan test"
 
 # Run specific test file
-docker-compose exec app php /var/www/html/backend/artisan test --filter=ExampleTest
+docker exec sourdough-dev bash -c "cd /var/www/html/backend && php artisan test --filter=ExampleTest"
 
 # Run with coverage
-docker-compose exec app php /var/www/html/backend/artisan test --coverage
+docker exec sourdough-dev bash -c "cd /var/www/html/backend && php artisan test --coverage"
 ```
 
 ---
@@ -488,7 +488,7 @@ npx playwright codegen http://localhost:8080
 
 ```bash
 # Backend tests
-docker-compose exec app php /var/www/html/backend/artisan test
+docker exec sourdough-dev bash -c "cd /var/www/html/backend && php artisan test"
 
 # Frontend tests
 cd frontend && npm test

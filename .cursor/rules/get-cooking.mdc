@@ -60,7 +60,7 @@ Then share the Quick Tips so the user knows the key shortcuts from the start. Pr
 | "Add a dashboard widget for stats" | Follow the dashboard widget recipe |
 | "Review my code" | Run the full code review checklist |
 
-There are **36 step-by-step recipes** — you don't need to know which one, just describe what you want.
+There are **47 step-by-step recipes** — you don't need to know which one, just describe what you want.
 
 **How I work:** This codebase is built for AI-assisted development. I automatically load context, follow tested recipes, run code reviews, and keep docs updated.
 

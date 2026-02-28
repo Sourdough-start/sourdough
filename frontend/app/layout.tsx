@@ -34,7 +34,8 @@ export default function RootLayout({
 }>) {
   // IMPORTANT: localStorage keys here MUST match:
   //   - ThemeProvider's default storageKey ("sourdough-theme")
-  //   - COLOR_THEME_STORAGE_KEY in lib/themes.ts ("sourdough-color-theme")
+  //   - ThemePicker's COLOR_THEME_KEY ("sourdough-color-theme") for per-user override
+  // Global color theme is applied by AppConfigProvider; user override takes priority.
   const themeScript = `
 (function() {
   var key = 'sourdough-theme';
@@ -46,7 +47,9 @@ export default function RootLayout({
     resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
   document.documentElement.classList.add(resolved);
-  var colorTheme = localStorage.getItem('sourdough-color-theme') || 'default';
+  var colorTheme = localStorage.getItem('sourdough-color-theme')
+    || localStorage.getItem('sourdough-global-color-theme')
+    || 'default';
   document.documentElement.setAttribute('data-theme', colorTheme);
 })();
   `.trim();

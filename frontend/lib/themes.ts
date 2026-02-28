@@ -400,5 +400,3 @@ export function getThemeById(id: string): ThemeDefinition | undefined {
 /** The default theme ID used when no theme is selected. */
 export const DEFAULT_THEME_ID = "default";
 
-/** localStorage key for persisting the user's color theme choice. */
-export const COLOR_THEME_STORAGE_KEY = "sourdough-color-theme";

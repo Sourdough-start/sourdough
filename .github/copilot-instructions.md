@@ -8,7 +8,7 @@ Before any implementation work:
 
 1. Read `CLAUDE.md` -> `docs/overview.md` -> `docs/ai/README.md`
 2. Check `docs/ai/context-loading.md` for which files to read per task type
-3. Find applicable recipes in `docs/ai/recipes/` (32 step-by-step guides)
+3. Find applicable recipes in `docs/ai/recipes/` (47 step-by-step guides)
 4. Review patterns in `docs/ai/patterns/README.md`
 
 ## Project Structure
@@ -28,7 +28,7 @@ frontend/          Next.js 14 (React 18, TypeScript)
 docs/ai/           AI development guide
 ├── README.md      Start here
 ├── context-loading.md  Files to read per task
-├── recipes/       32 step-by-step guides
+├── recipes/       47 step-by-step guides
 └── patterns/       Code patterns
 ```
 

@@ -234,12 +234,14 @@ git remote add origin <REPO_URL>
 
 ```bash
 git remote add origin <REPO_URL>
-git push -u origin main
 ```
 
-If the default branch is `master`:
+Push to your default branch (modern git defaults to `main`; older configs may use `master`):
 ```bash
-git branch -M main
+# Check your branch name
+git branch --show-current
+
+# Push (use your actual branch name)
 git push -u origin main
 ```
 
