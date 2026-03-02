@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.8.3] - 2026-03-01
+
+### Added
+- Add GraphQL API documentation and refactor user settings
+
+### Fixed
+- Sanitize search highlight HTML and tighten security defaults
+
+### Changed
+- Release v0.8.2
 ## [0.8.2] - 2026-02-28
 
 ### Added
