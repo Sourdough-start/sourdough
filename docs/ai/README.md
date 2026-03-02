@@ -85,6 +85,7 @@ Example plan reference:
 | Handle Stripe Webhooks | [handle-stripe-webhooks.md](recipes/handle-stripe-webhooks.md) |
 | Stripe Connect Onboarding | [stripe-connect-onboarding.md](recipes/stripe-connect-onboarding.md) |
 | Add Color Theme | [add-theme.md](recipes/add-theme.md) |
+| Update GraphQL API Docs | [update-graphql-docs.md](recipes/update-graphql-docs.md) |
 
 ## Common Gotchas
 

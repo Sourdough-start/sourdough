@@ -47,6 +47,7 @@ Follow these patterns for consistency across the codebase. Read only the files r
 |---------|------|-------------|
 | Error Handling | [error-handling.md](error-handling.md) | Backend + frontend error handling |
 | Security | [security.md](security.md) | SSRF, webhooks, passwords, OAuth, filename validation |
+| GraphQL Documentation | [graphql-docs.md](graphql-docs.md) | Keeping API docs in sync with schema |
 
 ## Naming Conventions
 

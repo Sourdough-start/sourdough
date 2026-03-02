@@ -265,6 +265,63 @@ export const SEARCH_PAGES: SearchPage[] = [
     adminOnly: true,
     keywords: ["graphql", "api", "keys", "rate limit", "introspection", "usage"],
   },
+  // GraphQL API Documentation help articles
+  {
+    id: "help-graphql-getting-started",
+    title: "Help: GraphQL API - Getting Started",
+    subtitle: "Help article",
+    url: "help:graphql-getting-started",
+    adminOnly: true,
+    keywords: ["graphql", "api", "authentication", "bearer", "endpoint", "curl"],
+  },
+  {
+    id: "help-graphql-queries",
+    title: "Help: GraphQL API - Queries Reference",
+    subtitle: "Help article",
+    url: "help:graphql-queries",
+    adminOnly: true,
+    keywords: ["graphql", "queries", "me", "notifications", "auditLogs", "users"],
+  },
+  {
+    id: "help-graphql-mutations",
+    title: "Help: GraphQL API - Mutations Reference",
+    subtitle: "Help article",
+    url: "help:graphql-mutations",
+    adminOnly: true,
+    keywords: ["graphql", "mutations", "updateProfile", "deleteNotifications"],
+  },
+  {
+    id: "help-graphql-types",
+    title: "Help: GraphQL API - Types & Inputs",
+    subtitle: "Help article",
+    url: "help:graphql-types",
+    adminOnly: true,
+    keywords: ["graphql", "types", "inputs", "enums", "scalars", "schema"],
+  },
+  {
+    id: "help-graphql-errors",
+    title: "Help: GraphQL API - Error Handling",
+    subtitle: "Help article",
+    url: "help:graphql-errors",
+    adminOnly: true,
+    keywords: ["graphql", "errors", "troubleshooting", "unauthenticated", "forbidden"],
+  },
+  {
+    id: "help-graphql-rate-limiting",
+    title: "Help: GraphQL API - Rate Limiting & Security",
+    subtitle: "Help article",
+    url: "help:graphql-rate-limiting",
+    adminOnly: true,
+    keywords: ["graphql", "rate", "limit", "security", "cors", "introspection"],
+  },
+  {
+    id: "help-graphql-pagination",
+    title: "Help: GraphQL API - Pagination",
+    subtitle: "Help article",
+    url: "help:graphql-pagination",
+    adminOnly: true,
+    keywords: ["graphql", "pagination", "paginator", "first", "page"],
+  },
 ];
 
 /**

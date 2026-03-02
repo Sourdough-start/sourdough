@@ -43,39 +43,25 @@ class UserSettingController extends Controller
 
         $user = $request->user();
 
-        // Only update settings that were provided and are not null
-        if (isset($validated['theme']) && $validated['theme'] !== null) {
-            $user->setSetting('appearance', 'theme', $validated['theme']);
-        }
+        $settingMap = [
+            'theme'                 => ['group' => 'appearance',    'key' => 'theme'],
+            'color_theme'           => ['group' => 'appearance',    'key' => 'color_theme',  'clearable' => true],
+            'default_llm_mode'      => ['group' => 'defaults',      'key' => 'llm_mode'],
+            'notification_channels' => ['group' => 'notifications', 'key' => 'preferences'],
+            'timezone'              => ['group' => 'general',       'key' => 'timezone',     'clearable' => true],
+        ];
 
-        if (array_key_exists('color_theme', $validated)) {
-            if ($validated['color_theme'] !== null) {
-                $user->setSetting('appearance', 'color_theme', $validated['color_theme']);
-            } else {
-                // Allow clearing to revert to global default
-                $user->settings()
-                    ->where('group', 'appearance')
-                    ->where('key', 'color_theme')
-                    ->delete();
+        foreach ($settingMap as $field => $config) {
+            if (! array_key_exists($field, $validated)) {
+                continue;
             }
-        }
 
-        if (isset($validated['default_llm_mode']) && $validated['default_llm_mode'] !== null) {
-            $user->setSetting('defaults', 'llm_mode', $validated['default_llm_mode']);
-        }
-
-        if (isset($validated['notification_channels']) && $validated['notification_channels'] !== null) {
-            $user->setSetting('notifications', 'preferences', $validated['notification_channels']);
-        }
-
-        if (array_key_exists('timezone', $validated)) {
-            if ($validated['timezone'] !== null) {
-                $user->setSetting('general', 'timezone', $validated['timezone']);
-            } else {
-                // Allow clearing to revert to system default
+            if ($validated[$field] !== null) {
+                $user->setSetting($config['group'], $config['key'], $validated[$field]);
+            } elseif (! empty($config['clearable'])) {
                 $user->settings()
-                    ->where('group', 'general')
-                    ->where('key', 'timezone')
+                    ->where('group', $config['group'])
+                    ->where('key', $config['key'])
                     ->delete();
             }
         }

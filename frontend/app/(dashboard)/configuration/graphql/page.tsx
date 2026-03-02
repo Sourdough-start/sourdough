@@ -925,6 +925,13 @@ export default function GraphQLSettingsPage() {
           Configure the GraphQL API endpoint, security settings, and manage API keys.{" "}
           <HelpLink articleId="graphql-configuration" />
         </p>
+        <div className="mt-3">
+          <HelpLink
+            articleId="graphql-getting-started"
+            label="View full API documentation"
+            variant="button"
+          />
+        </div>
       </div>
 
       <SettingsSection />

@@ -1,4 +1,4 @@
-import { type LucideIcon, Book, Shield, Bell, Settings, User, Users, FileText, Brain, Database, BarChart3, Send } from "lucide-react";
+import { type LucideIcon, Book, Shield, Bell, Settings, User, Users, FileText, Brain, Database, BarChart3, Send, Terminal } from "lucide-react";
 
 export interface HelpArticle {
   id: string;
@@ -14,6 +14,8 @@ export interface HelpCategory {
   articles: HelpArticle[];
   /** Permission required to see this category. Omit for categories visible to all authenticated users. */
   permission?: string;
+  /** Feature flag key from useAppConfig().features. Category is hidden when the flag is false. */
+  featureFlag?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -1187,6 +1189,1274 @@ Payment events are tracked in the **Usage & Costs** dashboard for cost visibilit
       },
     ],
   },
+  // --- GraphQL API Documentation ---
+  {
+    slug: "graphql-api",
+    name: "GraphQL API",
+    icon: Terminal,
+    permission: "settings.view",
+    featureFlag: "graphqlEnabled",
+    articles: [
+      {
+        id: "graphql-getting-started",
+        title: "Getting Started",
+        tags: ["graphql", "api", "authentication", "bearer", "endpoint", "quickstart", "curl"],
+        content: `# Getting Started with the GraphQL API
+
+## Endpoint
+
+All GraphQL requests are sent as \`POST\` requests to:
+
+\`\`\`
+POST /api/graphql
+\`\`\`
+
+## Authentication
+
+Every request must include a valid API key in the \`Authorization\` header:
+
+\`\`\`
+Authorization: Bearer sk_your_api_key_here
+\`\`\`
+
+API keys are created in **User Menu** > **Security** > **API Keys**. Each key uses the \`sk_\` prefix and acts as your identity for all API requests. Treat keys like passwords — never share them or commit them to source control.
+
+## Your First Request
+
+\`\`\`graphql
+query {
+  me {
+    id
+    name
+    email
+    isAdmin
+    createdAt
+  }
+}
+\`\`\`
+
+### cURL Example
+
+\`\`\`bash
+curl -X POST https://your-app.com/api/graphql \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer sk_your_key" \\
+  -d '{"query": "{ me { id name email } }"}'
+\`\`\`
+
+### JavaScript Example
+
+\`\`\`javascript
+const response = await fetch("/api/graphql", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer sk_your_key",
+  },
+  body: JSON.stringify({
+    query: \`{ me { id name email } }\`,
+  }),
+});
+const { data, errors } = await response.json();
+\`\`\`
+
+## Response Format
+
+All responses are JSON with a \`data\` field (on success) and/or an \`errors\` array (on failure):
+
+\`\`\`json
+{
+  "data": {
+    "me": {
+      "id": "1",
+      "name": "Jane Doe",
+      "email": "jane@example.com"
+    }
+  }
+}
+\`\`\`
+
+See the **Error Handling** article for error response details.
+
+## Variables
+
+Pass variables separately from the query for cleaner, reusable requests:
+
+\`\`\`bash
+curl -X POST https://your-app.com/api/graphql \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer sk_your_key" \\
+  -d '{
+    "query": "query ($unreadOnly: Boolean) { myNotifications(unreadOnly: $unreadOnly) { data { id title } paginatorInfo { total } } }",
+    "variables": { "unreadOnly": true }
+  }'
+\`\`\`
+
+## Next Steps
+
+- **Queries Reference** — All available read operations
+- **Mutations Reference** — All available write operations
+- **Types & Inputs Reference** — Complete type definitions
+- **Pagination** — How to paginate results
+- **Rate Limiting & Security** — Limits and security configuration`,
+      },
+      {
+        id: "graphql-queries",
+        title: "Queries Reference",
+        tags: ["graphql", "queries", "read", "me", "notifications", "audit", "users", "logs"],
+        content: `# Queries Reference
+
+All queries require a valid API key via \`Authorization: Bearer sk_...\`. Admin queries additionally require the listed permission.
+
+## User Queries
+
+These queries operate on the authenticated user's own data.
+
+### me
+
+Get the currently authenticated user's profile.
+
+**Returns:** \`User!\`
+
+\`\`\`graphql
+query {
+  me {
+    id
+    name
+    email
+    avatar
+    emailVerifiedAt
+    twoFactorEnabled
+    isAdmin
+    createdAt
+    updatedAt
+  }
+}
+\`\`\`
+
+### myNotifications
+
+Get the authenticated user's notifications with optional filtering and pagination.
+
+| Argument | Type | Default | Description |
+|---|---|---|---|
+| category | String | null | Filter by notification category (e.g. "backup", "auth", "system") |
+| unreadOnly | Boolean | null | Only return unread notifications |
+| first | Int | 25 | Results per page |
+| page | Int | 1 | Page number |
+
+**Returns:** \`NotificationPaginator!\`
+
+\`\`\`graphql
+query {
+  myNotifications(unreadOnly: true, first: 10, page: 1) {
+    data {
+      id
+      type
+      title
+      message
+      data
+      readAt
+      createdAt
+    }
+    paginatorInfo {
+      currentPage
+      lastPage
+      total
+      hasMorePages
+    }
+  }
+}
+\`\`\`
+
+### myApiKeys
+
+Get the authenticated user's API keys.
+
+**Returns:** \`[ApiKey!]!\`
+
+\`\`\`graphql
+query {
+  myApiKeys {
+    id
+    name
+    keyPrefix
+    lastUsedAt
+    expiresAt
+    revokedAt
+    status
+    createdAt
+  }
+}
+\`\`\`
+
+### myNotificationSettings
+
+Get the authenticated user's notification channel settings.
+
+**Returns:** \`NotificationSettings!\`
+
+\`\`\`graphql
+query {
+  myNotificationSettings {
+    channels {
+      id
+      name
+      enabled
+      configured
+    }
+    typePreferences
+  }
+}
+\`\`\`
+
+## Admin Queries
+
+These queries require specific permissions and return data across all users.
+
+### auditLogs
+
+List audit logs. **Requires:** \`audit.view\` permission.
+
+| Argument | Type | Default | Description |
+|---|---|---|---|
+| first | Int | 25 | Results per page |
+| page | Int | 1 | Page number |
+| filters | AuditLogFilter | null | Filter criteria |
+| orderBy | [AuditLogOrderBy!] | null | Sort order |
+
+**Returns:** \`AuditLogPaginator!\`
+
+\`\`\`graphql
+query {
+  auditLogs(
+    first: 10
+    filters: { severity: "warning", dateFrom: "2026-01-01" }
+    orderBy: [{ column: CREATED_AT, direction: DESC }]
+  ) {
+    data {
+      id
+      userId
+      user { name email }
+      action
+      severity
+      oldValues
+      newValues
+      ipAddress
+      createdAt
+    }
+    paginatorInfo { total currentPage lastPage }
+  }
+}
+\`\`\`
+
+### accessLogs
+
+List access logs (HIPAA). **Requires:** \`audit.view\` permission.
+
+| Argument | Type | Default | Description |
+|---|---|---|---|
+| first | Int | 25 | Results per page |
+| page | Int | 1 | Page number |
+| filters | AccessLogFilter | null | Filter criteria |
+| orderBy | [AccessLogOrderBy!] | null | Sort order |
+
+**Returns:** \`AccessLogPaginator!\`
+
+\`\`\`graphql
+query {
+  accessLogs(first: 25, page: 1) {
+    data {
+      id
+      userId
+      user { name email }
+      action
+      resourceType
+      resourceId
+      fieldsAccessed
+      ipAddress
+      createdAt
+    }
+    paginatorInfo { total currentPage lastPage }
+  }
+}
+\`\`\`
+
+### notificationDeliveries
+
+List notification delivery attempts. **Requires:** \`notification_deliveries.view\` permission.
+
+| Argument | Type | Default | Description |
+|---|---|---|---|
+| first | Int | 25 | Results per page |
+| page | Int | 1 | Page number |
+| filters | NotificationDeliveryFilter | null | Filter criteria |
+| orderBy | [NotificationDeliveryOrderBy!] | null | Sort order |
+
+**Returns:** \`NotificationDeliveryPaginator!\`
+
+\`\`\`graphql
+query {
+  notificationDeliveries(
+    filters: { status: "failed", channel: "email" }
+    orderBy: [{ column: CREATED_AT, direction: DESC }]
+  ) {
+    data {
+      id
+      userId
+      user { name }
+      notificationType
+      channel
+      status
+      error
+      attempt
+      attemptedAt
+      createdAt
+    }
+    paginatorInfo { total currentPage lastPage }
+  }
+}
+\`\`\`
+
+### payments
+
+List payments. **Requires:** \`payments.view\` permission.
+
+| Argument | Type | Default | Description |
+|---|---|---|---|
+| first | Int | 25 | Results per page |
+| page | Int | 1 | Page number |
+| filters | PaymentFilter | null | Filter criteria |
+| orderBy | [PaymentOrderBy!] | null | Sort order |
+
+**Returns:** \`PaymentPaginator!\`
+
+\`\`\`graphql
+query {
+  payments(
+    first: 50
+    filters: { status: "succeeded" }
+    orderBy: [{ column: CREATED_AT, direction: DESC }]
+  ) {
+    data {
+      id
+      userId
+      user { name email }
+      amount
+      currency
+      status
+      description
+      paidAt
+      createdAt
+    }
+    paginatorInfo { total currentPage lastPage }
+  }
+}
+\`\`\`
+
+### usageStats
+
+Get integration usage statistics. **Requires:** \`usage.view\` permission.
+
+| Argument | Type | Default | Description |
+|---|---|---|---|
+| dateFrom | Date | null | Start date (Y-m-d) |
+| dateTo | Date | null | End date (Y-m-d) |
+| integration | String | null | Filter by integration name |
+| first | Int | 25 | Results per page |
+| page | Int | 1 | Page number |
+
+**Returns:** \`UsageStatPaginator!\`
+
+\`\`\`graphql
+query {
+  usageStats(dateFrom: "2026-01-01", dateTo: "2026-01-31", integration: "openai") {
+    data {
+      id
+      integration
+      provider
+      metric
+      quantity
+      estimatedCost
+      metadata
+      userId
+      createdAt
+    }
+    paginatorInfo { total currentPage lastPage }
+  }
+}
+\`\`\`
+
+### usageBreakdown
+
+Get usage grouped by integration. **Requires:** \`usage.view\` permission.
+
+| Argument | Type | Default | Description |
+|---|---|---|---|
+| dateFrom | Date | null | Start date (Y-m-d) |
+| dateTo | Date | null | End date (Y-m-d) |
+| integration | String | null | Filter by integration name |
+
+**Returns:** \`[UsageBreakdownEntry!]!\`
+
+\`\`\`graphql
+query {
+  usageBreakdown(dateFrom: "2026-01-01", dateTo: "2026-01-31") {
+    integration
+    provider
+    totalQuantity
+    totalCost
+    count
+  }
+}
+\`\`\`
+
+### userGroups
+
+List all user groups. **Requires:** \`groups.view\` permission.
+
+**Returns:** \`[UserGroup!]!\`
+
+\`\`\`graphql
+query {
+  userGroups {
+    id
+    name
+    slug
+    description
+    isSystem
+    isDefault
+    memberCount
+    permissions
+    createdAt
+  }
+}
+\`\`\`
+
+### users
+
+List all users (admin). **Requires:** \`users.view\` permission.
+
+| Argument | Type | Default | Description |
+|---|---|---|---|
+| first | Int | 25 | Results per page |
+| page | Int | 1 | Page number |
+| search | String | null | Search by name or email |
+
+**Returns:** \`UserAdminPaginator!\`
+
+\`\`\`graphql
+query {
+  users(first: 10, search: "jane") {
+    data {
+      id
+      name
+      email
+      isAdmin
+      disabledAt
+      createdAt
+    }
+    paginatorInfo { total currentPage lastPage }
+  }
+}
+\`\`\``,
+      },
+      {
+        id: "graphql-mutations",
+        title: "Mutations Reference",
+        tags: ["graphql", "mutations", "write", "update", "profile", "notifications", "delete"],
+        content: `# Mutations Reference
+
+All mutations require a valid API key via \`Authorization: Bearer sk_...\`.
+
+### updateProfile
+
+Update the authenticated user's profile.
+
+**Input:** \`UpdateProfileInput!\`
+
+| Field | Type | Description |
+|---|---|---|
+| name | String | New display name |
+| email | String | New email address (triggers verification) |
+| avatar | String | New avatar URL |
+
+**Returns:** \`UpdateProfilePayload!\` — contains \`user\` (updated User) and \`emailVerificationSent\` (Boolean).
+
+\`\`\`graphql
+mutation {
+  updateProfile(input: { name: "Jane Smith", email: "jane.smith@example.com" }) {
+    user {
+      id
+      name
+      email
+    }
+    emailVerificationSent
+  }
+}
+\`\`\`
+
+### markNotificationAsRead
+
+Mark a single notification as read.
+
+| Argument | Type | Description |
+|---|---|---|
+| id | ID! | Notification ID |
+
+**Returns:** \`Notification!\`
+
+\`\`\`graphql
+mutation {
+  markNotificationAsRead(id: "42") {
+    id
+    title
+    readAt
+  }
+}
+\`\`\`
+
+### deleteNotifications
+
+Delete one or more notifications.
+
+| Argument | Type | Description |
+|---|---|---|
+| ids | [ID!]! | Array of notification IDs to delete |
+
+**Returns:** \`DeleteNotificationsPayload!\` — contains \`deletedCount\` (Int).
+
+\`\`\`graphql
+mutation {
+  deleteNotifications(ids: ["42", "43", "44"]) {
+    deletedCount
+  }
+}
+\`\`\`
+
+### updateNotificationSettings
+
+Update the authenticated user's notification channel settings.
+
+**Input:** \`NotificationSettingsInput!\`
+
+| Field | Type | Description |
+|---|---|---|
+| channel | String! | Channel identifier (e.g. "email", "push") |
+| enabled | Boolean | Enable or disable the channel |
+| settings | JSON | Channel-specific settings |
+
+**Returns:** \`NotificationSettings!\`
+
+\`\`\`graphql
+mutation {
+  updateNotificationSettings(input: { channel: "email", enabled: true }) {
+    channels {
+      id
+      name
+      enabled
+      configured
+    }
+    typePreferences
+  }
+}
+\`\`\`
+
+### updateTypePreferences
+
+Update per-type notification channel preferences.
+
+**Input:** \`TypePreferencesInput!\`
+
+| Field | Type | Description |
+|---|---|---|
+| type | String! | Notification type identifier |
+| channel | String! | Channel identifier |
+| enabled | Boolean! | Enable or disable this type on this channel |
+
+**Returns:** \`TypePreferencesPayload!\` — contains \`preferences\` (JSON).
+
+\`\`\`graphql
+mutation {
+  updateTypePreferences(input: { type: "backup.completed", channel: "email", enabled: false }) {
+    preferences
+  }
+}
+\`\`\``,
+      },
+      {
+        id: "graphql-types",
+        title: "Types & Inputs Reference",
+        tags: ["graphql", "types", "inputs", "enums", "scalars", "schema", "reference"],
+        content: `# Types & Inputs Reference
+
+## Scalars
+
+| Scalar | Format | Example |
+|---|---|---|
+| DateTime | ISO 8601 with timezone | \`2026-01-15T10:30:00+00:00\` |
+| Date | Y-m-d | \`2026-01-15\` |
+| JSON | Arbitrary JSON data | \`{"key": "value"}\` |
+| ID | Unique identifier | \`"1"\` |
+
+## User-Facing Types
+
+### User
+
+| Field | Type | Description |
+|---|---|---|
+| id | ID! | Unique identifier |
+| name | String! | Display name |
+| email | String! | Email address |
+| avatar | String | Avatar URL |
+| emailVerifiedAt | DateTime | When email was verified |
+| twoFactorEnabled | Boolean! | Whether 2FA is active |
+| isAdmin | Boolean! | Whether user is an administrator |
+| createdAt | DateTime! | Account creation time |
+| updatedAt | DateTime! | Last update time |
+
+### Notification
+
+| Field | Type | Description |
+|---|---|---|
+| id | ID! | Unique identifier |
+| type | String! | Notification type (e.g. "backup.completed") |
+| title | String! | Notification title |
+| message | String | Notification body |
+| data | JSON | Additional structured data |
+| readAt | DateTime | When marked as read (null if unread) |
+| createdAt | DateTime! | When the notification was created |
+
+### ApiKey
+
+| Field | Type | Description |
+|---|---|---|
+| id | ID! | Unique identifier |
+| name | String! | Key name/label |
+| keyPrefix | String! | First characters of the key (e.g. "sk_a1b2") |
+| lastUsedAt | DateTime | Last time this key was used |
+| expiresAt | DateTime | Expiration date (null = never expires) |
+| revokedAt | DateTime | When the key was revoked (null if active) |
+| status | String! | Current status: "active", "expired", or "revoked" |
+| createdAt | DateTime! | When the key was created |
+
+### NotificationSettings
+
+| Field | Type | Description |
+|---|---|---|
+| channels | [NotificationChannel!]! | List of notification channels |
+| typePreferences | JSON! | Per-type channel preferences |
+
+### NotificationChannel
+
+| Field | Type | Description |
+|---|---|---|
+| id | String! | Channel identifier (e.g. "email") |
+| name | String! | Display name |
+| enabled | Boolean! | Whether the channel is enabled |
+| configured | Boolean! | Whether the channel is configured |
+
+## Admin Types
+
+### AuditLog
+
+| Field | Type | Description |
+|---|---|---|
+| id | ID! | Unique identifier |
+| userId | ID | User who performed the action |
+| user | UserAdmin | User details |
+| action | String! | Action name (e.g. "user.updated") |
+| severity | String! | Severity level |
+| auditableType | String | Audited entity type |
+| auditableId | String | Audited entity ID |
+| oldValues | JSON | Previous values |
+| newValues | JSON | New values |
+| ipAddress | String | Request IP address |
+| userAgent | String | Request user agent |
+| correlationId | String | Request correlation ID |
+| createdAt | DateTime! | When the event occurred |
+
+### AccessLog
+
+| Field | Type | Description |
+|---|---|---|
+| id | ID! | Unique identifier |
+| userId | ID | User who accessed the resource |
+| user | UserAdmin | User details |
+| action | String! | Access action |
+| resourceType | String | Type of resource accessed |
+| resourceId | String | ID of resource accessed |
+| fieldsAccessed | JSON | Fields that were accessed |
+| ipAddress | String | Request IP address |
+| userAgent | String | Request user agent |
+| correlationId | String | Correlation ID |
+| createdAt | DateTime! | When the access occurred |
+
+### NotificationDelivery
+
+| Field | Type | Description |
+|---|---|---|
+| id | ID! | Unique identifier |
+| userId | ID | Target user |
+| user | UserAdmin | User details |
+| notificationType | String! | Notification type |
+| channel | String! | Delivery channel |
+| status | String! | Delivery status |
+| error | String | Error message (if failed) |
+| attempt | Int | Attempt number |
+| attemptedAt | DateTime | When delivery was attempted |
+| createdAt | DateTime! | Record creation time |
+
+### Payment
+
+| Field | Type | Description |
+|---|---|---|
+| id | ID! | Unique identifier |
+| userId | ID | Paying user |
+| user | UserAdmin | User details |
+| stripeCustomerId | String | Stripe customer ID |
+| stripePaymentIntentId | String | Stripe PaymentIntent ID |
+| amount | Int! | Amount in cents |
+| currency | String! | Currency code (e.g. "usd") |
+| status | String! | Payment status |
+| description | String | Payment description |
+| metadata | JSON | Additional metadata |
+| applicationFeeAmount | Int | Platform fee in cents |
+| paidAt | DateTime | When payment was completed |
+| refundedAt | DateTime | When payment was refunded |
+| createdAt | DateTime! | Record creation time |
+
+### UsageStat
+
+| Field | Type | Description |
+|---|---|---|
+| id | ID! | Unique identifier |
+| integration | String! | Integration name |
+| provider | String! | Provider name |
+| metric | String! | Metric name |
+| quantity | Float! | Usage quantity |
+| estimatedCost | Float | Estimated cost |
+| metadata | JSON | Additional metadata |
+| userId | ID | Associated user |
+| createdAt | DateTime! | Record creation time |
+
+### UsageBreakdownEntry
+
+| Field | Type | Description |
+|---|---|---|
+| integration | String! | Integration name |
+| provider | String! | Provider name |
+| totalQuantity | Float! | Total usage |
+| totalCost | Float! | Total cost |
+| count | Int! | Number of records |
+
+### UserGroup
+
+| Field | Type | Description |
+|---|---|---|
+| id | ID! | Unique identifier |
+| name | String! | Group name |
+| slug | String! | URL-safe slug |
+| description | String | Group description |
+| isSystem | Boolean! | Whether this is a system group |
+| isDefault | Boolean! | Whether this is the default group |
+| memberCount | Int! | Number of members |
+| permissions | [String!]! | Assigned permissions |
+| createdAt | DateTime! | Creation time |
+
+### UserAdmin
+
+Extended user type for admin queries with additional fields.
+
+| Field | Type | Description |
+|---|---|---|
+| id | ID! | Unique identifier |
+| name | String! | Display name |
+| email | String! | Email address |
+| avatar | String | Avatar URL |
+| emailVerifiedAt | DateTime | Email verification time |
+| twoFactorEnabled | Boolean! | 2FA status |
+| isAdmin | Boolean! | Admin status |
+| disabledAt | DateTime | When the account was disabled |
+| createdAt | DateTime! | Account creation time |
+| updatedAt | DateTime! | Last update time |
+
+## Input Types
+
+### UpdateProfileInput
+
+| Field | Type | Description |
+|---|---|---|
+| name | String | New display name |
+| email | String | New email (triggers verification) |
+| avatar | String | New avatar URL |
+
+### NotificationSettingsInput
+
+| Field | Type | Description |
+|---|---|---|
+| channel | String! | Channel identifier |
+| enabled | Boolean | Enable/disable |
+| settings | JSON | Channel-specific settings |
+
+### TypePreferencesInput
+
+| Field | Type | Description |
+|---|---|---|
+| type | String! | Notification type |
+| channel | String! | Channel identifier |
+| enabled | Boolean! | Enable/disable |
+
+### Filter Inputs
+
+**AuditLogFilter**
+
+| Field | Type |
+|---|---|
+| action | String |
+| userId | ID |
+| severity | String |
+| dateFrom | Date |
+| dateTo | Date |
+
+**AccessLogFilter**
+
+| Field | Type |
+|---|---|
+| action | String |
+| userId | ID |
+| resourceType | String |
+| dateFrom | Date |
+| dateTo | Date |
+
+**NotificationDeliveryFilter**
+
+| Field | Type |
+|---|---|
+| notificationType | String |
+| channel | String |
+| status | String |
+| userId | ID |
+| dateFrom | Date |
+| dateTo | Date |
+
+**PaymentFilter**
+
+| Field | Type |
+|---|---|
+| status | String |
+| userId | ID |
+| dateFrom | Date |
+| dateTo | Date |
+
+## Enums
+
+### SortDirection
+
+\`ASC\` | \`DESC\`
+
+### AuditLogOrderColumn
+
+\`CREATED_AT\` | \`ACTION\` | \`SEVERITY\`
+
+### AccessLogOrderColumn
+
+\`CREATED_AT\` | \`ACTION\` | \`RESOURCE_TYPE\`
+
+### NotificationDeliveryOrderColumn
+
+\`CREATED_AT\` | \`CHANNEL\` | \`STATUS\`
+
+### PaymentOrderColumn
+
+\`CREATED_AT\` | \`AMOUNT\` | \`STATUS\`
+
+## Mutation Payloads
+
+### UpdateProfilePayload
+
+| Field | Type | Description |
+|---|---|---|
+| user | User! | Updated user |
+| emailVerificationSent | Boolean! | Whether a verification email was sent |
+
+### DeleteNotificationsPayload
+
+| Field | Type | Description |
+|---|---|---|
+| deletedCount | Int! | Number of notifications deleted |
+
+### TypePreferencesPayload
+
+| Field | Type | Description |
+|---|---|---|
+| preferences | JSON! | Updated preferences |`,
+      },
+      {
+        id: "graphql-errors",
+        title: "Error Handling",
+        tags: ["graphql", "errors", "troubleshooting", "codes", "validation", "unauthorized"],
+        content: `# Error Handling
+
+## Error Response Format
+
+When an error occurs, the response includes an \`errors\` array:
+
+\`\`\`json
+{
+  "errors": [
+    {
+      "message": "Unauthenticated.",
+      "extensions": {
+        "code": "UNAUTHENTICATED"
+      },
+      "locations": [{ "line": 2, "column": 3 }],
+      "path": ["me"]
+    }
+  ],
+  "data": null
+}
+\`\`\`
+
+Partial success is possible — \`data\` may contain results for fields that succeeded while \`errors\` lists fields that failed.
+
+## Error Codes
+
+| Code | HTTP Status | Meaning |
+|---|---|---|
+| UNAUTHENTICATED | 401 | Missing, invalid, expired, or revoked API key |
+| FORBIDDEN | 403 | Valid key but missing required permission |
+| VALIDATION_ERROR | 422 | Input validation failed |
+| INTERNAL_SERVER_ERROR | 500 | Unexpected server error |
+
+## Common Errors
+
+### Missing or Invalid API Key
+
+\`\`\`json
+{
+  "errors": [{
+    "message": "Unauthenticated.",
+    "extensions": { "code": "UNAUTHENTICATED" }
+  }]
+}
+\`\`\`
+
+**Fix:** Ensure the \`Authorization: Bearer sk_...\` header is present and the key is active.
+
+### Insufficient Permissions
+
+\`\`\`json
+{
+  "errors": [{
+    "message": "This action is unauthorized.",
+    "extensions": { "code": "FORBIDDEN" }
+  }]
+}
+\`\`\`
+
+**Fix:** The API key's user must have the required permission (e.g. \`audit.view\` for \`auditLogs\`). Permissions are managed via user groups.
+
+### Validation Error
+
+\`\`\`json
+{
+  "errors": [{
+    "message": "Validation failed for the field [updateProfile].",
+    "extensions": {
+      "code": "VALIDATION_ERROR",
+      "validation": {
+        "input.email": ["The email has already been taken."]
+      }
+    }
+  }]
+}
+\`\`\`
+
+**Fix:** Check the \`validation\` object for field-specific error messages and correct the input.
+
+### Query Too Deep
+
+\`\`\`json
+{
+  "errors": [{
+    "message": "Query has depth of 15, which exceeds max depth of 12."
+  }]
+}
+\`\`\`
+
+**Fix:** Reduce query nesting. The maximum depth is configured by the administrator (default: 12).
+
+### Query Too Complex
+
+\`\`\`json
+{
+  "errors": [{
+    "message": "Query has a complexity of 250, which exceeds max complexity of 200."
+  }]
+}
+\`\`\`
+
+**Fix:** Request fewer fields or split into multiple simpler queries. The maximum complexity is configured by the administrator (default: 200).
+
+### Rate Limited
+
+HTTP \`429 Too Many Requests\` response with headers:
+
+\`\`\`
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 0
+Retry-After: 45
+\`\`\`
+
+**Fix:** Wait for the \`Retry-After\` period (in seconds) before retrying.
+
+### GraphQL Disabled
+
+HTTP \`404 Not Found\` — the GraphQL endpoint returns 404 when the feature is disabled by an administrator.
+
+## Troubleshooting
+
+1. **Always check the \`extensions.code\` field** — it provides a machine-readable error category
+2. **Validation errors include field details** — check \`extensions.validation\` for specific field errors
+3. **Rate limit headers are always present** on successful responses — monitor \`X-RateLimit-Remaining\` proactively
+4. **Stack traces are hidden in production** — only the error message and code are returned`,
+      },
+      {
+        id: "graphql-rate-limiting",
+        title: "Rate Limiting & Security",
+        tags: ["graphql", "rate", "limit", "security", "depth", "complexity", "cors", "introspection"],
+        content: `# Rate Limiting & Security
+
+## Rate Limiting
+
+Each API key has a per-minute request limit. The default is configurable by the administrator (default: 60 requests/minute).
+
+### Rate Limit Headers
+
+Every response includes rate limit headers:
+
+| Header | Description |
+|---|---|
+| X-RateLimit-Limit | Maximum requests per minute for this key |
+| X-RateLimit-Remaining | Requests remaining in the current window |
+| Retry-After | Seconds to wait before retrying (only on 429 responses) |
+
+### Handling Rate Limits
+
+When rate limited, you receive an HTTP 429 response. Implement exponential backoff or respect the \`Retry-After\` header:
+
+\`\`\`javascript
+async function graphqlRequest(query, variables) {
+  const response = await fetch("/api/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer sk_your_key",
+    },
+    body: JSON.stringify({ query, variables }),
+  });
+
+  if (response.status === 429) {
+    const retryAfter = parseInt(response.headers.get("Retry-After") || "60");
+    await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+    return graphqlRequest(query, variables);
+  }
+
+  return response.json();
+}
+\`\`\`
+
+## Query Depth Limit
+
+Queries are limited to a maximum nesting depth (configurable, default: 12). Deeply nested queries are rejected before execution.
+
+**Example of a deep query (may be rejected):**
+
+\`\`\`graphql
+query {
+  auditLogs {
+    data {
+      user {  # depth increases with nested types
+        ...
+      }
+    }
+  }
+}
+\`\`\`
+
+## Query Complexity Limit
+
+Each field contributes a complexity score. The total must not exceed the configured maximum (default: 200). Requesting many fields across paginated results increases complexity.
+
+## Max Result Size
+
+Paginated queries return at most a configured number of items per page (default: 100). The \`first\` argument is capped at this value.
+
+## CORS
+
+Cross-origin requests are controlled by the CORS configuration:
+
+- **Allowed methods:** POST, OPTIONS
+- **Allowed headers:** Content-Type, Authorization, Accept
+- **Allowed origins:** Configurable (default: \`*\` allows all origins)
+
+For production, restrict origins to your specific domains.
+
+## Introspection
+
+Schema introspection (\`__schema\`, \`__type\` queries) can be enabled or disabled by the administrator. When disabled, introspection queries return an error. Disable introspection in production to prevent schema exposure.
+
+When introspection is enabled, you can explore the schema with tools like GraphiQL or Postman:
+
+\`\`\`graphql
+query {
+  __schema {
+    queryType { name }
+    mutationType { name }
+    types { name kind }
+  }
+}
+\`\`\`
+
+## Key Rotation
+
+API keys support rotation with a configurable grace period (default: 7 days). During the grace period, both the old and new keys remain valid. After the grace period, only the new key works.`,
+      },
+      {
+        id: "graphql-pagination",
+        title: "Pagination",
+        tags: ["graphql", "pagination", "paginator", "first", "page", "cursor"],
+        content: `# Pagination
+
+Paginated queries use a consistent pattern with \`first\` (page size) and \`page\` (page number) arguments.
+
+## Arguments
+
+| Argument | Type | Default | Description |
+|---|---|---|---|
+| first | Int | 25 | Number of items per page (max is configured by admin, default: 100) |
+| page | Int | 1 | Page number (1-indexed) |
+
+## PaginatorInfo
+
+Every paginated response includes a \`paginatorInfo\` object:
+
+| Field | Type | Description |
+|---|---|---|
+| count | Int! | Number of items on the current page |
+| currentPage | Int! | Current page number |
+| lastPage | Int! | Last page number |
+| perPage | Int! | Items per page |
+| total | Int! | Total number of items across all pages |
+| hasMorePages | Boolean! | Whether more pages exist |
+
+## Example
+
+\`\`\`graphql
+query {
+  myNotifications(first: 10, page: 1) {
+    data {
+      id
+      title
+      message
+      createdAt
+    }
+    paginatorInfo {
+      count
+      currentPage
+      lastPage
+      perPage
+      total
+      hasMorePages
+    }
+  }
+}
+\`\`\`
+
+**Response:**
+
+\`\`\`json
+{
+  "data": {
+    "myNotifications": {
+      "data": [
+        {
+          "id": "1",
+          "title": "Backup completed",
+          "message": "Daily backup finished successfully.",
+          "createdAt": "2026-01-15T10:30:00+00:00"
+        }
+      ],
+      "paginatorInfo": {
+        "count": 10,
+        "currentPage": 1,
+        "lastPage": 5,
+        "perPage": 10,
+        "total": 42,
+        "hasMorePages": true
+      }
+    }
+  }
+}
+\`\`\`
+
+## Iterating All Pages
+
+\`\`\`javascript
+async function fetchAllNotifications(apiKey) {
+  let page = 1;
+  let hasMore = true;
+  const allNotifications = [];
+
+  while (hasMore) {
+    const response = await fetch("/api/graphql", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": \\\`Bearer \\\${apiKey}\\\`,
+      },
+      body: JSON.stringify({
+        query: \\\`
+          query ($page: Int!) {
+            myNotifications(first: 100, page: $page) {
+              data { id title message createdAt }
+              paginatorInfo { hasMorePages }
+            }
+          }
+        \\\`,
+        variables: { page },
+      }),
+    });
+
+    const { data } = await response.json();
+    allNotifications.push(...data.myNotifications.data);
+    hasMore = data.myNotifications.paginatorInfo.hasMorePages;
+    page++;
+  }
+
+  return allNotifications;
+}
+\`\`\`
+
+## Paginated Queries
+
+The following queries support pagination:
+
+| Query | Return Type |
+|---|---|
+| myNotifications | NotificationPaginator |
+| auditLogs | AuditLogPaginator |
+| accessLogs | AccessLogPaginator |
+| notificationDeliveries | NotificationDeliveryPaginator |
+| payments | PaymentPaginator |
+| usageStats | UsageStatPaginator |
+| users | UserAdminPaginator |
+
+Non-paginated queries (\`me\`, \`myApiKeys\`, \`myNotificationSettings\`, \`userGroups\`, \`usageBreakdown\`) return arrays or single objects directly.`,
+      },
+    ],
+  },
   // --- Logs & Monitoring ---
   {
     slug: "logs-monitoring-audit",
@@ -1530,9 +2800,14 @@ To restore:
  * Categories without a `permission` field are visible to all authenticated users.
  * Admin users have all permissions in their permissions array, so they see everything.
  */
-export function getAllCategories(permissions: string[]): HelpCategory[] {
+export function getAllCategories(
+  permissions: string[],
+  featureFlags?: Record<string, boolean>
+): HelpCategory[] {
   const permissionGated = permissionHelpCategories.filter(
-    (cat) => !cat.permission || permissions.includes(cat.permission)
+    (cat) =>
+      (!cat.permission || permissions.includes(cat.permission)) &&
+      (!cat.featureFlag || featureFlags?.[cat.featureFlag] !== false)
   );
   return [...userHelpCategories, ...permissionGated];
 }
@@ -1540,8 +2815,12 @@ export function getAllCategories(permissions: string[]): HelpCategory[] {
 /**
  * Find an article by ID across all categories the user can access.
  */
-export function findArticle(articleId: string, permissions: string[]): { article: HelpArticle; category: HelpCategory } | null {
-  const categories = getAllCategories(permissions);
+export function findArticle(
+  articleId: string,
+  permissions: string[],
+  featureFlags?: Record<string, boolean>
+): { article: HelpArticle; category: HelpCategory } | null {
+  const categories = getAllCategories(permissions, featureFlags);
 
   for (const category of categories) {
     const article = category.articles.find((a) => a.id === articleId);
@@ -1556,8 +2835,11 @@ export function findArticle(articleId: string, permissions: string[]): { article
 /**
  * Get all articles as searchable items, filtered by user permissions.
  */
-export function getSearchableArticles(permissions: string[]) {
-  const categories = getAllCategories(permissions);
+export function getSearchableArticles(
+  permissions: string[],
+  featureFlags?: Record<string, boolean>
+) {
+  const categories = getAllCategories(permissions, featureFlags);
 
   return categories.flatMap((category) =>
     category.articles.map((article) => ({

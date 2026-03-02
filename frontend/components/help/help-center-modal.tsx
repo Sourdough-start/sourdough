@@ -15,7 +15,9 @@ import { useHelp } from "@/components/help/help-provider";
 import { HelpSidebar } from "@/components/help/help-sidebar";
 import { HelpSearch } from "@/components/help/help-search";
 import { HelpArticle } from "@/components/help/help-article";
+import { DownloadDocsButton } from "@/components/help/download-docs-button";
 import { useAuth } from "@/lib/auth";
+import { useAppConfig } from "@/lib/app-config";
 import {
   getAllCategories,
   findArticle,
@@ -26,40 +28,49 @@ import { initializeSearch } from "@/lib/help/help-search";
 export function HelpCenterModal() {
   const { isOpen, setIsOpen, currentArticle, setCurrentArticle } = useHelp();
   const { user } = useAuth();
+  const { features } = useAppConfig();
   // Stabilise the permissions reference so downstream memos/effects don't
   // re-run when the auth store returns a new array with identical values.
   const rawPermissions = user?.permissions;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const permissions = useMemo(() => rawPermissions ?? [], [JSON.stringify(rawPermissions)]);
 
+  // Build feature flags from public settings
+  const featureFlags = useMemo<Record<string, boolean>>(
+    () => ({
+      graphqlEnabled: features?.graphqlEnabled ?? false,
+    }),
+    [features]
+  );
+
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Get categories based on user permissions
-  const categories = useMemo(() => getAllCategories(permissions), [permissions]);
+  // Get categories based on user permissions and feature flags
+  const categories = useMemo(() => getAllCategories(permissions, featureFlags), [permissions, featureFlags]);
 
   // Initialize search index when modal opens
   useEffect(() => {
     if (isOpen) {
-      const searchableItems = getSearchableArticles(permissions);
+      const searchableItems = getSearchableArticles(permissions, featureFlags);
       initializeSearch(searchableItems);
     }
-  }, [isOpen, permissions]);
+  }, [isOpen, permissions, featureFlags]);
 
   // Handle article selection from context (e.g., HelpLink)
   useEffect(() => {
     if (currentArticle && isOpen) {
-      const result = findArticle(currentArticle, permissions);
+      const result = findArticle(currentArticle, permissions, featureFlags);
       if (result) {
         setSelectedCategory(result.category.slug);
       }
     }
-  }, [currentArticle, isOpen, permissions]);
+  }, [currentArticle, isOpen, permissions, featureFlags]);
 
   // Get current article content
   const articleData = useMemo(() => {
     if (!currentArticle) return null;
-    return findArticle(currentArticle, permissions);
-  }, [currentArticle, permissions]);
+    return findArticle(currentArticle, permissions, featureFlags);
+  }, [currentArticle, permissions, featureFlags]);
 
   const handleSelectCategory = useCallback((categorySlug: string) => {
     setSelectedCategory((prev) =>
@@ -70,12 +81,12 @@ export function HelpCenterModal() {
   const handleSelectArticle = useCallback(
     (articleId: string) => {
       setCurrentArticle(articleId);
-      const result = findArticle(articleId, permissions);
+      const result = findArticle(articleId, permissions, featureFlags);
       if (result) {
         setSelectedCategory(result.category.slug);
       }
     },
-    [setCurrentArticle, permissions]
+    [setCurrentArticle, permissions, featureFlags]
   );
 
   const handleBack = useCallback(() => {
@@ -154,7 +165,14 @@ export function HelpCenterModal() {
             <ScrollArea className="h-full">
               <div className="p-6">
                 {currentArticle && articleData ? (
-                  <HelpArticle content={articleData.article.content} />
+                  <div>
+                    {articleData.category.slug === "graphql-api" && (
+                      <div className="flex justify-end mb-4">
+                        <DownloadDocsButton articles={articleData.category.articles} />
+                      </div>
+                    )}
+                    <HelpArticle content={articleData.article.content} />
+                  </div>
                 ) : (
                   <div className="space-y-6">
                     <div className="text-center py-8">
