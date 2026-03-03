@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.8.4] - 2026-03-02
+
+### Fixed
+- Conditional WebSocket upgrade headers and improve onboarding recipes
+
+### Changed
+- Release v0.8.3
 ## [0.8.3] - 2026-03-01
 
 ### Added
