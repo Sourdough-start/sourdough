@@ -12,6 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.8.5] - 2026-03-03
+
+### Added
+- Update branding assets, help content, and add docs site
+
+### Fixed
+- Sync package-lock.json with socket.io-client dependency
+
+### Changed
+- Release v0.8.4
 ## [0.8.4] - 2026-03-02
 
 ### Fixed
