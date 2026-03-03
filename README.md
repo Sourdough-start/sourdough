@@ -1,34 +1,56 @@
 # Sourdough
 
-A complete application framework designed to help you build modern web applications quickly. Sourdough provides all the essential building blocks you need—user authentication, notifications, AI integration, and more—so you can focus on building your unique features instead of reinventing the wheel.
+**Ship faster. Skip the boring parts.**
+
+A production-ready full-stack starter that eliminates repetitive infrastructure setup. Sourdough provides all the essential building blocks—authentication, notifications, AI integration, backups, search, audit logs, and admin configuration UI—so you can focus on building your unique features instead of reinventing the wheel.
+
+🌐 **[getsourdough.app](https://getsourdough.app/)** · 📖 **[Documentation](docs/)** · 🐙 **[GitHub](https://github.com/Sourdough-start/sourdough)**
 
 ## What is Sourdough?
 
-Sourdough is a starter framework that comes pre-configured with enterprise-grade features. Think of it as a solid foundation for building web applications, with user management, notification systems, and AI capabilities already built in. Everything runs in a single Docker container, making it easy to deploy and manage.
+Sourdough is a complete Docker-containerized application framework combining **Laravel 11** (API) and **Next.js 16** (frontend) with pre-built, enterprise-grade features. Everything runs in a single Docker container and is managed through a polished dashboard—no config file edits required.
+
+## Tech Stack
+
+| Layer | Technologies |
+|-------|-------------|
+| **Backend** | Laravel 11 (PHP 8.3+), Sanctum auth, Scout search, Reverb WebSockets, Eloquent ORM, Queue system |
+| **Frontend** | Next.js 16, React 18, TypeScript, Tailwind CSS, shadcn/ui, TanStack Query, Zustand, React Hook Form, Zod |
+| **Database** | SQLite (default, zero-config) — swappable to MySQL, PostgreSQL, Supabase, or PlanetScale |
+| **Search** | Meilisearch with database LIKE query fallback |
+| **Infrastructure** | Single Docker container: Nginx, PHP-FPM, Next.js, Meilisearch, Supervisor |
+| **Testing** | Pest (backend), Vitest + Playwright (frontend) |
 
 ## Key Features
 
-### User Management
-Complete authentication system with email/password login, single sign-on (SSO) support for popular services like Google, GitHub, Microsoft, Apple, Discord, and GitLab. Includes two-factor authentication (2FA), password reset, and email verification for secure account management.
+### Authentication & Users
+Complete auth system with email/password, SSO (Google, GitHub, Microsoft, Apple, Discord), TOTP two-factor authentication with recovery codes, WebAuthn/FIDO2 passkey support, and group-based permissions with granular controls.
 
-### Notifications
-Send messages through multiple channels including email, Telegram, Discord, Signal, SMS, push notifications, and in-app notifications. Users can choose their preferred notification methods.
+### Multi-Channel Notifications
+Email (SMTP/Mailgun/SES), SMS (Twilio/Vonage/SNS), Slack, Telegram, Discord, Signal, Matrix, ntfy, Web Push, and in-app delivery — all with per-user preferences.
 
-### AI Integration
-Connect to multiple AI services (Claude, OpenAI, Gemini, Ollama) and use them individually or combine them in powerful ways. Includes advanced modes for aggregating responses or using multiple AI models together in "council mode" for better results.
+### AI/LLM Integration
+Support for Claude, OpenAI, Gemini, Ollama, AWS Bedrock, and Azure OpenAI. Three orchestration modes: single queries, synthesized aggregation, and consensus voting councils.
 
-### Flexible Storage
-Works with SQLite by default (perfect for getting started), but can easily switch to MySQL, PostgreSQL, or Supabase for larger applications.
+### Search & Audit
+Meilisearch-powered full-text search with Cmd+K shortcuts. Real-time audit log streaming via Server-Sent Events with HIPAA-compliant access logging and suspicious activity detection.
 
 ### Backup & Restore
-Built-in backup and restore to protect your data. Create full backups (database, files, settings) from the UI; download, restore, or delete them. Configure retention, scheduling, and remote destinations (S3, SFTP, Google Drive) and optional encryption. All backup settings are manageable in the admin UI (no restart required). See [Backup & Restore documentation](docs/backup.md) for user, admin, and developer guides.
+Automated full backups (database + files + settings) with scheduling, remote destinations (S3, SFTP, Google Drive, local), optional encryption, and configurable retention policies. See [Backup & Restore documentation](docs/backup.md) for details.
+
+### Progressive Web App
+Offline capability, install prompts, background sync, Service Worker via Workbox 7, and Web Push support with VAPID keys.
+
+### File Storage
+Amazon S3, Google Cloud Storage, Azure Blob Storage, and local filesystem with integrated file manager UI.
+
+### Stripe Payments (Optional)
+Stripe Connect integration with platform fees, destination charges, OAuth onboarding, and idempotent webhook handling.
 
 ### Simple Deployment
-Everything runs in one Docker container, making it easy to deploy anywhere—from your local machine to production servers.
+Everything runs in one Docker container—Nginx, PHP-FPM, Next.js, Meilisearch, and Supervisor all start automatically. No orchestration required.
 
 ## Getting Started
-
-The easiest way to get started is with Docker:
 
 ```bash
 # Clone the repository
@@ -38,21 +60,36 @@ cd sourdough
 # Start the application
 docker-compose up -d
 
-# Access the application
-open http://localhost:8080
+# Access the application at http://localhost:8080
 ```
 
-That's it! The application will be running and ready to use.
+That's it! A fully running development environment with all services operational. An AI setup wizard guides you through configuration.
+
+## AI-Powered Development
+
+Sourdough is built to be agentic-friendly with deep AI documentation:
+
+- **47 implementation recipes** for common tasks (features, config pages, notifications, dashboard widgets, API endpoints, and more)
+- **Patterns & anti-patterns** documentation ensuring consistent code structure
+- **IDE auto-configuration** for Cursor, GitHub Copilot, Windsurf, and Claude Code
+- **26 Architecture Decision Records (ADRs)** documenting design reasoning
+
+## System Requirements
+
+- Docker
+- 1 GB RAM (2+ GB recommended)
+- 2 GB disk space (5+ GB recommended)
+- 1 CPU core (2+ recommended)
 
 ## Documentation
 
-For more information, check out our documentation:
-
-- [User Guide](docs/user/) - Learn how to use Sourdough
-- [Developer Guide](docs/dev/) - Technical documentation for developers
-- [API Reference](docs/api/) - API endpoints and integration details
-- [Backup & Restore](docs/backup.md) - Backup and restore: user guide, admin settings, developer docs, key files, and how to extend
+- [User Guide](docs/user/) — Learn how to use Sourdough
+- [Developer Guide](docs/dev/) — Technical documentation for developers
+- [API Reference](docs/api/) — API endpoints and integration details
+- [Backup & Restore](docs/backup.md) — Backup/restore user guide, admin settings, and developer docs
+- [Architecture Decisions](docs/architecture.md) — ADRs and design decisions
+- [AI Development Guide](docs/ai/README.md) — Recipes, patterns, and workflow for AI-assisted development
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License — see [LICENSE](LICENSE) for details.

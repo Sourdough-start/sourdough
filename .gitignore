@@ -58,3 +58,6 @@ nul
 
 # Setup wizard state (ephemeral, not source code)
 .sourdough-setup.json
+
+# Wrangler (Cloudflare CLI cache)
+.wrangler/

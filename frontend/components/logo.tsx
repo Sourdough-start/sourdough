@@ -83,23 +83,22 @@ export function Logo({ variant = "full", size = "md", className }: LogoProps) {
       );
     }
 
-    // Fallback: First character of app name in styled square container
-    const iconChar = appName ? appName.charAt(0).toUpperCase() : '';
+    // Fallback: bread emoji
     return (
-      <div
+      <span
         className={cn(
           sizes.icon,
-          "flex items-center justify-center rounded-md font-bold text-white",
-          size === "sm" && "text-xs",
-          size === "md" && "text-sm",
-          size === "lg" && "text-base",
+          "flex items-center justify-center",
+          size === "sm" && "text-lg",
+          size === "md" && "text-2xl",
+          size === "lg" && "text-3xl",
           className
         )}
-        style={{ background: "linear-gradient(to right, #00f5ff, #7a5cff, #ff2bd6)" }}
-        suppressHydrationWarning
+        role="img"
+        aria-label={appName || 'App icon'}
       >
-        {iconChar}
-      </div>
+        🍞
+      </span>
     );
   }
 
@@ -135,19 +134,19 @@ export function Logo({ variant = "full", size = "md", className }: LogoProps) {
   // No logo: show icon + app name
   return (
     <div className={cn("flex items-center", sizes.gap, className)}>
-      <div
+      <span
         className={cn(
           sizes.icon,
-          "flex items-center justify-center rounded-md font-bold text-white flex-shrink-0",
-          size === "sm" && "text-xs",
-          size === "md" && "text-sm",
-          size === "lg" && "text-base"
+          "flex items-center justify-center flex-shrink-0",
+          size === "sm" && "text-lg",
+          size === "md" && "text-2xl",
+          size === "lg" && "text-3xl"
         )}
-        style={{ background: "linear-gradient(to right, #00f5ff, #7a5cff, #ff2bd6)" }}
-        suppressHydrationWarning
+        role="img"
+        aria-label={appName || 'App icon'}
       >
-        {appName ? appName.charAt(0).toUpperCase() : ''}
-      </div>
+        🍞
+      </span>
       <span className={cn("font-semibold", sizes.text)} suppressHydrationWarning>{appName}</span>
     </div>
   );

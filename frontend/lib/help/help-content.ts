@@ -1914,7 +1914,7 @@ mutation {
 | id | ID! | Unique identifier |
 | userId | ID | Paying user |
 | user | UserAdmin | User details |
-| stripeCustomerId | String | Stripe customer ID |
+| stripeCustomerId | String | Stripe customer ID (requires \`payments.manage\` permission; returns \`null\` otherwise) |
 | stripePaymentIntentId | String | Stripe PaymentIntent ID |
 | amount | Int! | Amount in cents |
 | currency | String! | Currency code (e.g. "usd") |
@@ -2126,6 +2126,7 @@ Partial success is possible — \`data\` may contain results for fields that suc
 |---|---|---|
 | UNAUTHENTICATED | 401 | Missing, invalid, expired, or revoked API key |
 | FORBIDDEN | 403 | Valid key but missing required permission |
+| NOT_FOUND | 404 | Requested resource does not exist |
 | VALIDATION_ERROR | 422 | Input validation failed |
 | INTERNAL_SERVER_ERROR | 500 | Unexpected server error |
 
@@ -2201,12 +2202,19 @@ Partial success is possible — \`data\` may contain results for fields that suc
 
 ### Rate Limited
 
-HTTP \`429 Too Many Requests\` response with headers:
+HTTP \`429 Too Many Requests\` response with headers and JSON body:
 
 \`\`\`
 X-RateLimit-Limit: 60
 X-RateLimit-Remaining: 0
 Retry-After: 45
+\`\`\`
+
+\`\`\`json
+{
+  "message": "Rate limit exceeded",
+  "retry_after": 45
+}
 \`\`\`
 
 **Fix:** Wait for the \`Retry-After\` period (in seconds) before retrying.

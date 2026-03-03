@@ -103,7 +103,7 @@ export function HelpCenterModal() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
-        className="max-w-4xl h-[80vh] max-h-[600px] p-0 gap-0"
+        className="max-w-5xl h-[85vh] max-h-[800px] p-0 gap-0"
         hideClose
       >
         <DialogDescription className="sr-only">
