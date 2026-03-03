@@ -12,7 +12,7 @@ backend/routes/api.php                     # Routes to clean up
 ```
 
 **Inputs needed:**
-- Features to remove (AI/LLM, notification channels, backup destinations, PWA, search, HIPAA)
+- Features to remove (AI/LLM, Payments/Stripe, notification channels, backup destinations, PWA, search, HIPAA)
 - Auth model choice (email/password only, +SSO, +2FA, +Passkeys)
 - SSO providers to keep (if SSO selected)
 
@@ -41,7 +41,33 @@ If the user chose to remove AI/LLM:
 
 ---
 
-## Step 2: Remove Notification Channels (Selective)
+## Step 2: Remove Payments / Stripe Integration
+
+If the user chose to remove payments:
+
+**Delete these files/directories:**
+- `backend/app/Services/Stripe/` (entire directory)
+- `backend/config/stripe.php`
+- `backend/app/Http/Controllers/Api/StripeCustomerController.php`
+- `backend/app/Http/Controllers/Api/StripeWebhookController.php`
+- `backend/app/Http/Controllers/Api/PaymentController.php`
+- `backend/app/Http/Controllers/Api/PaymentWebhookController.php`
+- `backend/app/Models/Payment.php`
+- `backend/app/Models/StripeCustomer.php`
+- `backend/app/Models/StripeWebhookEvent.php`
+- `frontend/lib/stripe.ts`
+- `frontend/app/(dashboard)/configuration/stripe/` (entire directory, if exists)
+- `frontend/app/(dashboard)/configuration/payments/` (entire directory, if exists)
+
+**Edit these files:**
+- `backend/routes/api.php` — Remove payment and Stripe route groups
+- `backend/database/migrations/` — Delete migration files containing "stripe" or "payment" in the filename
+- `backend/.env.example` — Remove: `STRIPE_PUBLIC_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
+- `frontend/app/(dashboard)/configuration/layout.tsx` — Remove Stripe and Payments nav items
+
+---
+
+## Step 3: Remove Notification Channels (Selective)
 
 For each channel the user wants to remove, delete the corresponding file from `backend/app/Services/Notifications/Channels/`:
 
@@ -70,7 +96,7 @@ For each channel the user wants to remove, delete the corresponding file from `b
 
 ---
 
-## Step 3: Remove Backup Destinations (Selective)
+## Step 4: Remove Backup Destinations (Selective)
 
 For each destination the user wants to remove, delete from `backend/app/Services/Backup/Destinations/`:
 
@@ -89,7 +115,7 @@ For each destination the user wants to remove, delete from `backend/app/Services
 
 ---
 
-## Step 4: Remove PWA
+## Step 5: Remove PWA
 
 If the user chose to remove PWA:
 
@@ -115,34 +141,60 @@ If the user chose to remove PWA:
 
 ---
 
-## Step 5: Remove Meilisearch / Full-Text Search
+## Step 6: Remove Meilisearch / Full-Text Search
 
 If the user chose to remove search:
 
-**Delete these files/directories:**
+**1. Delete backend search code:**
 - `backend/app/Services/Search/` (entire directory)
 - `backend/app/Http/Controllers/Api/SearchController.php`
 - `backend/app/Http/Controllers/Api/Admin/SearchAdminController.php`
 - `backend/app/Console/Commands/SearchReindexCommand.php`
+- `backend/config/search-pages.php`
+
+**2. Delete frontend search code:**
 - `frontend/components/search/` (entire directory)
 - `frontend/lib/search.ts`
 - `frontend/lib/search-pages.ts`
-- `frontend/app/(dashboard)/configuration/search/` (if exists)
-- `backend/config/search-pages.php`
+- `frontend/app/(dashboard)/configuration/search/` (entire directory, if exists)
 
-**Edit these files:**
-- `backend/routes/api.php` — Remove search route groups
-- `docker/supervisord.conf` — Remove the Meilisearch program block
-- `backend/.env.example` — Set `SCOUT_DRIVER=null` (or remove Scout vars entirely)
+**3. Edit backend routes:**
+- `backend/routes/api.php` — Remove all route groups containing "search" or "SearchController":
+  - Search for `Route::prefix('search')->group(...)` and delete the block
+  - Search for `Route::prefix('admin/search')->group(...)` and delete the block
+
+**4. Edit Docker/Supervisor configuration:**
+- `docker/supervisord.conf` — Remove the Meilisearch program block. Find `[program:meilisearch]` and delete from that line to the next `[program:...]` section.
+
+**5. Edit docker-compose files:**
+- `docker-compose.yml`:
+  - Remove the `meilisearch:` service block entirely
+  - Remove `meilisearch_data` volume from the volumes section at the bottom
+  - Remove these env vars from the `app` service environment: `MEILISEARCH_HOST`, `MEILI_ENV`, `MEILI_MASTER_KEY`, `SCOUT_DRIVER`
+- `docker-compose.prod.yml` — Same changes as above
+
+**6. Edit backend environment:**
+- `backend/.env.example` — Remove or comment out: `SCOUT_DRIVER`, `MEILISEARCH_HOST`, `MEILI_ENV`, `MEILI_MASTER_KEY`
 - `.env.example` (root) — Remove `MEILI_MASTER_KEY` if present
-- `docker-compose.yml` — Remove `meilisearch_data` volume (both mount and definition), remove Meilisearch env vars (`MEILISEARCH_HOST`, `MEILI_ENV`, `MEILI_MASTER_KEY`, `SCOUT_DRIVER`)
-- `docker-compose.prod.yml` — Same volume and env var cleanup
-- `frontend/app/(dashboard)/configuration/layout.tsx` — Remove search nav item
-- `frontend/components/app-shell.tsx` — Remove SearchProvider if present
+
+**7. Edit frontend:**
+- `frontend/app/(dashboard)/configuration/layout.tsx` — Remove the search nav item
+- `frontend/components/app-shell.tsx` — Remove `<SearchProvider>` and its import
+
+**8. Clean up Laravel Scout config (if exists):**
+- `backend/config/scout.php` — Delete this file if it exists (or set `SCOUT_DRIVER=null` in env to disable without deleting)
+
+**Verification — run after deletion:**
+```bash
+# Should return 0 results if search is fully removed
+docker exec sourdough-dev bash -c "grep -r 'SearchController\|meilisearch\|SCOUT_DRIVER' backend/app --include='*.php' 2>/dev/null | wc -l"
+# Should return 0 results
+grep -r 'SearchProvider\|search-pages' frontend --include='*.ts' --include='*.tsx' 2>/dev/null | wc -l
+```
 
 ---
 
-## Step 6: Remove HIPAA / Access Logging
+## Step 7: Remove HIPAA / Access Logging
 
 **Warning:** HIPAA access logging is woven into the core middleware pattern. Removing it is deeper surgery than other features. Make sure the user understands this.
 
@@ -165,7 +217,47 @@ If the user confirms removal:
 
 ---
 
-## Step 7: Configure Auth Model
+## Step 8: Configure Auth Model
+
+The auth model is **cumulative** — each tier adds to the previous. You can only remove whole tiers from the top down. The diagram below shows what is removed for each choice:
+
+```
+AUTH TIERS — CUMULATIVE (each builds on the previous)
+
+┌────────────────────────────────────────────────────────┐
+│ Option 1: Email/Password Only (Simplest)               │
+│ • Email/password login only                            │
+│ • Removals: SSO + 2FA + Passkeys (all three sets)     │
+└────────────────────────────────────────────────────────┘
+                          ↓ adds
+┌────────────────────────────────────────────────────────┐
+│ Option 2: + SSO (Default)                              │
+│ • Email/password + OAuth login buttons                 │
+│ • Configure: which providers to keep                   │
+│ • Removals: 2FA + Passkeys                            │
+└────────────────────────────────────────────────────────┘
+                          ↓ adds
+┌────────────────────────────────────────────────────────┐
+│ Option 3: + 2FA (Enhanced Security)                    │
+│ • Email/password + SSO + TOTP/recovery codes          │
+│ • Removals: Passkeys only                             │
+└────────────────────────────────────────────────────────┘
+                          ↓ adds
+┌────────────────────────────────────────────────────────┐
+│ Option 4: Full Auth Stack (Keep Everything)            │
+│ • Email/password + SSO + 2FA + WebAuthn Passkeys      │
+│ • Removals: None                                      │
+└────────────────────────────────────────────────────────┘
+```
+
+**Decision table — what gets deleted for each choice:**
+
+| Choice | SSO | 2FA | Passkeys | File sets removed |
+|--------|-----|-----|----------|-------------------|
+| Email/pass only | ❌ | ❌ | ❌ | All three |
+| + SSO (default) | ✅ | ❌ | ❌ | 2FA + Passkeys |
+| + 2FA | ✅ | ✅ | ❌ | Passkeys only |
+| Full stack | ✅ | ✅ | ✅ | None |
 
 The auth model is tiered — each level adds to the previous:
 
@@ -242,7 +334,7 @@ No removals needed. All auth features stay.
 
 ---
 
-## Step 8: Update Configuration Navigation
+## Step 9: Update Configuration Navigation
 
 After all removals, review `frontend/app/(dashboard)/configuration/layout.tsx` to ensure:
 
@@ -259,7 +351,7 @@ Common nav items to check:
 
 ---
 
-## Step 9: Clean Up Environment Files
+## Step 10: Clean Up Environment Files
 
 Do a final pass on both `.env.example` files to:
 
@@ -269,7 +361,7 @@ Do a final pass on both `.env.example` files to:
 
 ---
 
-## Step 10: Update Help Guides
+## Step 11: Update Help Guides
 
 When a feature is removed, the corresponding help article and search entry must also be removed to keep the help center accurate.
 
@@ -293,9 +385,54 @@ Also remove any `HelpLink` components from deleted config pages (these are delet
 
 ---
 
+## Step 12: Verify Feature Removal
+
+After all deletions are complete, run these verification commands to confirm nothing was missed.
+
+**LLM removal:**
+```bash
+docker exec sourdough-dev bash -c "grep -r 'LLMController\|LLMService\|llm' backend/app --include='*.php' 2>/dev/null | grep -v '^Binary' | wc -l"
+# Should return 0 (or only false positives in comments)
+```
+
+**Stripe removal:**
+```bash
+docker exec sourdough-dev bash -c "grep -r 'StripeCustomer\|StripeWebhook\|PaymentController' backend/app --include='*.php' 2>/dev/null | wc -l"
+# Should return 0
+```
+
+**Search removal:**
+```bash
+docker exec sourdough-dev bash -c "grep -r 'SearchController\|meilisearch\|SCOUT_DRIVER' backend/app --include='*.php' 2>/dev/null | wc -l"
+grep -r 'SearchProvider\|search-pages' frontend --include='*.ts' --include='*.tsx' 2>/dev/null | wc -l
+# Both should return 0
+```
+
+**PWA removal:**
+```bash
+grep -r 'ServiceWorkerSetup\|InstallPrompt' frontend --include='*.tsx' 2>/dev/null | wc -l
+# Should return 0
+```
+
+**Auth features:**
+- If SSO removed: check `frontend/app/(auth)/login/page.tsx` has no SSO buttons section
+- If 2FA removed: check `frontend/app/(dashboard)/user/security/page.tsx` has no 2FA setup section
+- If Passkeys removed: check login page has no passkey button
+
+**General lint check:**
+```bash
+docker exec sourdough-dev bash -c "cd /var/www/html/frontend && npm run lint 2>&1 | grep -i 'cannot find\|Module not found'"
+# Should return empty (no broken imports)
+```
+
+If any check finds unexpected results, review the corresponding step above and complete any missed edits.
+
+---
+
 ## Checklist
 
 - [ ] AI/LLM removed (if chosen) — files, routes, migrations, nav item, env vars
+- [ ] Payments/Stripe removed (if chosen) — services, controllers, models, routes, migrations, env vars
 - [ ] Notification channels trimmed — channel files, config, env vars
 - [ ] Backup destinations trimmed — destination files, settings schema, env vars
 - [ ] PWA removed (if chosen) — SW, manifest route, install prompt, web push, app-shell cleanup

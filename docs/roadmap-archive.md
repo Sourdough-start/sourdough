@@ -8,6 +8,8 @@ High-priority work complete. Only optional/lower-priority items remain.
 
 | Roadmap | Completed | Remaining Work |
 |---------|-----------|----------------|
+| Theming Engine | 2026-03-02 | None — Phase 1 (infrastructure) and Phase 2 (theme picker UI) complete. |
+| Get Cooking Wizard Audit | 2026-03-02 | None — all 9 audit issues resolved: auth dependency tree, search cleanup, pre-flight checks, Geist font enforcement, Stripe removal, verification script (`scripts/verify-setup.sh`), Windows git guidance, UX flow, post-removal verification. |
 | Passkeys Code Review | 2026-02-24 | None — review complete. Added 15 backend tests, delete confirmation, rename UI, error handling refactor, input trimming, ARIA attributes, ADR-018 documentation. |
 | [Notification System Review](plans/notification-system-review.md) | 2026-02-22 | Remaining: Phase 9 — 48 code review fixes (7 high security/data integrity, 17 medium correctness, 21 low polish) |
 | Integration Usage Dashboard | 2026-02-14 | Optional: additional LLM pricing presets, broadcasting instrumentation via event listener |

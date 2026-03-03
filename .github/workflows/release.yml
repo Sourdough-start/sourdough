@@ -89,12 +89,13 @@ jobs:
     outputs:
       version: ${{ steps.extract.outputs.version }}
       tag: ${{ steps.extract.outputs.tag }}
-      sha: ${{ steps.sync.outputs.sha }}
+      sha: ${{ steps.resolve-sha.outputs.sha }}
 
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: master
+          ref: ${{ github.ref }}
+          fetch-depth: 50
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract version from tag
@@ -108,20 +109,27 @@ jobs:
       - name: Update version files
         run: bash scripts/bump-version.sh "${{ steps.extract.outputs.version }}"
 
-      - name: Commit and push version sync
-        id: sync
+      - name: Sync master to tag commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add VERSION frontend/package.json frontend/public/sw.js
           if git diff --cached --quiet; then
-            echo "Version files already up to date"
-            echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+            echo "Version files already up to date on tag commit"
           else
             git commit -m "Release v${{ steps.extract.outputs.version }}"
-            git push origin master
-            echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
           fi
+          # Ensure master includes this tag commit (best-effort fast-forward)
+          git fetch origin master
+          if git merge-base --is-ancestor origin/master HEAD; then
+            git push origin HEAD:master
+          else
+            echo "::warning::Cannot fast-forward master to tag commit — histories may have diverged"
+          fi
+
+      - name: Resolve build SHA
+        id: resolve-sha
+        run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
@@ -159,10 +167,11 @@ jobs:
   # === SHARED: Build and push Docker image ===
   release:
     name: Build and Push
-    needs: [resolve-version]
-    # Explicit condition required: the default success() skips this job when
-    # resolve-version used if:always() and a transitive dependency was skipped.
-    if: ${{ !cancelled() && needs.resolve-version.result == 'success' }}
+    needs: [resolve-version, bump-and-release, sync-and-release]
+    # Guard: resolve-version must succeed AND the upstream release job (whichever
+    # branch ran) must have succeeded — not just been skipped. This prevents a
+    # Docker push when sync-and-release fails after partially setting outputs.
+    if: ${{ !cancelled() && needs.resolve-version.result == 'success' && (needs.sync-and-release.result == 'success' || needs.bump-and-release.result == 'success') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:

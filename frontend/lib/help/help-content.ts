@@ -2799,6 +2799,7 @@ To restore:
  * Get all help categories the user has access to based on their permissions.
  * Categories without a `permission` field are visible to all authenticated users.
  * Admin users have all permissions in their permissions array, so they see everything.
+ * Categories with a `featureFlag` field are only shown when the flag is explicitly `true`.
  */
 export function getAllCategories(
   permissions: string[],
@@ -2807,7 +2808,7 @@ export function getAllCategories(
   const permissionGated = permissionHelpCategories.filter(
     (cat) =>
       (!cat.permission || permissions.includes(cat.permission)) &&
-      (!cat.featureFlag || featureFlags?.[cat.featureFlag] !== false)
+      (!cat.featureFlag || featureFlags?.[cat.featureFlag] === true)
   );
   return [...userHelpCategories, ...permissionGated];
 }

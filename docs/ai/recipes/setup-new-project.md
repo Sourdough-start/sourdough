@@ -1,6 +1,6 @@
 # Recipe: Setup New Project from Sourdough
 
-Master guide for initializing a new project using Sourdough as the starting point. The setup is broken into **three tiers** so you can stop at any boundary and continue later.
+Master guide for initializing a new project using Sourdough as the starting point. The setup is broken into **tiers** so you can stop at any boundary and continue later. Progress is tracked in `.sourdough-setup.json` at the project root so you can reliably resume where you left off.
 
 **When to use:** The user wants to fork/clone Sourdough and start a new application. They say things like "build me an app," "set up a new project," "I'm starting from Sourdough," "customize this for my project," or **"Get cooking"** (trigger phrase).
 
@@ -23,32 +23,47 @@ frontend/config/fonts.ts
 ┌─────────────────────────────────────────────────────────┐
 │  "Get cooking"                                          │
 │                                                         │
-│  Welcome & Orient                                       │
-│  ├── Show wizard outline (3 tiers, what each does)      │
+│  Step 0: Pre-Flight Validation                          │
+│  ├── Check Docker, git, Node are available             │
+│  └── Read .sourdough-setup.json (resume if exists)     │
+│                                                         │
+│  Step 1: Welcome & Orient                               │
+│  ├── Show wizard outline (all tiers, what each does)   │
 │  ├── Present Quick Tips (push, roadmap, recipes)        │
 │  └── Wait for user to confirm "Ready for Tier 1?"       │
 │                                                         │
 │  Tier 1: Identity & Branding                            │
 │  ├── Ask: name, short name, description, color, fonts   │
+│  ├── Write .sourdough-setup.json (tier 1 in_progress)  │
 │  ├── Execute: setup-identity-branding.md                │
+│  ├── Update state: tier 1 complete                      │
 │  └── Result: App is renamed, fonts set, docs reset      │
 │                                                         │
 │  Tier 2: Features & Auth                                │
 │  ├── Ask: which features to keep, auth model, SSO       │
+│  ├── Update .sourdough-setup.json (tier 2 in_progress) │
 │  ├── Execute: setup-features-auth.md                    │
-│  └── Result: Features removed, auth trimmed, help synced │
+│  ├── Update state: tier 2 complete                      │
+│  └── Result: Features removed, auth trimmed, help synced│
 │                                                         │
 │  Tier 3: Infrastructure & Repository                    │
 │  ├── Ask: database, port, timezone, mail, git           │
+│  ├── Update .sourdough-setup.json (tier 3 in_progress) │
 │  ├── Execute: setup-infrastructure-repo.md              │
+│  ├── Update state: tier 3 complete                      │
 │  └── Result: Ready for first boot                       │
+│                                                         │
+│  Tier 4: AI Configs & Documentation (Optional)          │
+│  ├── Ask: update AI configs, help text, docs?           │
+│  ├── Execute: update-ai-configs-and-docs.md             │
+│  └── Result: Fully customized, no Sourdough refs remain │
 │                                                         │
 │  Verification: Rebuild, create account, test everything │
 │  Recap: Quick Tips reminder + Key Docs + Roadmap guide  │
 └─────────────────────────────────────────────────────────┘
 ```
 
-The wizard starts with a **Welcome & Orientation** step that shows the user the wizard outline, Quick Tips (push shortcuts, roadmap commands, recipe examples), and waits for confirmation before proceeding to Tier 1.
+The wizard starts with a **Pre-Flight Validation** and **Welcome & Orientation** before proceeding to tiers. Each tier writes its answers and status to `.sourdough-setup.json` so resumption is deterministic — no guessing based on file state.
 
 Each tier asks questions first, then executes immediately before moving to the next. At each boundary, the user can stop and resume later.
 
@@ -81,7 +96,7 @@ Each tier asks questions first, then executes immediately before moving to the n
 
 **Execution recipe:** [setup-identity-branding.md](setup-identity-branding.md)
 
-This is the most comprehensive tier — it renames every "Sourdough" reference across ~50+ files including env files, frontend configs, backend configs, Docker files, notification channels, and documentation.
+This is the most comprehensive tier — it renames every "Sourdough" reference across ~100+ files including env files, frontend configs, backend configs, Docker files, notification channels, and documentation.
 
 ---
 
@@ -92,7 +107,8 @@ This is the most comprehensive tier — it renames every "Sourdough" reference a
 | Question | Options | Default |
 |----------|---------|---------|
 | Keep AI/LLM integration? | Keep / Remove | Keep |
-| Which notification channels? | Email, Telegram, Discord, Slack, SMS, Matrix, ntfy, Web Push, In-App | All |
+| Keep Payments / Stripe? | Keep / Remove | Keep |
+| Which notification channels? | Email, Telegram, Discord, Slack, SMS (Twilio/Vonage/SNS), Signal, Matrix, ntfy, Web Push/FCM, In-App | All |
 | Keep backup/restore? | Keep (which destinations?) / Remove | Keep all |
 | Keep PWA? | Keep / Remove | Keep |
 | Keep full-text search? | Keep / Remove | Keep |
@@ -126,6 +142,25 @@ This tier configures the runtime environment and prepares the repository for dev
 
 ---
 
+## Tier 4: AI Configs & Documentation (Optional)
+
+After Tier 3, the app is fully functional. Tier 4 is an optional finishing step that ensures AI assistant tools and documentation are updated for the new project identity.
+
+**Questions:**
+
+| Question | Default |
+|----------|---------|
+| Update AI configs? (Cursor rules, Copilot, Windsurf) | Yes |
+| Update help/welcome text? | Yes |
+| Update README, CHANGELOG, and docs? | Yes |
+| Add Sourdough credit in documentation? | Yes |
+
+**Execution recipe:** [update-ai-configs-and-docs.md](update-ai-configs-and-docs.md)
+
+If the user skips Tier 4, their choice is recorded in `.sourdough-setup.json` and they won't be prompted again on resume.
+
+---
+
 ## Quick Reference: All Recipes
 
 | Tier | Recipe | What It Does |
@@ -133,6 +168,7 @@ This tier configures the runtime environment and prepares the repository for dev
 | 1 | [setup-identity-branding.md](setup-identity-branding.md) | Renames app, sets fonts/color, resets docs |
 | 2 | [setup-features-auth.md](setup-features-auth.md) | Removes features, configures auth model, trims help guides |
 | 3 | [setup-infrastructure-repo.md](setup-infrastructure-repo.md) | Sets database, port, timezone, git |
+| 4 *(optional)* | [update-ai-configs-and-docs.md](update-ai-configs-and-docs.md) | Updates AI tool configs, help text, README |
 
 ## Related
 
@@ -140,3 +176,4 @@ This tier configures the runtime environment and prepares the repository for dev
 - [FORK-ME.md](../../FORK-ME.md) — Overview of what Sourdough provides
 - [Branding Roadmap](../plans/branding-ui-consistency-roadmap.md) — How branding/colors work
 - [Get Cooking Rule](../../.cursor/rules/get-cooking.mdc) — Trigger phrase rule
+- [Tier 4 Recipe](update-ai-configs-and-docs.md) — AI configs & documentation update

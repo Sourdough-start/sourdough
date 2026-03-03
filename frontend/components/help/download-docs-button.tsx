@@ -26,7 +26,8 @@ export function DownloadDocsButton({
     document.body.appendChild(link);
     link.click();
     link.parentNode?.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    // Delay revocation so async download processing can complete in all browsers
+    setTimeout(() => window.URL.revokeObjectURL(url), 100);
   };
 
   return (

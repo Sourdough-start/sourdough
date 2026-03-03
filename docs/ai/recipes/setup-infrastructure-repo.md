@@ -209,40 +209,55 @@ Ensure the PUID/PGID section is prominent and well-documented.
 
 ```bash
 rm -rf .git
-git init
+git init --initial-branch=main
 git add .
 git commit -m "Initial commit based on Sourdough"
 ```
 
+**Note:** `--initial-branch=main` requires git 2.28+. If this flag fails, use `git init` then `git checkout -b main` to rename the default branch.
+
 **Note on PowerShell:** These commands work in PowerShell. The `rm -rf` equivalent is `Remove-Item -Recurse -Force .git` but `rm -rf` works in modern PowerShell too.
+
+### Important for Windows Users
+
+If you're on Windows, configure git line endings before your first commit to prevent CRLF/LF issues:
+
+```bash
+git config core.autocrlf true
+```
+
+Verify it's set:
+```bash
+git config core.autocrlf
+# Should output: true
+```
 
 ### Keep Sourdough History
 
-If the user wants to keep the commit history:
+If the user wants to keep the commit history, just update the remote:
 
 ```bash
+# If a remote already exists (e.g., pointing to Sourdough)
 git remote set-url origin <REPO_URL>
-```
 
-Or if no remote exists yet:
-
-```bash
+# If no remote exists yet
 git remote add origin <REPO_URL>
 ```
 
-### Set Remote (if URL provided)
+Then push:
+```bash
+git branch --show-current   # Confirm branch name
+git push -u origin main     # or master, depending on the output above
+```
+
+### Set Remote After Fresh Init (if URL provided)
+
+If git history was reset with `git init`, add the remote and push:
 
 ```bash
 git remote add origin <REPO_URL>
-```
-
-Push to your default branch (modern git defaults to `main`; older configs may use `master`):
-```bash
-# Check your branch name
-git branch --show-current
-
-# Push (use your actual branch name)
-git push -u origin main
+git branch --show-current   # Confirm branch name
+git push -u origin main     # or master, depending on the output above
 ```
 
 ### Update CI/CD
@@ -257,6 +272,12 @@ Review `.github/workflows/` files:
 ## Step 7: Final Verification
 
 This is the most important step. Run through this checklist to make sure everything works.
+
+**Optional:** If `scripts/verify-setup.sh` exists, run it for an automated pre-check:
+```bash
+bash scripts/verify-setup.sh
+```
+This checks app name, fonts, database config, Docker, and git. Fix any failures before proceeding.
 
 ### 7a: Rebuild and Start
 

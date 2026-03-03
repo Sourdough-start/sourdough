@@ -35,12 +35,12 @@ export function HelpCenterModal() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const permissions = useMemo(() => rawPermissions ?? [], [JSON.stringify(rawPermissions)]);
 
-  // Build feature flags from public settings
+  // Build feature flags from public settings. Depend on the primitive boolean
+  // value so the object reference stays stable across renders when unchanged.
+  const graphqlEnabled = features?.graphqlEnabled ?? false;
   const featureFlags = useMemo<Record<string, boolean>>(
-    () => ({
-      graphqlEnabled: features?.graphqlEnabled ?? false,
-    }),
-    [features]
+    () => ({ graphqlEnabled }),
+    [graphqlEnabled]
   );
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);

@@ -13,6 +13,35 @@ When the user says **"Get cooking"** (or variations like "get cooking", "let's c
 2. Read the current environment: `.env.example`, `frontend/config/app.ts`, `frontend/config/fonts.ts`
 3. Read `FORK-ME.md` for context on what Sourdough provides
 
+## Step 0: Pre-Flight Validation
+
+Before showing the welcome or asking any questions, verify the environment is ready. Run these checks and surface any failures clearly before proceeding.
+
+**Check 1 — Docker is running:**
+```bash
+docker ps
+```
+If this fails: *"Docker is not running. Please start Docker Desktop and try again."* Do not proceed.
+
+**Check 2 — Git is installed:**
+```bash
+git --version
+```
+If this fails: *"Git is not installed. Please install Git and try again."* Do not proceed.
+
+**Check 3 — Node.js and npm are available (for frontend installs):**
+```bash
+node --version && npm --version
+```
+If either fails: warn the user but don't block — some tiers don't need npm locally.
+
+**Check 4 — State file:**
+Check if `.sourdough-setup.json` exists. If it does, read it now so you know where to resume. If it doesn't, this is a fresh run.
+
+If all required checks pass, proceed to Step 1.
+
+---
+
 ## Step 1: Welcome & Orient the User
 
 **Before asking any tier questions**, present this to the user:
@@ -21,7 +50,7 @@ When the user says **"Get cooking"** (or variations like "get cooking", "let's c
 
 Greet the user and explain the setup process conversationally. Cover these points:
 
-> "Let's get your project set up! This is a **3-tier wizard** — I'll ask you some questions, make the changes, and then you can decide if you want to keep going or pause and come back later."
+> "Let's get your project set up! This is a **tiered wizard** — I'll ask you some questions, make the changes, and then you can decide if you want to keep going or pause and come back later."
 
 Present the wizard outline so the user knows what to expect:
 
@@ -30,6 +59,7 @@ Present the wizard outline so the user knows what to expect:
 | **1. Identity & Branding** | Name, colors, fonts, logo | Renames "Sourdough" everywhere, sets your look & feel |
 | **2. Features & Auth** | Which features to keep, auth model | Removes what you don't need, configures login |
 | **3. Infrastructure & Repo** | Database, ports, git setup | Configures the runtime and prepares the repo |
+| **4. AI Configs & Docs** *(optional)* | AI tool configs, help text, docs | Updates Cursor/Copilot/Windsurf and documentation |
 
 Tell them: *"You can stop after any tier and pick up where you left off later. Each tier takes effect immediately, so your app is usable after every step."*
 
@@ -64,6 +94,16 @@ There are **47 step-by-step recipes** — you don't need to know which one, just
 
 **How I work:** This codebase is built for AI-assisted development. I automatically load context, follow tested recipes, run code reviews, and keep docs updated.
 
+### Presentation Guidelines
+
+Present the welcome section as **one cohesive message** — not multiple separate messages. Structure it as:
+1. Greeting + brief overview
+2. Wizard outline table
+3. Quick Tips (the four subsections above)
+4. Ask: "Ready to start with Tier 1?"
+
+**Wait for explicit confirmation** before proceeding to Tier 1. Valid responses: "Yes", "Ready", "Let's go", "Go ahead" → start Tier 1. If the user says "no" or "wait" → tell them: *"You can say 'Get cooking' again whenever you're ready, and I'll pick up where you left off."*
+
 ### Then proceed
 
 After presenting the overview and Quick Tips, say: **"Ready to start with Tier 1?"** and wait for confirmation before proceeding to the Tier 1 questions below.
@@ -72,11 +112,57 @@ After presenting the overview and Quick Tips, say: **"Ready to start with Tier 1
 
 ## How the Tiers Work
 
-The wizard has **three tiers** of questions. After each tier, execute the corresponding recipe **immediately** before moving to the next tier. This lets the user stop at any tier boundary and continue later.
+The wizard has **four tiers** of questions (Tier 4 is optional). After each tier, execute the corresponding recipe **immediately** before moving to the next tier. This lets the user stop at any tier boundary and continue later.
 
 At each tier boundary, ask: **"Ready for the next round, or want to stop here and continue later?"**
 
 If the user stops early, tell them which tier they completed and what's left.
+
+### Wizard State File
+
+The wizard tracks progress in `.sourdough-setup.json` at the project root. Write this file before executing each recipe and update it when each tier completes. This enables reliable resumption without guesswork.
+
+**File format:**
+```json
+{
+  "version": "1.0",
+  "started_at": "<ISO timestamp>",
+  "last_updated": "<ISO timestamp>",
+  "tiers": {
+    "1": {
+      "status": "complete",
+      "completed_at": "<ISO timestamp>",
+      "answers": {
+        "app_name": "MyApp",
+        "short_name": "MA",
+        "description": "My app",
+        "brand_color": "#3b82f6",
+        "font_style": "clean_modern",
+        "logo": "text"
+      }
+    },
+    "2": {
+      "status": "in_progress",
+      "started_at": "<ISO timestamp>",
+      "answers": { "features": ["llm", "notifications"], "auth_model": "email_sso" },
+      "steps_completed": ["llm_removal"]
+    },
+    "3": { "status": "not_started" },
+    "4": { "status": "not_started" }
+  }
+}
+```
+
+**Status values:** `not_started` | `in_progress` | `complete` | `skipped`
+
+**When to write:**
+- Wizard start (fresh run): create file, all tiers `not_started`
+- Before executing a tier recipe: set tier to `in_progress`, store the user's answers
+- After recipe verification passes: set tier to `complete`
+- If user skips Tier 4: set to `skipped` (don't prompt again on resume)
+- Update `last_updated` on every write
+
+**Step-level tracking:** Each recipe should instruct the AI to append completed step names to `steps_completed` so mid-tier recovery is possible if the context window resets.
 
 ---
 
@@ -102,7 +188,16 @@ If the user stops early, tell them which tier they completed and what's left.
 
 6. **Logo file, or text for now?** — Can always upload later via Configuration > Branding.
 
-**After collecting answers → execute `docs/ai/recipes/setup-identity-branding.md`**
+**Special handling — Geist fonts:** If the user selected "Techy / developer" (Geist Sans + Geist Mono), run this **before** updating `frontend/config/fonts.ts`:
+```bash
+docker exec sourdough-dev bash -c "cd /var/www/html/frontend && npm install geist"
+```
+Wait for it to complete. If it fails, tell the user to check their Docker container is running. Do not proceed to font file edits until the package is installed.
+
+**Before executing recipe:** Write `.sourdough-setup.json` with Tier 1 status `in_progress` and the user's answers.
+**After recipe + verification:** Update Tier 1 status to `complete`.
+
+**Execute `docs/ai/recipes/setup-identity-branding.md`**
 
 ---
 
@@ -112,7 +207,8 @@ If the user stops early, tell them which tier they completed and what's left.
 
 1. **Which features to keep?** Present as a checklist (defaults = keep all):
    - [ ] AI/LLM integration (multi-provider, 3 orchestration modes)
-   - [ ] Notification channels — which ones? (Email, Telegram, Discord, Slack, SMS, Matrix, ntfy, Web Push, In-App)
+   - [ ] Payments / Stripe Connect (subscriptions, billing)
+   - [ ] Notification channels — which ones? (Email, Telegram, Discord, Slack, SMS via Twilio/Vonage/SNS, Signal, Matrix, ntfy, Web Push/FCM, In-App)
    - [ ] Backup/restore — which destinations? (Local, S3, SFTP, Google Drive)
    - [ ] PWA (installable app, offline support)
    - [ ] Full-text search (Meilisearch)
@@ -127,7 +223,10 @@ If the user stops early, tell them which tier they completed and what's left.
 
 3. **Which SSO providers?** (only if SSO selected): Google, GitHub, Microsoft, Apple, Discord, GitLab
 
-**After collecting answers → execute `docs/ai/recipes/setup-features-auth.md`**
+**Before executing recipe:** Update `.sourdough-setup.json` with Tier 2 status `in_progress` and the user's answers.
+**After recipe + verification:** Update Tier 2 status to `complete`.
+
+**Execute `docs/ai/recipes/setup-features-auth.md`**
 
 ---
 
@@ -143,7 +242,32 @@ If the user stops early, tell them which tier they completed and what's left.
 6. **GitHub repo URL?** — Or "later."
 7. **Reset git history or keep Sourdough's?** — Default: fresh start (`git init`).
 
-**After collecting answers → execute `docs/ai/recipes/setup-infrastructure-repo.md`**
+**Before executing recipe:** Update `.sourdough-setup.json` with Tier 3 status `in_progress` and the user's answers.
+**After recipe + verification:** Update Tier 3 status to `complete`.
+
+**Execute `docs/ai/recipes/setup-infrastructure-repo.md`**
+
+---
+
+## Tier 4: AI Configs & Documentation (Optional)
+
+After Tier 3 completes, ask:
+
+> *"Your project is fully functional! There's one optional step: I can update AI assistant configurations (Cursor rules, GitHub Copilot, Windsurf), help text, README, and documentation to match your new app name. This takes ~5 minutes. Want to do it now?"*
+
+Options: **Yes** | **No, skip for now** | **I'll do it manually** (→ point them to `docs/ai/recipes/` for the relevant guide)
+
+**If user says Yes, ask:**
+1. Update AI configs? (Cursor rules, Copilot, Windsurf) — Default: Yes
+2. Update help/welcome text? — Default: Yes
+3. Update README, CHANGELOG, docs? — Default: Yes
+4. Add Sourdough credit in docs? — Default: Yes (recommended for attribution)
+
+**Before executing recipe:** Update `.sourdough-setup.json` with Tier 4 status `in_progress` and answers.
+**After recipe completes:** Update Tier 4 status to `complete`.
+**If user skips:** Set Tier 4 status to `skipped` — don't prompt again on future resumes.
+
+**Execute `docs/ai/recipes/update-ai-configs-and-docs.md`**
 
 ---
 
@@ -209,12 +333,18 @@ docs/adr/                   # Architecture Decision Records (for significant des
 
 ## Resuming
 
-If the user returns and says "Get cooking" again (or "continue setup", "resume cooking"), check what has already been done:
-- If app name is no longer "Sourdough" → Tier 1 is done
-- If features have been removed → Tier 2 is done
-- If git history has been reset → Tier 3 is done
+If the user says "Get cooking" again (or "continue setup", "resume cooking"):
 
-Pick up from the next incomplete tier.
+1. **Check for `.sourdough-setup.json`** at the project root
+2. **If found:** Read it and present a clear resume summary:
+   - Show each completed tier with key answers (e.g., "✅ Tier 1 — named 'MyApp', Inter/Newsreader fonts")
+   - Show the in-progress tier and which steps are done
+   - Show remaining tiers as "⏳ not started"
+   - Ask: *"Ready to continue with Tier N?"* — don't re-ask questions already answered
+3. **If not found:** Check if `frontend/config/app.ts` still shows "Sourdough" to determine if this is a fresh fork, then start fresh and create the state file
+4. **If a tier is `in_progress`:** Resume from the first step not in `steps_completed` — don't re-run completed steps
+
+**Never re-ask questions the user already answered.** Their answers are stored in the state file — use them.
 
 ## Reference
 
@@ -222,4 +352,5 @@ Pick up from the next incomplete tier.
 - Tier 1 recipe: [docs/ai/recipes/setup-identity-branding.md](../../docs/ai/recipes/setup-identity-branding.md)
 - Tier 2 recipe: [docs/ai/recipes/setup-features-auth.md](../../docs/ai/recipes/setup-features-auth.md)
 - Tier 3 recipe: [docs/ai/recipes/setup-infrastructure-repo.md](../../docs/ai/recipes/setup-infrastructure-repo.md)
+- Tier 4 recipe: [docs/ai/recipes/update-ai-configs-and-docs.md](../../docs/ai/recipes/update-ai-configs-and-docs.md)
 - Customization checklist: [docs/customization-checklist.md](../../docs/customization-checklist.md)
