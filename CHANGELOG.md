@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.8.6] - 2026-03-03
+
+### Fixed
+- Help center code block overflow and download button in modal
+
+### Changed
+- Release v0.8.5
 ## [0.8.5] - 2026-03-03
 
 ### Added
