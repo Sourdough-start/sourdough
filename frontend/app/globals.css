@@ -150,18 +150,16 @@
 .help-article-prose pre {
   overflow-x: auto;
   max-width: 100%;
-
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
 }
-.help-article-prose pre code {
-  color: hsl(var(--foreground));
-}
-
 /* Help article tables — horizontal scroll for wide tables */
 .help-article-prose table {
   display: block;
   overflow-x: auto;
   max-width: 100%;
-
+  word-break: normal;
 }
 
 /* Syntax-like coloring for code blocks */

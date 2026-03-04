@@ -103,7 +103,7 @@ export function HelpCenterModal() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
-        className="max-w-5xl h-[85vh] max-h-[800px] p-0 gap-0"
+        className="max-w-5xl h-[85vh] max-h-[800px] p-0 gap-0 overflow-hidden"
         hideClose
       >
         <DialogDescription className="sr-only">
@@ -162,7 +162,7 @@ export function HelpCenterModal() {
 
           {/* Content */}
           <main className="flex-1 min-w-0 overflow-hidden">
-            <ScrollArea className="h-full">
+            <ScrollArea className="h-full w-full">
               <div className="p-6">
                 {currentArticle && articleData ? (
                   <div>
