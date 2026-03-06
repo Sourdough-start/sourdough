@@ -151,3 +151,8 @@ For profile self-deletion (user deletes own account), the route is typically und
 - [Backend Traits](../patterns/admin-authorization.md) in patterns
 - [Add API endpoint](add-api-endpoint.md) – Using Shared Traits section
 - [Anti-pattern: Duplicate "Last Admin" checks](../anti-patterns/README.md#dont-duplicate-last-admin-checks)
+
+### Implementation Journal
+
+- [User Management Admin (2026-01-29)](../../journal/2026-01-29-user-management-admin.md)
+- [Remove is_admin, Group Only (2026-01-30)](../../journal/2026-01-30-remove-is-admin-group-only.md)

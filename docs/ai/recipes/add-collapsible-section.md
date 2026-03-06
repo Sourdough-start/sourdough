@@ -148,3 +148,7 @@ Put a switch, button, or other control in the header (before the chevron). Use t
 - [Patterns: ProviderIcon](../patterns/ui-patterns.md#providericon) – Icons in card headers
 - [Recipe: Add provider icon](add-provider-icon.md) – Adding new icons to the shared set
 - [Recipe: Add configuration menu item](add-configuration-menu-item.md) – Adding new config pages that may use collapsible sections
+
+### Implementation Journal
+
+- [Notification Config Split (2026-01-28)](../../journal/2026-01-28-notification-config-split.md)

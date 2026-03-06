@@ -25,3 +25,8 @@ Log::error('Backup restore failed', ['error' => $e->getMessage()]);
 **Key files:** `backend/config/logging.php`, `backend/app/Logging/AddContextProcessorTap.php` (tap class), `backend/app/Logging/ContextProcessor.php`, `backend/app/Http/Middleware/AddCorrelationId.php`, `frontend/lib/error-logger.ts`, `docs/logging.md`
 
 **Related:** [Recipe: Extend logging](../recipes/extend-logging.md), [Audit Service](audit-service.md), [Access Log Service](access-log-service.md)
+
+## Implementation Journal
+
+- [Console App Logging (2026-01-29)](../../journal/2026-01-29-console-app-logging.md)
+- [Live Logs HIPAA Logging (2026-01-29)](../../journal/2026-01-29-live-logs-hipaa-logging.md)

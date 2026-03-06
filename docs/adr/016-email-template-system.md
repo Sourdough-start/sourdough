@@ -99,3 +99,8 @@ We will implement a **database-stored email template system** with:
 ### Recipe
 
 - [Add Email Template](../ai/recipes/add-email-template.md)
+
+## Implementation Journal
+
+- [Email Template Infrastructure (2026-01-29)](../journal/2026-01-29-email-template-infrastructure.md)
+- [Email Template Integration Chunk D (2026-01-29)](../journal/2026-01-29-email-template-integration-chunk-d.md)

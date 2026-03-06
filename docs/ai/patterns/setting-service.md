@@ -37,3 +37,12 @@ $all = $this->settingService->all();
 **Key files:** `backend/app/Services/SettingService.php`, `backend/app/Providers/ConfigServiceProvider.php`, `backend/config/settings-schema.php`, `backend/app/Models/SystemSetting.php`.
 
 **Related:** [Recipe: Add config page](../recipes/add-config-page.md), [ADR-014: Database Settings with Env Fallback](../../adr/014-database-settings-env-fallback.md).
+
+## Implementation Journal
+
+- [Setting Service Implementation (2026-01-28)](../../journal/2026-01-28-setting-service-implementation.md)
+- [Section 2 Settings Implementation (2026-01-26)](../../journal/2026-01-26-section-2-settings-implementation.md)
+- [LLM Settings Consolidation (2026-01-29)](../../journal/2026-01-29-llm-settings-consolidation.md)
+- [SSO Settings Migration (2026-01-28)](../../journal/2026-01-28-sso-settings-migration.md)
+- [Backup Settings Migration (2026-01-29)](../../journal/2026-01-29-backup-settings-migration.md)
+- [Meilisearch Configuration (2026-01-30)](../../journal/2026-01-30-meilisearch-configuration.md)

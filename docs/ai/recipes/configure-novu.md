@@ -60,3 +60,8 @@ All payloads include `user` (with `name` and `email`), and `app_name`. Type-spec
 
 - [ADR-025: Novu Notification Integration](../../adr/025-novu-notification-integration.md)
 - [ADR-005: Notification System Architecture](../../adr/005-notification-system-architecture.md)
+
+### Implementation Journal
+
+- [Novu Notification Refactor (2026-02-07)](../../journal/2026-02-07-novu-notification-refactor.md)
+- [Novu Turbopack Compat (2026-02-07)](../../journal/2026-02-07-novu-turbopack-compat.md)

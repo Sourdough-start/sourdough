@@ -125,3 +125,8 @@ docker exec sourdough-dev bash -c "cd /var/www/html/backend && php artisan searc
 
 - [Help System Pattern](../patterns/ui-patterns.md#help-system)
 - [Add searchable page](add-searchable-page.md) – For regular pages (not help articles)
+
+### Implementation Journal
+
+- [In-App Docs Completion (2026-02-05)](../../journal/2026-02-05-in-app-docs-completion.md)
+- [In-App Documentation Phases 1-3 (2026-02-05)](../../journal/2026-02-05-in-app-documentation-phases-1-3.md)

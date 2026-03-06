@@ -108,3 +108,8 @@ Granular permissions (e.g. `can:users.view`, `can:backups.create`, `can:settings
 - Monitoring/logs (use `can:logs.view` / `can:audit.view`)
 
 Adding a new permission: define it in `App\Enums\Permission`, it auto-registers as a Laravel Gate. See [Recipe: Add a new permission](../recipes/add-new-permission.md).
+
+## Implementation Journal
+
+- [User Groups Phase 4 Admin UI (2026-01-30)](../../journal/2026-01-30-user-groups-phase-4-admin-ui.md)
+- [Remove is_admin Group Only (2026-01-30)](../../journal/2026-01-30-remove-is-admin-group-only.md)

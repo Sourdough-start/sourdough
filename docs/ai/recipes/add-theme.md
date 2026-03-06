@@ -265,3 +265,7 @@ Add an import to `frontend/app/globals.css` alongside the existing theme imports
 - [Realtime Colors](https://www.realtimecolors.com/) — Preview color systems on realistic UI
 - [WCAG Contrast Checker](https://webaim.org/resources/contrastchecker/) — Verify accessibility compliance
 - [shadcn/ui Themes](https://ui.shadcn.com/themes) — Reference themes using the same CSS variable format
+
+## Implementation Journal
+
+- [Changelog and Theme Fixes (2026-02-14)](../../journal/2026-02-14-changelog-and-theme-fixes.md)

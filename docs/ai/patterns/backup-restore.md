@@ -50,3 +50,7 @@ See [Extend backup and restore features](../recipes/extend-backup-restore.md) fo
 - [Recipe: Add Backup Destination](../recipes/add-backup-destination.md)
 - [Recipe: Extend Backup & Restore](../recipes/extend-backup-restore.md)
 - [Backup & Restore Documentation](../../backup.md)
+
+## Implementation Journal
+
+- [Backup Settings Migration (2026-01-29)](../../journal/2026-01-29-backup-settings-migration.md)

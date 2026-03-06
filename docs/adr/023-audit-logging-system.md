@@ -224,3 +224,13 @@ Real-time streaming uses WebSocket via Laravel Echo/Reverb on a private `audit-l
 ### Log Retention
 
 Configure retention via `AUDIT_LOG_RETENTION_DAYS` environment variable or admin settings (default: 365 days). Logs older than retention period are automatically purged by the scheduled cleanup job.
+
+## Implementation Journal
+
+- [Audit Logging Implementation (2026-01-29)](../journal/2026-01-29-audit-logging-implementation.md)
+- [Audit Dashboard Analytics (2026-01-29)](../journal/2026-01-29-audit-dashboard-analytics.md)
+- [Audit Extended Features (2026-01-29)](../journal/2026-01-29-audit-extended-features.md)
+- [Access Logs Field Tracking (2026-01-29)](../journal/2026-01-29-access-logs-field-tracking.md)
+- [HIPAA Logging Toggle (2026-01-29)](../journal/2026-01-29-hipaa-logging-toggle.md)
+- [Live Logs HIPAA Logging (2026-01-29)](../journal/2026-01-29-live-logs-hipaa-logging.md)
+- [Console App Logging (2026-01-29)](../journal/2026-01-29-console-app-logging.md)

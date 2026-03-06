@@ -165,3 +165,7 @@ document.documentElement.setAttribute('data-theme', 'ocean');
 document.documentElement.classList.toggle('dark');
 document.documentElement.classList.toggle('light');
 ```
+
+## Implementation Journal
+
+- [Changelog and Theme Fixes (2026-02-14)](../../journal/2026-02-14-changelog-and-theme-fixes.md)

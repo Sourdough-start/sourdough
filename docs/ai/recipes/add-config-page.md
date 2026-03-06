@@ -165,3 +165,9 @@ See [SettingService pattern](../patterns/setting-service.md) and `MailSettingCon
 - [ ] Backend validation uses `nullable` for optional fields
 - [ ] Nav item added to `configuration/layout.tsx` `navigationGroups` ([recipe](add-configuration-menu-item.md))
 - [ ] Page registered in both `search-pages.php` and frontend search pages ([recipe](add-searchable-page.md))
+
+## Implementation Journal
+
+- [Section 2: Settings Implementation (2026-01-26)](../../journal/2026-01-26-section-2-settings-implementation.md)
+- [Notification & LLM Settings Migration (2026-01-28)](../../journal/2026-01-28-notification-llm-settings-migration.md)
+- [Configurable Auth Features (2026-01-30)](../../journal/2026-01-30-configurable-auth-features.md)

@@ -236,3 +236,9 @@ For real-time in-app notifications:
 - Laravel Reverb (self-hosted)
 - Frontend listens on user's private channel
 - New notifications pushed instantly
+
+## Implementation Journal
+
+- [Notifications Implementation (2026-01-27)](../journal/2026-01-27-notifications-implementation.md)
+- [Notification Config Split (2026-01-28)](../journal/2026-01-28-notification-config-split.md)
+- [Notification LLM Settings Migration (2026-01-28)](../journal/2026-01-28-notification-llm-settings-migration.md)

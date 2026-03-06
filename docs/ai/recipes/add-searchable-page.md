@@ -67,3 +67,7 @@ If only one is updated, search results will be inconsistent. Always update both 
 - [ ] Added relevant content keywords
 - [ ] Ran `search:reindex pages`
 - [ ] Tested search finds the page (both instant and API results)
+
+## Implementation Journal
+
+- [Search Documentation Update (2026-01-30)](../../journal/2026-01-30-search-documentation-update.md)

@@ -153,3 +153,8 @@ New templates appear automatically in **Configuration > Email Templates** (`/con
 - [ADR-016: Email Template System](../../adr/016-email-template-system.md)
 - [Patterns: EmailTemplateService](../patterns/email-template-service.md)
 - [Patterns: Email Template Admin UI](../patterns/email-template-service.md)
+
+### Implementation Journal
+
+- [Email Template Infrastructure (2026-01-29)](../../journal/2026-01-29-email-template-infrastructure.md)
+- [Email Template Integration Chunk D (2026-01-29)](../../journal/2026-01-29-email-template-integration-chunk-d.md)

@@ -295,3 +295,8 @@ jobs:
 - Backend: Mock external services (API calls, email)
 - Frontend: Mock API responses with MSW
 - E2E: Use test database, real API
+
+## Implementation Journal
+
+- [Login Testing Review (2026-02-05)](../journal/2026-02-05-login-testing-review.md)
+- [Login Testing Review Checklist](../journal/login-testing-review-checklist.md)

@@ -22,3 +22,7 @@ Optional `RATE_LIMIT_SECONDS` per command (e.g. `backup:run` 300s). Service uses
 - `frontend/app/(dashboard)/configuration/jobs/page.tsx` (Scheduled Tasks, Queue, Failed Jobs, Run Now)
 
 **Related:** No dedicated recipes — this is a standalone pattern.
+
+## Implementation Journal
+
+- [Scheduled Jobs UI (2026-01-29)](../../journal/2026-01-29-scheduled-jobs-ui.md)

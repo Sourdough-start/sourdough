@@ -139,3 +139,8 @@ protected function casts(): array
 **Key files:** `docker/entrypoint.sh` (auto-generation), `backend/app/Models/AIProvider.php` (reference pattern), `backend/app/Models/Webhook.php`
 
 **Related:** [Anti-patterns: Architecture](../anti-patterns/architecture.md)
+
+## Implementation Journal
+
+- [Security Vulnerability Fixes (2026-02-01)](../../journal/2026-02-01-security-vulnerability-fixes.md)
+- [SSO Redirect URI Fix (2026-02-05)](../../journal/2026-02-05-sso-redirect-uri-fix.md)

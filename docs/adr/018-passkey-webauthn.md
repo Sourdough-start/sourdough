@@ -70,3 +70,7 @@ This means a single registered passkey may authenticate from multiple devices wi
 - Admins control passkey availability via Configuration > Security (Authentication card).
 - Implementation follows existing patterns (TwoFactorService, AuthSettingController, public features).
 - Requires `laragear/webauthn` and migration; app will not load the WebAuthn trait until the package is installed (e.g. via `composer require laragear/webauthn` and `php artisan migrate`).
+
+## Implementation Journal
+
+- [Configurable Auth Features (2026-01-30)](../journal/2026-01-30-configurable-auth-features.md)

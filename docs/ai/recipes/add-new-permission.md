@@ -73,3 +73,7 @@ The auth user type in [frontend/lib/auth.ts](frontend/lib/auth.ts) already inclu
 - [ ] Routes protected with `can:permission.value`
 - [ ] Config nav item has `permission` if it’s a config page
 - [ ] UI uses `usePermission()` or `PermissionGate` where visibility depends on the permission
+
+## Implementation Journal
+
+- [User Groups Phase 4: Admin UI (2026-01-30)](../../journal/2026-01-30-user-groups-phase-4-admin-ui.md)

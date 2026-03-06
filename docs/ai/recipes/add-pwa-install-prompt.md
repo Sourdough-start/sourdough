@@ -91,3 +91,7 @@ return <p>Install is available in supported browsers via the browser menu.</p>;
 - [PWA roadmap Phase 4](../../plans/pwa-roadmap.md#phase-4-install-experience--complete)
 - [Pattern: PWA Install Prompt](../patterns/ui-patterns.md)
 - [Context loading: PWA Work](../context-loading.md#pwa-work)
+
+### Implementation Journal
+
+- [PWA Phase 4-5 Install and Advanced (2026-01-31)](../../journal/2026-01-31-pwa-phase-4-5-install-and-advanced.md)

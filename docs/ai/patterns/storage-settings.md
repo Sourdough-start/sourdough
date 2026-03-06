@@ -35,3 +35,9 @@ See [Add storage provider](../recipes/add-storage-provider.md). Summary: add to 
 - [Recipe: Add Storage Provider](../recipes/add-storage-provider.md)
 - [Storage Settings Enhancement Roadmap](../../plans/storage-settings-roadmap.md)
 - [Features: Storage Settings](../../features.md#storage-settings)
+
+## Implementation Journal
+
+- [Storage Settings Phase 1 (2026-01-30)](../../journal/2026-01-30-storage-settings-phase-1.md)
+- [Storage Providers Phase 2 (2026-01-30)](../../journal/2026-01-30-storage-providers-phase-2.md)
+- [Storage Phase 4 Analytics (2026-01-30)](../../journal/2026-01-30-storage-phase-4-analytics.md)

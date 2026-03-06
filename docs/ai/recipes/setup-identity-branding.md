@@ -547,3 +547,7 @@ info:
 - [Setup Features & Auth (Tier 2)](setup-features-auth.md)
 - [Setup Infrastructure & Repo (Tier 3)](setup-infrastructure-repo.md)
 - [Customization Checklist](../customization-checklist.md)
+
+### Implementation Journal
+
+- [Get Cooking Setup Wizard (2026-02-14)](../../journal/2026-02-14-get-cooking-setup-wizard.md)

@@ -32,3 +32,9 @@ $this->audit('user.created', $user, [], ['name' => $user->name], null, 'info');
 **Key files:** `backend/app/Services/AuditService.php`, `backend/app/Http/Traits/AuditLogging.php`, `backend/app/Models/AuditLog.php`, `backend/app/Http/Controllers/Api/AuditLogController.php`.
 
 **Related:** [Recipe: Trigger audit logging](../recipes/trigger-audit-logging.md), [Recipe: Add auditable action](../recipes/add-auditable-action.md), [AccessLogService Pattern](access-log-service.md).
+
+## Implementation Journal
+
+- [Audit Logging Implementation (2026-01-29)](../../journal/2026-01-29-audit-logging-implementation.md)
+- [Audit Dashboard Analytics (2026-01-29)](../../journal/2026-01-29-audit-dashboard-analytics.md)
+- [Audit Extended Features (2026-01-29)](../../journal/2026-01-29-audit-extended-features.md)

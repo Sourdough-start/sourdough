@@ -242,3 +242,9 @@ return [
 3. **Fine-tuned Routing** - Route to best provider per task
 4. ~~**Cost Budgets**~~ - **[PARTIALLY IMPLEMENTED]** Usage tracking and budget alerts via [ADR-029](./029-usage-tracking-alerts.md)
 5. **Context Caching** - Reuse long contexts across calls
+
+## Implementation Journal
+
+- [LLM Settings Consolidation (2026-01-29)](../journal/2026-01-29-llm-settings-consolidation.md)
+- [LLM Model Discovery (2026-01-29)](../journal/2026-01-29-llm-model-discovery.md)
+- [Notification LLM Settings Migration (2026-01-28)](../journal/2026-01-28-notification-llm-settings-migration.md)

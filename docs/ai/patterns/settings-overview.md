@@ -45,3 +45,13 @@ Reading SettingService inside these classes would bypass the injected config and
 **Key files:** `backend/app/Services/SettingService.php`, `backend/app/Providers/ConfigServiceProvider.php`, `backend/config/settings-schema.php`, `backend/app/Models/SystemSetting.php`, `backend/app/Models/Setting.php`
 
 **Related:** [SettingService Pattern](setting-service.md), [ADR-014](../../adr/014-database-settings-env-fallback.md), [ADR-015](../../adr/015-env-only-settings.md), [Anti-patterns: Architecture](../anti-patterns/architecture.md)
+
+## Implementation Journal
+
+- [Section 2 Settings Implementation (2026-01-26)](../../journal/2026-01-26-section-2-settings-implementation.md)
+- [Setting Service Implementation (2026-01-28)](../../journal/2026-01-28-setting-service-implementation.md)
+- [LLM Settings Consolidation (2026-01-29)](../../journal/2026-01-29-llm-settings-consolidation.md)
+- [Backup Settings Migration (2026-01-29)](../../journal/2026-01-29-backup-settings-migration.md)
+- [SSO Settings Enhancement (2026-01-30)](../../journal/2026-01-30-sso-settings-enhancement.md)
+- [Storage Settings Phase 1 (2026-01-30)](../../journal/2026-01-30-storage-settings-phase-1.md)
+- [Configurable Auth Features (2026-01-30)](../../journal/2026-01-30-configurable-auth-features.md)

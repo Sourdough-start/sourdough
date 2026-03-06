@@ -120,3 +120,7 @@ Ensure all interactive elements have minimum 44x44px touch targets:
 **Key files:** `frontend/lib/use-mobile.ts`, `frontend/components/app-shell.tsx`
 
 **Related:** [Anti-patterns: Responsive](../anti-patterns/responsive.md)
+
+## Implementation Journal
+
+- [Mobile Responsiveness Implementation (2026-01-27)](../../journal/2026-01-27-mobile-responsiveness-implementation.md)

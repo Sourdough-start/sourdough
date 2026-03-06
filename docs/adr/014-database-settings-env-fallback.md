@@ -75,3 +75,8 @@ When `ConfigServiceProvider::databaseReady()` returns false (e.g. during migrati
 - `backend/app/Providers/ConfigServiceProvider.php` – Boot-time config injection
 - `backend/config/settings-schema.php` – Definition of migratable settings
 - `backend/app/Models/SystemSetting.php` – Model with `is_encrypted` and value decryption
+
+## Implementation Journal
+
+- [Section 2 Settings Implementation (2026-01-26)](../journal/2026-01-26-section-2-settings-implementation.md)
+- [Setting Service Implementation (2026-01-28)](../journal/2026-01-28-setting-service-implementation.md)

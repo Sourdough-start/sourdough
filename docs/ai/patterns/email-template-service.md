@@ -69,3 +69,8 @@ The admin UI for email templates lives under **Configuration > Email Templates**
 **Related:**
 - [ADR-016: Email Template System](../../adr/016-email-template-system.md)
 - [Recipe: Add Email Template](../recipes/add-email-template.md)
+
+## Implementation Journal
+
+- [Email Template Infrastructure (2026-01-29)](../../journal/2026-01-29-email-template-infrastructure.md)
+- [Email Template Integration Chunk D (2026-01-29)](../../journal/2026-01-29-email-template-integration-chunk-d.md)

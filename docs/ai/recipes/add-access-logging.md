@@ -78,3 +78,9 @@ public function exportUsers(Request $request): JsonResponse
 
 - [Patterns: AccessLogService](../patterns/access-log-service.md)
 - [Logging Guide](../../logging.md)
+
+### Implementation Journal
+
+- [Access Logs Field Tracking (2026-01-29)](../../journal/2026-01-29-access-logs-field-tracking.md)
+- [HIPAA Logging Toggle (2026-01-29)](../../journal/2026-01-29-hipaa-logging-toggle.md)
+- [Live Logs HIPAA Logging (2026-01-29)](../../journal/2026-01-29-live-logs-hipaa-logging.md)

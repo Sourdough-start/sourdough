@@ -95,3 +95,8 @@ $this->auditService->log('backup.restored', null, [], ['filename' => $name], nul
 - [AuditService Pattern](../patterns/audit-service.md)
 - [Recipe: Trigger audit logging](trigger-audit-logging.md)
 - [Audit Logs Implementation Plan](../../plans/audit-logs-implementation-plan.md)
+
+### Implementation Journal
+
+- [Audit Logging Implementation (2026-01-29)](../../journal/2026-01-29-audit-logging-implementation.md)
+- [Audit Extended Features (2026-01-29)](../../journal/2026-01-29-audit-extended-features.md)

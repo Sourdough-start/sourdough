@@ -362,3 +362,12 @@ Login page shows only providers where **credentials are set, "Test connection" h
 
 - [ADR-003: SSO Provider Integration](../../adr/003-sso-provider-integration.md)
 - [Env to Database Roadmap](../../plans/env-to-database-roadmap.md) (Phase 5: SSO settings migration)
+
+### Implementation Journal
+
+- [SSO Settings Migration (2026-01-28)](../../journal/2026-01-28-sso-settings-migration.md)
+- [SSO Settings Enhancement (2026-01-30)](../../journal/2026-01-30-sso-settings-enhancement.md)
+- [SSO Test Toggle Fix (2026-02-05)](../../journal/2026-02-05-sso-test-toggle-fix.md)
+- [SSO Redirect URI Fix (2026-02-05)](../../journal/2026-02-05-sso-redirect-uri-fix.md)
+- [SSO Callback Page Fix (2026-02-06)](../../journal/2026-02-06-sso-callback-page-fix.md)
+- [SSO Session Persistence Fix (2026-02-06)](../../journal/2026-02-06-sso-session-persistence-fix.md)

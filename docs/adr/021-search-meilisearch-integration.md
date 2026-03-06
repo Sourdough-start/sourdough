@@ -184,3 +184,14 @@ Meilisearch runs as a Supervisor-managed process within the container:
 
 - [ADR-009: Docker Single-Container Architecture](./009-docker-single-container.md) - Meilisearch embedded in container
 - [ADR-010: Database Abstraction Strategy](./010-database-abstraction.md) - Scout works with all supported databases
+
+## Implementation Journal
+
+- [Search Documentation Update (2026-01-30)](../journal/2026-01-30-search-documentation-update.md)
+- [Meilisearch Phases 1-3 (2026-01-30)](../journal/2026-01-30-meilisearch-phases-1-3.md)
+- [Meilisearch Phases 4-6 (2026-01-30)](../journal/2026-01-30-meilisearch-phases-4-6.md)
+- [Meilisearch Configuration (2026-01-30)](../journal/2026-01-30-meilisearch-configuration.md)
+- [Meilisearch Embedded (2026-01-30)](../journal/2026-01-30-meilisearch-embedded.md)
+- [Alpine to Debian Meilisearch (2026-01-30)](../journal/2026-01-30-alpine-to-debian-meilisearch.md)
+- [Meilisearch Production Permissions (2026-02-05)](../journal/2026-02-05-meilisearch-production-permissions.md)
+- [Search Reindex Bugfixes (2026-02-05)](../journal/2026-02-05-search-reindex-bugfixes.md)

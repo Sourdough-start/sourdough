@@ -63,3 +63,8 @@ Auth response from `GET /auth/user` includes `user.groups`. Ensure the auth stor
 - [ ] Pass `currentUserId` and `editedUserId` for admin-group safety
 - [ ] Backend: load groups on user list/show; audit and clear permission cache on update
 - [ ] Frontend errors use `errorLogger`, not `console.error`
+
+## Implementation Journal
+
+- [User Groups Phase 4: Admin UI (2026-01-30)](../../journal/2026-01-30-user-groups-phase-4-admin-ui.md)
+- [Remove is_admin, Group Only (2026-01-30)](../../journal/2026-01-30-remove-is-admin-group-only.md)

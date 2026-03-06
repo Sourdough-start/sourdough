@@ -93,3 +93,7 @@ Stats queries use driver-aware SQL (`SQLite`, `MySQL`, `PostgreSQL`) for date fo
 
 - Key files: `backend/app/Services/UsageTrackingService.php`, `backend/app/Services/UsageStatsService.php`, `backend/app/Services/UsageAlertService.php`, `backend/app/Http/Controllers/Api/UsageController.php`
 - `IntegrationUsage::INTEGRATIONS` defines the canonical list of integration types
+
+## Implementation Journal
+
+- [Integration Usage Dashboard (2026-02-14)](../journal/2026-02-14-integration-usage-dashboard.md)

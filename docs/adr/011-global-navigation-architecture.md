@@ -74,3 +74,8 @@ This architecture will be applied to all authenticated routes via the dashboard 
 The sidebar supports two modes: collapsed (icon-only, 64px/w-16) and expanded (icon+label). Users can toggle between modes with an expand/collapse button. The active state is indicated by button variant changes and background color. On mobile, the sidebar is hidden and accessible via a sheet/drawer.
 
 The header uses `ml-auto` on the right-side container to explicitly push items to the right edge, ensuring proper right-justification regardless of content length.
+
+## Implementation Journal
+
+- [Navigation Refactor (2026-01-26)](../journal/2026-01-26-navigation-refactor.md)
+- [Config Nav Redesign (2026-01-29)](../journal/2026-01-29-config-nav-redesign.md)

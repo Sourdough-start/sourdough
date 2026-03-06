@@ -129,3 +129,8 @@ Pass as last argument: `$this->auditService->log(..., 'warning')` or use `AuditL
 - [AuditService Pattern](../patterns/audit-service.md)
 - [Recipe: Add auditable action](add-auditable-action.md)
 - [Audit Logs Implementation Plan](../../plans/audit-logs-implementation-plan.md)
+
+### Implementation Journal
+
+- [Audit Logging Implementation (2026-01-29)](../../journal/2026-01-29-audit-logging-implementation.md)
+- [Audit Dashboard Analytics (2026-01-29)](../../journal/2026-01-29-audit-dashboard-analytics.md)

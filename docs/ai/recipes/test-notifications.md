@@ -127,3 +127,8 @@ frontend/app/(dashboard)/user/preferences/page.tsx               # User test UI
 - [Add Notification Channel](add-notification-channel.md) - Step 8 covers testing
 - [Configure Novu](configure-novu.md) - Novu connection testing
 - [Trigger Notifications](trigger-notifications.md) - How to send notifications from code
+
+### Implementation Journal
+
+- [Notifications Implementation (2026-01-27)](../../journal/2026-01-27-notifications-implementation.md)
+- [Notification Config Split (2026-01-28)](../../journal/2026-01-28-notification-config-split.md)

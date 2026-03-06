@@ -54,3 +54,8 @@ See [add-config-page recipe](add-config-page.md) for the full skeleton and criti
 - [ ] Backend endpoint with user scoping
 - [ ] Form validation on both frontend and backend
 - [ ] Responsive design verified
+
+## Implementation Journal
+
+- [Section 2: Settings Implementation (2026-01-26)](../../journal/2026-01-26-section-2-settings-implementation.md)
+- [Setting Service Implementation (2026-01-28)](../../journal/2026-01-28-setting-service-implementation.md)

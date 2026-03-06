@@ -88,3 +88,8 @@ We will integrate Novu as an **optional** notification path:
 ### Recipe
 
 - [Configure Novu](../ai/recipes/configure-novu.md)
+
+## Implementation Journal
+
+- [Novu Notification Refactor (2026-02-07)](../journal/2026-02-07-novu-notification-refactor.md)
+- [Novu Turbopack Compat (2026-02-07)](../journal/2026-02-07-novu-turbopack-compat.md)

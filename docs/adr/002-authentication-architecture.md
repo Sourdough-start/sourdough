@@ -126,3 +126,10 @@ Laravel Sanctum's session authentication works by:
 2. Using the `EnsureFrontendRequestsAreStateful` middleware
 3. The frontend calls `/sanctum/csrf-cookie` before authentication
 4. All subsequent requests include the XSRF-TOKEN cookie
+
+## Implementation Journal
+
+- [Configurable Auth Features (2026-01-30)](../journal/2026-01-30-configurable-auth-features.md)
+- [Login Testing Review (2026-02-05)](../journal/2026-02-05-login-testing-review.md)
+- [SSO Test Toggle Fix (2026-02-05)](../journal/2026-02-05-sso-test-toggle-fix.md)
+- [Login Testing Review Checklist](../journal/login-testing-review-checklist.md)

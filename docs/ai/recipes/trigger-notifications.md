@@ -230,3 +230,7 @@ The notification payload (title, message, variables) is passed as-is to the Novu
 - **User API**: `backend/app/Http/Controllers/Api/UserNotificationSettingsController.php`
 - **ADR**: [ADR-005: Notification System Architecture](../../adr/005-notification-system-architecture.md)
 - **Add a new channel**: [Recipe: Add Notification Channel](add-notification-channel.md)
+
+## Implementation Journal
+
+- [Notifications Implementation (2026-01-27)](../../journal/2026-01-27-notifications-implementation.md)

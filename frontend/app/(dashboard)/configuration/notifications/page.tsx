@@ -418,7 +418,7 @@ function ChannelCredentialCard({
       defaultOpen={false}
     >
       <form onSubmit={handleSubmit(onSubmit)}>
-        {renderChannelFields(config.channelId, register, errors, watch, setValue, {
+        {renderChannelFields(config.channelId, register, errors as FieldErrors<Record<string, string>>, watch, setValue, {
           isGeneratingVapid,
           onGenerateVapid: handleGenerateVapid,
         })}
@@ -471,7 +471,7 @@ type AnyFormValues = Record<string, any>;
 function renderChannelFields(
   channelId: string,
   register: UseFormRegister<AnyFormValues>,
-  errors: FieldErrors<AnyFormValues>,
+  errors: FieldErrors<Record<string, string>>,
   watch: UseFormWatch<AnyFormValues>,
   setValue: UseFormSetValue<AnyFormValues>,
   extra: {

@@ -63,3 +63,7 @@ We will implement a **per-type notification template system** for push, in-app, 
 ### Recipe
 
 - [Add Notification Template](../ai/recipes/add-notification-template.md)
+
+## Implementation Journal
+
+- [Notification Templates (2026-01-30)](../journal/2026-01-30-notification-templates.md)

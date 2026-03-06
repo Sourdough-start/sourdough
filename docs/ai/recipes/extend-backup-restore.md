@@ -123,3 +123,7 @@ Use this for changes that only affect the backup/restore UI (filters, bulk actio
 - [Trigger notifications](trigger-notifications.md) – send backup success/failure notifications
 - [ADR-007: Backup System Design](../../adr/007-backup-system-design.md)
 - [Backup & Restore patterns](../patterns/backup-restore.md)
+
+### Implementation Journal
+
+- [Backup Settings Migration (2026-01-29)](../../journal/2026-01-29-backup-settings-migration.md)

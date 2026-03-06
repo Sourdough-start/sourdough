@@ -74,3 +74,8 @@ Full-width area chart with proper axes, grid, tooltip, and time range toggle but
 **Key files:** `frontend/app/(dashboard)/dashboard/page.tsx`, `frontend/components/dashboard/`, `frontend/components/dashboard/widgets/`
 
 **Related:** [Recipe: Add Dashboard Widget](../recipes/add-dashboard-widget.md), [Anti-patterns: Widgets](../anti-patterns/widgets.md)
+
+## Implementation Journal
+
+- [Dashboard Static Simplification (2026-01-30)](../../journal/2026-01-30-dashboard-static-simplification.md)
+- [Integration Usage Dashboard (2026-02-14)](../../journal/2026-02-14-integration-usage-dashboard.md)

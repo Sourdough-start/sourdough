@@ -107,3 +107,8 @@ Only add a new group when the feature area does not fit existing groups and is s
 - [Recipe: Add Configuration Page](add-config-page.md) – Building the config page and form
 - [Patterns: Configuration Navigation](../patterns/ui-patterns.md#configuration-navigation)
 - [Context loading: Settings/Configuration Work](../context-loading.md#settingsconfiguration-work)
+
+### Implementation Journal
+
+- [Config Nav Redesign (2026-01-29)](../../journal/2026-01-29-config-nav-redesign.md)
+- [Navigation Refactor (2026-01-26)](../../journal/2026-01-26-navigation-refactor.md)

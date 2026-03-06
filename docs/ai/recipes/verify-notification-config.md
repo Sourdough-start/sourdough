@@ -108,3 +108,7 @@ frontend/app/(dashboard)/configuration/notifications/page.tsx    # Admin UI
 - [Add Notification Channel](add-notification-channel.md) - Adding new channels
 - [Configure Novu](configure-novu.md) - Novu setup
 - [Trigger Notifications](trigger-notifications.md) - Sending notifications from code
+
+### Implementation Journal
+
+- [Notification Config Split (2026-01-28)](../../journal/2026-01-28-notification-config-split.md)

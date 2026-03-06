@@ -136,3 +136,7 @@ If admins will preview this type in the UI, add sample variables in `Notificatio
 - **Recipe**: [Trigger Notifications](trigger-notifications.md) — sendByType() usage
 - **Recipe**: [Add Notification Channel](add-notification-channel.md) — When adding a new channel, implement resolveContent() and map to push/inapp/chat so it uses per-type templates
 - **Recipe**: [Keep Notification Template Variables Reference Up to Date](keep-notification-template-variables-up-to-date.md) — When adding or changing variables, update the UI reference
+
+## Implementation Journal
+
+- [Notification Templates (2026-01-30)](../../journal/2026-01-30-notification-templates.md)

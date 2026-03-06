@@ -185,3 +185,7 @@ Using `pragmarx/google2fa-laravel` package which provides:
 - TOTP generation and verification
 - QR code generation
 - Time-step window tolerance
+
+## Implementation Journal
+
+- [Configurable Auth Features (2026-01-30)](../journal/2026-01-30-configurable-auth-features.md)

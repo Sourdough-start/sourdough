@@ -318,3 +318,13 @@ From DanaVision, we include production safety measures:
 - Prevent accidental database deletion
 - Require confirmation for destructive operations
 - Backup before major operations
+
+## Implementation Journal
+
+- [Docker Next.js Volume Fix (2026-01-26)](../journal/2026-01-26-docker-nextjs-volume-fix.md)
+- [Docker Container Audit (2026-02-05)](../journal/2026-02-05-docker-container-audit.md)
+- [Docker Optimization and Security Updates (2026-02-05)](../journal/2026-02-05-docker-optimization-and-security-updates.md)
+- [Alpine to Debian Meilisearch (2026-01-30)](../journal/2026-01-30-alpine-to-debian-meilisearch.md)
+- [Migration Service Container Fix (2026-02-05)](../journal/2026-02-05-migration-service-container-fix.md)
+- [Cache Permissions Fix (2026-02-05)](../journal/2026-02-05-cache-permissions-fix.md)
+- [Meilisearch Production Permissions (2026-02-05)](../journal/2026-02-05-meilisearch-production-permissions.md)

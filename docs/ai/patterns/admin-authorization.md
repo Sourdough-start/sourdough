@@ -66,3 +66,8 @@ public function send(User $user, string $type, string $title, string $message, a
 **Key files:** `backend/app/Http/Traits/AdminAuthorizationTrait.php`, `backend/app/Services/Notifications/NotificationOrchestrator.php`
 
 **Related:** [Recipe: Add admin-protected action](../recipes/add-admin-protected-action.md), [Anti-patterns: Backend](../anti-patterns/backend.md#dont-duplicate-last-admin-checks)
+
+## Implementation Journal
+
+- [User Management Admin (2026-01-29)](../../journal/2026-01-29-user-management-admin.md)
+- [Remove is_admin Group Only (2026-01-30)](../../journal/2026-01-30-remove-is-admin-group-only.md)

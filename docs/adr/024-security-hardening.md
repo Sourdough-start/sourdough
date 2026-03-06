@@ -150,3 +150,14 @@ if (abs(time() - $timestamp) > 300) {
 ### Password Policy Override
 
 In development, the compromised password check is disabled to avoid API calls. The policy can be customized via AppServiceProvider if needed.
+
+## Implementation Journal
+
+- [Security Vulnerability Fixes (2026-02-01)](../journal/2026-02-01-security-vulnerability-fixes.md)
+- [Security Review Phase 1 (2026-02-02)](../journal/2026-02-02-security-review-phase-1.md)
+- [Security SAST Automation (2026-02-02)](../journal/2026-02-02-security-sast-automation.md)
+- [Security Page Cleanup (2026-02-04)](../journal/2026-02-04-security-page-cleanup.md)
+- [Phase 1 Security Review (2026-02-05)](../journal/2026-02-05-phase-1-security-review.md)
+- [Security Compliance Documentation Completion (2026-02-05)](../journal/2026-02-05-security-compliance-documentation-completion.md)
+- [GitHub Actions Hardening (2026-02-05)](../journal/2026-02-05-github-actions-hardening.md)
+- [Compliance Templates (2026-02-05)](../journal/2026-02-05-compliance-templates.md)

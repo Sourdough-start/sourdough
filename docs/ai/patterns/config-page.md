@@ -200,3 +200,11 @@ export function ExampleForm({ onSubmit }: { onSubmit: (data: FormData) => void }
 **Key files:** `frontend/components/ui/settings-page-skeleton.tsx`, `frontend/components/ui/save-button.tsx`, `frontend/components/ui/settings-switch-row.tsx`, `frontend/components/ui/form-field.tsx`
 
 **Related:** [Recipe: Add config page](../recipes/add-config-page.md), [Anti-patterns: Frontend](../anti-patterns/frontend.md), [Anti-patterns: Forms](../anti-patterns/forms.md)
+
+## Implementation Journal
+
+- [Navigation Refactor (2026-01-26)](../../journal/2026-01-26-navigation-refactor.md)
+- [Notification Config Split (2026-01-28)](../../journal/2026-01-28-notification-config-split.md)
+- [Config Nav Redesign (2026-01-29)](../../journal/2026-01-29-config-nav-redesign.md)
+- [SSO Settings Migration (2026-01-28)](../../journal/2026-01-28-sso-settings-migration.md)
+- [SSO Settings Enhancement (2026-01-30)](../../journal/2026-01-30-sso-settings-enhancement.md)

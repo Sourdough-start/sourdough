@@ -405,3 +405,11 @@ See `backend/app/Models/UserGroup.php` and `SearchService::searchUserGroups()` f
 - [Meilisearch Integration Roadmap](../../plans/meilisearch-integration-roadmap.md)
 - [Laravel Scout](https://laravel.com/docs/scout)
 - [Meilisearch](https://www.meilisearch.com/docs)
+
+### Implementation Journal
+
+- [Meilisearch Phases 1-3 (2026-01-30)](../../journal/2026-01-30-meilisearch-phases-1-3.md)
+- [Meilisearch Phases 4-6 (2026-01-30)](../../journal/2026-01-30-meilisearch-phases-4-6.md)
+- [Meilisearch Configuration (2026-01-30)](../../journal/2026-01-30-meilisearch-configuration.md)
+- [Meilisearch Embedded (2026-01-30)](../../journal/2026-01-30-meilisearch-embedded.md)
+- [Search Reindex Bugfixes (2026-02-05)](../../journal/2026-02-05-search-reindex-bugfixes.md)

@@ -172,3 +172,9 @@ if ($user->inGroup('admin')) {
 
 - [ADR-002: Authentication Architecture](./002-authentication-architecture.md)
 - [ADR-012: Admin-Only Settings Access](./012-admin-only-settings.md)
+
+## Implementation Journal
+
+- [User Groups Phase 4 Admin UI (2026-01-30)](../journal/2026-01-30-user-groups-phase-4-admin-ui.md)
+- [Remove is_admin Group Only (2026-01-30)](../journal/2026-01-30-remove-is-admin-group-only.md)
+- [User Management Admin (2026-01-29)](../journal/2026-01-29-user-management-admin.md)

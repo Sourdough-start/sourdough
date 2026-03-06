@@ -472,3 +472,8 @@ The exact files depend on which features are removed. See each step above for sp
 - [Setup Identity & Branding (Tier 1)](setup-identity-branding.md)
 - [Setup Infrastructure & Repo (Tier 3)](setup-infrastructure-repo.md)
 - [Customization Checklist](../customization-checklist.md) — Detailed file lists for each feature
+
+### Implementation Journal
+
+- [Configurable Auth Features (2026-01-30)](../../journal/2026-01-30-configurable-auth-features.md)
+- [Get Cooking Setup Wizard (2026-02-14)](../../journal/2026-02-14-get-cooking-setup-wizard.md)

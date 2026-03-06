@@ -139,3 +139,9 @@ If the provider should have its own icon:
 - [Storage Settings pattern](../patterns/storage-settings.md) – StorageService, connection test, provider config.
 - [Storage Settings Enhancement Roadmap](../../plans/storage-settings-roadmap.md) – Phases 1–4.
 - [Context loading: Storage Settings Work](../context-loading.md#storage-settings-work) – Files to read when working on storage.
+
+### Implementation Journal
+
+- [Storage Settings Phase 1 (2026-01-30)](../../journal/2026-01-30-storage-settings-phase-1.md)
+- [Storage Providers Phase 2 (2026-01-30)](../../journal/2026-01-30-storage-providers-phase-2.md)
+- [Storage Phase 4 Analytics (2026-01-30)](../../journal/2026-01-30-storage-phase-4-analytics.md)

@@ -271,3 +271,7 @@ When restoring from older versions:
 4. Validate data integrity
 
 This allows restoring backups from previous versions onto newer installations.
+
+## Implementation Journal
+
+- [Backup Settings Migration (2026-01-29)](../journal/2026-01-29-backup-settings-migration.md)

@@ -56,3 +56,10 @@ The frontend API client checks for `requires_2fa` and `requires_2fa_setup` in 40
 **Key files:** `backend/app/Http/Middleware/Ensure2FAVerified.php`, `backend/app/Http/Middleware/Ensure2FASetupWhenRequired.php`, `backend/app/Http/Middleware/EnsureEmailIsVerified.php`, `backend/bootstrap/app.php`
 
 **Related:** [ADR-002](../../adr/002-authentication-architecture.md), [ADR-004](../../adr/004-two-factor-authentication.md), [Pattern: Permission Checking](permission-checking.md)
+
+## Implementation Journal
+
+- [Configurable Auth Features (2026-01-30)](../../journal/2026-01-30-configurable-auth-features.md)
+- [Login Testing Review (2026-02-05)](../../journal/2026-02-05-login-testing-review.md)
+- [SSO Callback Page Fix (2026-02-06)](../../journal/2026-02-06-sso-callback-page-fix.md)
+- [SSO Session Persistence Fix (2026-02-06)](../../journal/2026-02-06-sso-session-persistence-fix.md)

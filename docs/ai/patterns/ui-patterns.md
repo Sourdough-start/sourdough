@@ -261,3 +261,9 @@ const { canPrompt, isInstalled, promptInstall } = useInstallPrompt();
 **Key files:** `frontend/lib/use-install-prompt.ts`, `frontend/components/install-prompt.tsx`, `frontend/components/app-shell.tsx`
 
 **Related:** [Recipe: Add collapsible section](../recipes/add-collapsible-section.md), [Recipe: Add SSO Provider](../recipes/add-sso-provider.md), [Recipe: Add help article](../recipes/add-help-article.md), [Recipe: Add configuration menu item](../recipes/add-configuration-menu-item.md), [Recipe: Add PWA install prompt](../recipes/add-pwa-install-prompt.md)
+
+## Implementation Journal
+
+- [Navigation Refactor (2026-01-26)](../../journal/2026-01-26-navigation-refactor.md)
+- [shadcn CLI Migration (2026-01-27)](../../journal/2026-01-27-shadcn-cli-migration.md)
+- [Mobile Responsiveness Implementation (2026-01-27)](../../journal/2026-01-27-mobile-responsiveness-implementation.md)

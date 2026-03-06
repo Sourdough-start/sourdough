@@ -150,3 +150,7 @@ The system checks for 5+ failed logins in 15 minutes and 10+ data export actions
 - [ ] No secrets or full request bodies in logs
 - [ ] Frontend errors reach the backend (check logs after triggering a client error)
 - [ ] Correlation ID is present in backend logs when the request passed through the API
+
+## Implementation Journal
+
+- [Console & App Logging (2026-01-29)](../../journal/2026-01-29-console-app-logging.md)

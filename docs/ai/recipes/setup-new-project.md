@@ -177,3 +177,7 @@ If the user skips Tier 4, their choice is recorded in `.sourdough-setup.json` an
 - [Branding Roadmap](../plans/branding-ui-consistency-roadmap.md) — How branding/colors work
 - [Get Cooking Rule](../../.cursor/rules/get-cooking.mdc) — Trigger phrase rule
 - [Tier 4 Recipe](update-ai-configs-and-docs.md) — AI configs & documentation update
+
+### Implementation Journal
+
+- [Get Cooking Setup Wizard (2026-02-14)](../../journal/2026-02-14-get-cooking-setup-wizard.md)

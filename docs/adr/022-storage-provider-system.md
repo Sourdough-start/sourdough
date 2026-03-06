@@ -211,3 +211,9 @@ Instead of custom provider classes, `StorageService` uses `ConfigServiceProvider
 
 - [ADR-007: Backup System Design](./007-backup-system-design.md) - Backup destinations use similar providers (custom interface)
 - [ADR-014: Database Settings with Environment Fallback](./014-database-settings-env-fallback.md) - Storage settings stored in DB
+
+## Implementation Journal
+
+- [Storage Settings Phase 1 (2026-01-30)](../journal/2026-01-30-storage-settings-phase-1.md)
+- [Storage Providers Phase 2 (2026-01-30)](../journal/2026-01-30-storage-providers-phase-2.md)
+- [Storage Phase 4 Analytics (2026-01-30)](../journal/2026-01-30-storage-phase-4-analytics.md)

@@ -107,3 +107,7 @@ Run: `php artisan db:seed --class=UserGroupSeeder` (or include in `DatabaseSeede
 - [ ] Permissions set via permission matrix or `PUT /groups/{id}/permissions`
 - [ ] Users assigned via User Management or Groups > Members
 - [ ] Permission cache is cleared when group permissions or members change (handled by `GroupController` and `UserController`)
+
+## Implementation Journal
+
+- [User Groups Phase 4: Admin UI (2026-01-30)](../../journal/2026-01-30-user-groups-phase-4-admin-ui.md)

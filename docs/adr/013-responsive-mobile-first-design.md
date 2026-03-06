@@ -123,3 +123,7 @@ Mobile (<768px):
 - [Mobile Responsiveness Roadmap](../plans/mobile-responsive-roadmap.md)
 - [Responsive Design Pattern](../ai/patterns/responsive.md)
 - [Recipe: Make Component Responsive](../ai/recipes/make-component-responsive.md)
+
+## Implementation Journal
+
+- [Mobile Responsiveness Implementation (2026-01-27)](../journal/2026-01-27-mobile-responsiveness-implementation.md)

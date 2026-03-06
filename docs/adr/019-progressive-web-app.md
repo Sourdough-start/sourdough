@@ -64,3 +64,11 @@ We will implement a **manual service worker** using **Workbox runtime** (bundled
 - `frontend/lib/service-worker.ts` - Registration utility
 - `frontend/components/service-worker-setup.tsx` - Client registration component
 - `scripts/generate-pwa-icons.mjs` - Icon generation script
+
+## Implementation Journal
+
+- [PWA Push Notifications (2026-01-31)](../journal/2026-01-31-pwa-push-notifications.md)
+- [PWA Phase 3 Offline Experience (2026-01-31)](../journal/2026-01-31-pwa-phase-3-offline-experience.md)
+- [PWA Phase 4-5 Install and Advanced (2026-01-31)](../journal/2026-01-31-pwa-phase-4-5-install-and-advanced.md)
+- [PWA Review (2026-02-05)](../journal/2026-02-05-pwa-review.md)
+- [PWA Hardening (2026-02-05)](../journal/2026-02-05-pwa-hardening.md)

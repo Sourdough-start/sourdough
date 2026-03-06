@@ -54,3 +54,8 @@ The admin UI for notification templates lives under **Configuration > Notificati
 - [ADR-017: Notification Template System](../../adr/017-notification-template-system.md)
 - [Recipe: Add Notification Template](../recipes/add-notification-template.md)
 - [Recipe: Keep Notification Template Variables Up to Date](../recipes/keep-notification-template-variables-up-to-date.md)
+
+## Implementation Journal
+
+- [Notification Templates (2026-01-30)](../../journal/2026-01-30-notification-templates.md)
+- [Notifications Implementation (2026-01-27)](../../journal/2026-01-27-notifications-implementation.md)

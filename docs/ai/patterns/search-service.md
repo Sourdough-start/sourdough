@@ -37,3 +37,10 @@ User groups are searchable by name, slug, and description. Admin-only — non-ad
 **Key files:** `backend/app/Services/Search/SearchService.php`, `backend/config/search-pages.php`, `backend/app/Http/Controllers/Api/SearchController.php`, `backend/app/Http/Controllers/Api/Admin/SearchAdminController.php`, `backend/app/Console/Commands/SearchReindexCommand.php`, `backend/routes/api.php` (search/suggestions + log.access), `frontend/lib/search.ts`, `frontend/components/search/search-modal.tsx`, `frontend/components/search/search-provider.tsx`.
 
 **Related:** [Recipe: Add searchable model](../recipes/add-searchable-model.md), [Recipe: Add searchable page](../recipes/add-searchable-page.md).
+
+## Implementation Journal
+
+- [Meilisearch Phases 1-3 (2026-01-30)](../../journal/2026-01-30-meilisearch-phases-1-3.md)
+- [Meilisearch Phases 4-6 (2026-01-30)](../../journal/2026-01-30-meilisearch-phases-4-6.md)
+- [Meilisearch Configuration (2026-01-30)](../../journal/2026-01-30-meilisearch-configuration.md)
+- [Search Reindex Bugfixes (2026-02-05)](../../journal/2026-02-05-search-reindex-bugfixes.md)

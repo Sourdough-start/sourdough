@@ -287,3 +287,8 @@ const providerTemplates: ProviderTemplate[] = [
 | AWS Bedrock | `BedrockProvider.php` | `discoverBedrockModels()` | `region`, `access_key`, `secret_key` |
 
 Use the existing discover methods in `LLMModelDiscoveryService` as templates for your provider’s models API and response shape.
+
+## Implementation Journal
+
+- [LLM Settings Consolidation (2026-01-29)](../../journal/2026-01-29-llm-settings-consolidation.md)
+- [LLM Model Discovery (2026-01-29)](../../journal/2026-01-29-llm-model-discovery.md)

@@ -31,3 +31,8 @@ The service cache key must include a hash of all credential fields used by the p
 **Related:**
 - [Recipe: Add LLM Provider](../recipes/add-llm-provider.md)
 - [LLM Model Discovery Roadmap](../../plans/llm-model-discovery-roadmap.md)
+
+## Implementation Journal
+
+- [LLM Model Discovery (2026-01-29)](../../journal/2026-01-29-llm-model-discovery.md)
+- [LLM Settings Consolidation (2026-01-29)](../../journal/2026-01-29-llm-settings-consolidation.md)
