@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth, isAdminUser } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ import { Upload, RefreshCw, ChevronRight, Loader2 } from "lucide-react";
 
 const ITEMS_PER_PAGE = 50;
 
-export default function FileManagerPage() {
+function FileManagerContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathFromUrl = searchParams.get("path") ?? "";
@@ -356,5 +356,19 @@ export default function FileManagerPage() {
         />
       )}
     </>
+  );
+}
+
+export default function FileManagerPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      }
+    >
+      <FileManagerContent />
+    </Suspense>
   );
 }
