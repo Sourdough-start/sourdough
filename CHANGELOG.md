@@ -16,6 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.9.2] - 2026-03-05
+
+### Fixed
+- Align local push script with CI checks (lint, build, audit)
+- Align local push script with CI checks (lint, build, audit)
+- Align local push script with CI checks (lint, build, audit)
+- Align local push script with CI checks (lint, build, audit)
+
+### Changed
+- Release v0.9.1
 ## [0.9.1] - 2026-03-05
 
 ### Fixed
