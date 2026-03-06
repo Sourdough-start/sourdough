@@ -53,8 +53,8 @@ self.addEventListener('push', (event) => {
   let data = {};
   try {
     data = event.data ? event.data.json() : {};
-  } catch (err) {
-    console.error('[SW] Failed to parse push payload:', err);
+  } catch {
+    // Intentionally silent — push payload parse errors are non-actionable in production
   }
   const title = data.title || 'Notification';
   const options = {
@@ -77,8 +77,8 @@ self.addEventListener('push', (event) => {
 
       // Always show native OS notification — the bell handles in-app display
       // separately, so there's no duplication.
-      return self.registration.showNotification(title, options).catch((err) => {
-        console.error('[SW] showNotification failed:', err);
+      return self.registration.showNotification(title, options).catch(() => {
+        // Intentionally silent — showNotification errors are non-actionable in production
       });
     })
   );
@@ -142,7 +142,6 @@ const CACHEABLE_API_PATHS = [
   '/api/version',
   '/api/health',
   '/api/auth/sso/providers',
-  '/api/auth/user',
   '/api/dashboard/stats',
   '/api/notifications',
 ];

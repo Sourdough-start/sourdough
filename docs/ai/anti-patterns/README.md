@@ -41,3 +41,8 @@ Before submitting code, verify:
 - [ ] **Touch targets** - All interactive elements minimum 44px
 - [ ] **Tables** - Wrapped in `overflow-x-auto` or have card view alternative
 - [ ] **Tested** - Verified at 320px, 375px, 768px, and 1024px+ widths
+- [ ] **User deletion** - Uses `UserService::deleteUser()`, not `$user->delete()` directly
+- [ ] **URL validation** - User-supplied URLs validated through `UrlValidationService` (SSRF protection)
+- [ ] **No services in migrations** - Never use `app(Service::class)` in migrations
+- [ ] **N+1 queries** - Eager-load relations with `->with()` where needed
+- [ ] **Correlation IDs** - Uses `app('correlation_id')` for log correlation, not custom IDs

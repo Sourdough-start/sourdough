@@ -63,7 +63,7 @@ export async function registerServiceWorker(
         navigator.serviceWorker.removeEventListener('controllerchange', controllerChangeHandler);
       },
     };
-  } catch (error) {
+  } catch (error: unknown) {
     const { errorLogger } = await import('@/lib/error-logger');
     errorLogger.report(
       error instanceof Error ? error : new Error(String(error)),

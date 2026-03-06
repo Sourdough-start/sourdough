@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
+import { useAuth, AdminUser } from "@/lib/auth";
+import { useDebounce } from "@/lib/use-debounce";
 import { getErrorMessage } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,20 +29,8 @@ import { useGroups } from "@/lib/use-groups";
 import { Plus, Search, Loader2 } from "lucide-react";
 import { HelpLink } from "@/components/help/help-link";
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  avatar: string | null;
-  is_admin: boolean;
-  email_verified_at: string | null;
-  disabled_at: string | null;
-  created_at: string;
-  groups?: { id: number; name: string; slug: string }[];
-}
-
 interface PaginatedResponse {
-  data: User[];
+  data: AdminUser[];
   current_page: number;
   last_page: number;
   per_page: number;
@@ -50,9 +39,8 @@ interface PaginatedResponse {
 
 export default function UsersPage() {
   const { user: currentUser } = useAuth();
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreating, setIsCreating] = useState(false);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -60,6 +48,7 @@ export default function UsersPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<string>("");
   const { groups } = useGroups();
+  const debouncedSearch = useDebounce(search, 300);
 
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
@@ -68,8 +57,8 @@ export default function UsersPage() {
         page: currentPage.toString(),
         per_page: "15",
       });
-      if (search) {
-        params.append("search", search);
+      if (debouncedSearch) {
+        params.append("search", debouncedSearch);
       }
       if (selectedGroup) {
         params.append("group", selectedGroup);
@@ -85,7 +74,7 @@ export default function UsersPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, search, selectedGroup]);
+  }, [currentPage, debouncedSearch, selectedGroup]);
 
   useEffect(() => {
     fetchUsers();

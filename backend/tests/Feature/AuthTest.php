@@ -50,7 +50,7 @@ describe('Authentication', function () {
     describe('Login', function () {
         it('can login with valid credentials', function () {
             $user = User::factory()->create([
-                'password' => bcrypt('Password123!'),
+                'password' => 'Password123!',
             ]);
 
             $response = $this->postJson('/api/auth/login', [
@@ -66,7 +66,7 @@ describe('Authentication', function () {
 
         it('fails with invalid credentials', function () {
             $user = User::factory()->create([
-                'password' => bcrypt('Password123!'),
+                'password' => 'Password123!',
             ]);
 
             $response = $this->postJson('/api/auth/login', [
@@ -79,7 +79,7 @@ describe('Authentication', function () {
 
         it('rejects login when account is disabled', function () {
             $user = User::factory()->create([
-                'password' => bcrypt('Password123!'),
+                'password' => 'Password123!',
                 'disabled_at' => now(),
             ]);
 

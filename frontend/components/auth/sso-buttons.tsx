@@ -29,7 +29,7 @@ export function SSOButtons({ onLoad }: SSOButtonsProps) {
         const response = await api.get("/auth/sso/providers");
         setProviders(response.data.providers);
         onLoad?.(response.data.providers.length > 0);
-      } catch (error) {
+      } catch (error: unknown) {
         errorLogger.report(
           error instanceof Error ? error : new Error("Failed to fetch SSO providers"),
           { source: "sso-buttons" }

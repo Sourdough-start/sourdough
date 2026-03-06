@@ -113,11 +113,11 @@ backup_sourdough_2026-01-24_143052.zip
 
 ### Scheduled Backups
 
-Using Laravel's scheduler:
+Using Laravel 11's scheduler (defined in `routes/console.php`, registered via `bootstrap/app.php`):
 
 ```php
-// app/Console/Kernel.php
-$schedule->job(new CreateBackupJob)
+// routes/console.php
+Schedule::command('backup:run')
     ->dailyAt('03:00')
     ->when(fn() => config('backup.schedule.enabled'));
 ```

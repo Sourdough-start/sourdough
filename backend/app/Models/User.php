@@ -41,10 +41,6 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\MustVer
         'avatar',
         'email_verified_at',
         'disabled_at',
-        'two_factor_enabled',
-        'two_factor_secret',
-        'two_factor_recovery_codes',
-        'two_factor_confirmed_at',
     ];
 
     protected $appends = ['is_admin'];
@@ -70,6 +66,7 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\MustVer
             'password' => 'hashed',
             'two_factor_enabled' => 'boolean',
             'two_factor_confirmed_at' => 'datetime',
+            'two_factor_secret' => 'encrypted',
             'two_factor_recovery_codes' => 'encrypted:array',
         ];
     }
@@ -148,7 +145,7 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\MustVer
      */
     public function getIsAdminAttribute(): bool
     {
-        if (array_key_exists('groups', $this->relations) && $this->relationLoaded('groups')) {
+        if ($this->relationLoaded('groups')) {
             return $this->groups->contains('slug', 'admin');
         }
         return $this->inGroup('admin');

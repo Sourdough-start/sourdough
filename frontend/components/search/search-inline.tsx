@@ -74,7 +74,7 @@ export function SearchInline() {
         setResults(data);
         setRecent([]);
       }
-    } catch (err) {
+    } catch (err: unknown) {
       if (latestQueryRef.current === trimmed) {
         setError(err instanceof Error ? err.message : "Search failed");
         setResults([]);

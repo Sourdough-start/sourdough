@@ -21,6 +21,7 @@ use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
@@ -36,17 +37,16 @@ class AuthController extends Controller
 
     /**
      * Check if an email is available for registration.
-     * Rate limited to prevent enumeration. Returns constant structure for timing consistency.
+     * Always returns available to prevent email enumeration.
+     * The actual uniqueness check happens during registration (unique:users validation).
      */
     public function checkEmail(Request $request): JsonResponse
     {
-        $validated = $request->validate([
+        $request->validate([
             'email' => ['required', 'string', 'email', 'max:255'],
         ]);
 
-        $exists = User::where('email', $validated['email'])->exists();
-
-        return $this->dataResponse(['available' => !$exists]);
+        return $this->dataResponse(['available' => true]);
     }
 
     /**
@@ -61,22 +61,28 @@ class AuthController extends Controller
         ]);
 
         $groupService = app(GroupService::class);
-        $isFirstUser = User::count() === 0;
-        if ($isFirstUser) {
-            $groupService->ensureDefaultGroupsExist();
-        }
+        $isFirstUser = false;
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => $validated['password'],
-        ]);
+        $user = DB::transaction(function () use ($validated, &$isFirstUser, $groupService) {
+            $isFirstUser = User::lockForUpdate()->count() === 0;
+            if ($isFirstUser) {
+                $groupService->ensureDefaultGroupsExist();
+            }
 
-        if ($isFirstUser) {
-            $user->assignGroup('admin');
-        } else {
-            $groupService->assignDefaultGroupToUser($user);
-        }
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => $validated['password'],
+            ]);
+
+            if ($isFirstUser) {
+                $user->assignGroup('admin');
+            } else {
+                $groupService->assignDefaultGroupToUser($user);
+            }
+
+            return $user;
+        });
 
         if ($emailConfigService->isConfigured()) {
             event(new Registered($user));
@@ -266,10 +272,7 @@ class AuthController extends Controller
 
         Log::warning('Password reset failed', ['email' => $request->email, 'status' => $status]);
 
-        return response()->json([
-            'message' => 'Password reset failed',
-            'error' => __($status),
-        ], 400);
+        return $this->errorResponse('Password reset failed', 400);
     }
 
     /**

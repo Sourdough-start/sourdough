@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,8 +33,15 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
   const { features, isLoading: isConfigLoading } = useAppConfig();
+
+  // Redirect back to the page the user was on before session expiry
+  const redirectParam = searchParams.get("redirect");
+  const safeRedirect = redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//")
+    ? redirectParam
+    : "/dashboard";
   const passkeyMode = features?.passkeyMode ?? "disabled";
   const showPasskeyLogin = passkeyMode !== "disabled" && isPasskeySupported();
   const [isLoading, setIsLoading] = useState(false);
@@ -48,6 +55,7 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
+    mode: "onBlur",
     defaultValues: {
       remember: false,
     },
@@ -64,7 +72,7 @@ export default function LoginPage() {
       }
 
       toast.success("Welcome back!");
-      router.push("/dashboard");
+      router.push(safeRedirect);
     } catch (error: unknown) {
       toast.error(getErrorMessage(error, "Login failed"));
     } finally {
@@ -79,7 +87,7 @@ export default function LoginPage() {
         description="Enter the code from your authenticator app"
       >
         <TwoFactorForm
-          onSuccess={() => router.push("/dashboard")}
+          onSuccess={() => router.push(safeRedirect)}
           onCancel={() => setRequires2FA(false)}
         />
       </AuthPageLayout>
@@ -97,7 +105,7 @@ export default function LoginPage() {
         <>
           {hasSSOProviders && <AuthDivider text="Or continue with passkey" />}
           <PasskeyLoginButton
-            onSuccess={() => router.push("/dashboard")}
+            onSuccess={() => router.push(safeRedirect)}
             className="w-full"
           />
         </>

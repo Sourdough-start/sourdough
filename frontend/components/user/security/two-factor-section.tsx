@@ -56,7 +56,7 @@ export function TwoFactorSection() {
     try {
       const res = await api.get("/auth/2fa/status");
       setTwoFactorStatus(res.data);
-    } catch (error) {
+    } catch (error: unknown) {
       errorLogger.report(
         error instanceof Error ? error : new Error("Failed to fetch 2FA status"),
         { source: "two-factor-section" }
@@ -112,7 +112,7 @@ export function TwoFactorSection() {
 
   const handleViewRecoveryCodes = async () => {
     try {
-      const response = await api.get("/auth/2fa/recovery-codes");
+      const response = await api.post("/auth/2fa/recovery-codes");
       setRecoveryCodes(response.data.recovery_codes || []);
       setShowRecoveryDialog(true);
     } catch (error: unknown) {

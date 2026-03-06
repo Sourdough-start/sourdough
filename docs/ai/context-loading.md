@@ -71,6 +71,7 @@ frontend/components/                # App-specific components
 frontend/config/app.ts              # App configuration (branding, etc.)
 frontend/lib/api.ts                 # API call patterns
 frontend/lib/utils.ts               # Utility functions
+frontend/lib/use-debounce.ts        # Debounce hook
 ```
 
 **Also useful:**
@@ -92,11 +93,14 @@ frontend/components/logo.tsx        # Logo component with variants
 ```
 backend/routes/api.php                          # Existing routes
 backend/app/Http/Controllers/Api/               # Controller patterns
-backend/app/Http/Requests/                      # Validation patterns
+backend/app/Http/Requests/                      # Form Request validation (UpdateLLMConfigRequest, UpdateMailSettingRequest, etc.)
 backend/app/Http/Resources/                     # Response formatting
 backend/app/Http/Traits/                        # Shared controller traits
   AdminAuthorizationTrait.php                   # Last admin protection
   ApiResponseTrait.php                          # Standardized responses
+backend/app/Helpers/                            # Shared helpers (QueryHelper, FileHelper)
+backend/app/Services/UserService.php            # User CRUD business logic
+backend/app/Http/Middleware/DeprecateRoute.php  # Route deprecation headers
 ```
 
 **Also useful:**
@@ -171,7 +175,8 @@ For adding a new LLM provider with model discovery, use [Recipe: Add LLM Provide
 docs/adr/012-admin-only-settings.md
 docs/adr/014-database-settings-env-fallback.md  # Database settings with env fallback
 backend/app/Services/SettingService.php         # Core settings service
-backend/config/settings-schema.php              # Migratable settings definition
+backend/config/settings-schema.php              # System settings definition
+backend/config/user-settings-schema.php         # User settings allowlist (per-user settings validation)
 backend/app/Providers/ConfigServiceProvider.php # Boot-time config injection
 frontend/app/(dashboard)/configuration/         # Configuration pages
 backend/app/Http/Controllers/Api/SettingController.php
@@ -325,6 +330,7 @@ frontend/components/ui/
 
 **Recipes:**
 - [Add SSO provider](recipes/add-sso-provider.md)
+- [Add passkey support](recipes/add-passkey-support.md)
 
 ## User Management Work
 
@@ -698,6 +704,9 @@ backend/app/Http/Controllers/Api/BrandingController.php  # Branding API (logo, d
 .env.example                            # Branding environment variables
 ```
 
+**Recipes:**
+- [Add color theme](recipes/add-theme.md)
+
 ## PWA Work
 
 **Read first:**
@@ -758,9 +767,10 @@ frontend/app/globals.css                # Global responsive styles
 **Read first:**
 ```
 backend/app/Http/Controllers/Api/WebhookController.php
-backend/app/Models/Webhook.php
+backend/app/Models/Webhook.php                # Secret is encrypted cast + $hidden
 backend/app/Models/WebhookDelivery.php
 backend/routes/api.php                    # webhooks routes (can:settings.view/edit)
+backend/database/migrations/2026_03_03_000001_encrypt_existing_webhook_secrets.php  # Data migration for encrypting existing plaintext secrets
 ```
 
 **Also useful:**
@@ -769,6 +779,9 @@ frontend/app/(dashboard)/configuration/api/page.tsx  # Webhooks managed in API &
 ```
 
 Webhooks allow external systems to receive notifications when events occur. Webhooks are managed in **Configuration > API** alongside API tokens. Endpoints: list, create, update, delete, test, view deliveries.
+
+**Recipes:**
+- [Add webhook](recipes/add-webhook.md)
 
 ## API Tokens Work
 
@@ -807,8 +820,69 @@ frontend/public/sw.js                  # CACHE_VERSION (auto-bumped to sourdough
 - The `CACHE_VERSION` in `sw.js` is set to `sourdough-vX.Y.Z` to bust service worker caches on each release
 - Rebase conflicts in VERSION/package.json/sw.js are common after release workflow commits
 
-**Recipe:**
+**Recipes:**
 - [Commit, Push & Release](recipes/commit-and-release.md)
+- [Add changelog entry](recipes/add-changelog-entry.md)
+
+## Real-Time Streaming Work
+
+**Read first:**
+```
+docs/adr/027-real-time-streaming.md
+frontend/lib/echo.ts                          # Echo/Reverb client setup
+backend/config/reverb.php                     # Reverb WebSocket config
+frontend/lib/use-app-log-stream.ts            # App log streaming hook
+frontend/lib/use-audit-stream.ts              # Audit log streaming hook
+```
+
+**Recipes:**
+- [Add real-time streaming](recipes/add-real-time-streaming.md)
+
+## File Manager Work
+
+**Read first:**
+```
+docs/adr/030-file-manager.md
+backend/app/Http/Controllers/Api/FileManagerController.php
+frontend/components/storage/file-browser.tsx
+frontend/components/storage/file-preview.tsx
+frontend/components/storage/upload-dialog.tsx
+backend/config/mime-types.php                  # Allowed MIME types
+```
+
+**Recipes:**
+- [Add file manager feature](recipes/add-file-manager-feature.md)
+
+## Onboarding Work
+
+**Read first:**
+```
+backend/app/Http/Controllers/Api/OnboardingController.php
+frontend/components/onboarding/wizard-modal.tsx
+frontend/components/onboarding/wizard-provider.tsx
+frontend/components/onboarding/wizard-step.tsx
+frontend/components/onboarding/steps/           # Individual step components
+```
+
+**Recipes:**
+- [Extend onboarding](recipes/extend-onboarding.md)
+
+## Usage Tracking Work
+
+**Read first:**
+```
+docs/adr/029-usage-tracking-alerts.md
+backend/app/Services/UsageTrackingService.php
+backend/app/Services/UsageStatsService.php      # Query/aggregation service
+backend/app/Services/UsageAlertService.php      # Threshold alerts
+frontend/components/usage/usage-cost-chart.tsx
+frontend/components/usage/usage-provider-table.tsx
+frontend/components/usage/usage-dashboard-widget.tsx
+frontend/app/(dashboard)/configuration/usage/page.tsx
+```
+
+**Recipes:**
+- [Add usage tracking](recipes/add-usage-tracking.md)
 
 ## Adding a New Feature (Full Stack)
 

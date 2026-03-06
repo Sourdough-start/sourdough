@@ -76,6 +76,19 @@ Architecture Decision Records (ADRs) document all significant design decisions:
 - [ADR-024: Security Hardening](adr/024-security-hardening.md) - SSRF protection, SQL injection fixes, OAuth security, password policy, webhook signatures
   - Key files: `backend/app/Services/UrlValidationService.php`, `backend/app/Services/WebhookService.php`, `backend/app/Http/Middleware/RateLimitSensitive.php`
   - See also: [Security Patterns](ai/patterns/security.md)
+- [ADR-025: Novu Notification Integration](adr/025-novu-notification-integration.md) - Optional Novu notification infrastructure (Cloud or self-hosted) with local system fallback
+  - Key files: `backend/app/Services/NovuService.php`, `backend/app/Http/Controllers/Api/NovuSettingController.php`, `backend/app/Http/Controllers/Api/NovuController.php`, `frontend/app/(dashboard)/configuration/novu/page.tsx`, `frontend/components/notifications/novu-inbox.tsx`
+- [ADR-026: Stripe Connect Integration](adr/026-stripe-connect-integration.md) - Stripe Connect with destination charges and 1% platform application fee
+  - Key files: `backend/app/Services/Stripe/StripeService.php`, `backend/app/Services/Stripe/StripeConnectService.php`, `backend/app/Services/Stripe/StripeWebhookService.php`, `backend/config/stripe.php`, `frontend/app/(dashboard)/configuration/stripe/page.tsx`
+
+- [ADR-027: Real-Time Streaming](adr/027-real-time-streaming.md) - Laravel Reverb WebSocket server with Echo frontend for live updates
+  - Key files: `frontend/lib/echo.ts`, `frontend/lib/use-app-log-stream.ts`, `frontend/lib/use-audit-stream.ts`, `backend/config/broadcasting.php`, `backend/config/reverb.php`
+- [ADR-028: Webhook System](adr/028-webhook-system.md) - Outbound webhooks with HMAC signatures, SSRF protection, and delivery tracking
+  - Key files: `backend/app/Services/WebhookService.php`, `backend/app/Models/Webhook.php`, `backend/app/Http/Controllers/Api/WebhookController.php`
+- [ADR-029: Usage Tracking & Budget Alerts](adr/029-usage-tracking-alerts.md) - Multi-integration usage tracking with cost estimation and budget alerts
+  - Key files: `backend/app/Services/UsageTrackingService.php`, `backend/app/Services/UsageStatsService.php`, `backend/app/Services/UsageAlertService.php`, `backend/app/Http/Controllers/Api/UsageController.php`
+- [ADR-030: File Manager](adr/030-file-manager.md) - Web-based file management with path validation and audit logging
+  - Key files: `backend/app/Http/Controllers/Api/FileManagerController.php`, `backend/app/Services/StorageService.php`
 
 ### Logging and Observability
 
@@ -93,7 +106,7 @@ System-wide configurable settings are stored in `system_settings` with environme
 - **ConfigServiceProvider**: Injects database settings into Laravel config at boot (skips when DB not ready)
 - **Encryption**: Sensitive values stored with `is_encrypted`; model decrypts on read
 
-**Key files**: `backend/app/Services/SettingService.php`, `backend/app/Providers/ConfigServiceProvider.php`, `backend/config/settings-schema.php`, `backend/app/Models/SystemSetting.php`, `backend/app/Http/Controllers/Api/MailSettingController.php`
+**Key files**: `backend/app/Services/SettingService.php`, `backend/app/Providers/ConfigServiceProvider.php`, `backend/config/settings-schema.php`, `backend/config/user-settings-schema.php` (per-user settings allowlist), `backend/app/Models/SystemSetting.php`, `backend/app/Http/Controllers/Api/MailSettingController.php`
 
 ### Settings Caching Strategy
 
@@ -104,6 +117,6 @@ System-wide configurable settings are stored in `system_settings` with environme
 
 ### Settings Validation
 
-Validation rules per setting type in controllers; schema defines env keys and defaults in `backend/config/settings-schema.php`.
+Validation rules per setting type in controllers and Form Request classes; schema defines env keys and defaults in `backend/config/settings-schema.php`. User settings are validated against `backend/config/user-settings-schema.php`.
 
-**Key files**: `backend/config/settings-schema.php`, `backend/app/Http/Controllers/Api/MailSettingController.php`, `backend/app/Http/Controllers/Api/SettingController.php`
+**Key files**: `backend/config/settings-schema.php`, `backend/config/user-settings-schema.php`, `backend/app/Http/Requests/UpdateMailSettingRequest.php`, `backend/app/Http/Requests/UpdateLLMConfigRequest.php`, `backend/app/Http/Controllers/Api/MailSettingController.php`, `backend/app/Http/Controllers/Api/SettingController.php`

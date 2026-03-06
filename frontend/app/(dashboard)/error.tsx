@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { errorLogger } from "@/lib/error-logger";
 
 export default function DashboardError({
   error,
@@ -12,7 +13,7 @@ export default function DashboardError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Dashboard error:", error);
+    errorLogger.report(error);
   }, [error]);
 
   return (

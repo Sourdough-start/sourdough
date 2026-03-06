@@ -27,6 +27,7 @@ enum Permission: string
     // Logs
     case LOGS_VIEW = 'logs.view';
     case LOGS_EXPORT = 'logs.export';
+    case LOGS_DELETE = 'logs.delete';
     case AUDIT_VIEW = 'audit.view';
 
     // Payments
@@ -62,7 +63,7 @@ enum Permission: string
             'Groups' => [self::GROUPS_VIEW, self::GROUPS_MANAGE],
             'Settings' => [self::SETTINGS_VIEW, self::SETTINGS_EDIT],
             'Backups' => [self::BACKUPS_VIEW, self::BACKUPS_CREATE, self::BACKUPS_RESTORE, self::BACKUPS_DELETE],
-            'Logs' => [self::LOGS_VIEW, self::LOGS_EXPORT, self::AUDIT_VIEW, self::NOTIFICATION_DELIVERIES_VIEW],
+            'Logs' => [self::LOGS_VIEW, self::LOGS_EXPORT, self::LOGS_DELETE, self::AUDIT_VIEW, self::NOTIFICATION_DELIVERIES_VIEW],
             'Payments' => [self::PAYMENTS_VIEW, self::PAYMENTS_MANAGE],
             'Usage' => [self::USAGE_VIEW],
             'API' => [self::API_KEYS_MANAGE],

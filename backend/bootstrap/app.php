@@ -34,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             '2fa.setup' => \App\Http\Middleware\Ensure2FASetupWhenRequired::class,
             'rate.sensitive' => \App\Http\Middleware\RateLimitSensitive::class,
             'log.access' => \App\Http\Middleware\LogResourceAccess::class,
+            'deprecate' => \App\Http\Middleware\DeprecateRoute::class,
         ]);
 
         // Exclude routes from CSRF verification:

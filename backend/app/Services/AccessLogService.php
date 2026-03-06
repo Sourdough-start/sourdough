@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\AccessLog;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\LazyCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -47,9 +48,9 @@ class AccessLogService
      *
      * @param array<string, mixed> $filters  Keys: user_id, action, resource_type, correlation_id, date_from, date_to
      */
-    public function queryForExport(array $filters): Collection
+    public function queryForExport(array $filters): LazyCollection
     {
-        return $this->buildFilteredQuery($filters)->get();
+        return $this->buildFilteredQuery($filters)->cursor();
     }
 
     /**

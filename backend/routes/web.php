@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\SSOController;
-use App\Http\Controllers\Api\StripeConnectCallbackController;
+use App\Http\Controllers\StripeConnectCallbackController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Broadcast;
 

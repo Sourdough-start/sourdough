@@ -74,7 +74,7 @@ interface NotificationChannelPref {
 function isIOSDevice(): boolean {
   if (typeof navigator === "undefined") return false;
   return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    (/Mac/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 }
 
 function isStandaloneMode(): boolean {
@@ -220,7 +220,7 @@ export default function PreferencesPage() {
       });
       setChannelSettings(initial);
       setSavedChannelSettings(initial);
-    } catch (e) {
+    } catch (e: unknown) {
       errorLogger.captureMessage(
         "Failed to fetch notification channels",
         "warning",
@@ -371,10 +371,7 @@ export default function PreferencesPage() {
       setChannels((prev) =>
         prev.map((ch) => (ch.id === channelId ? { ...ch, enabled: !enabled } : ch))
       );
-      const msg = err && typeof err === "object" && "response" in err
-        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-        : null;
-      toast.error(msg ?? "Failed to update channel");
+      toast.error(getErrorMessage(err, "Failed to update channel"));
     }
   };
 
@@ -401,10 +398,7 @@ export default function PreferencesPage() {
         )
       );
     } catch (err: unknown) {
-      const msg = err && typeof err === "object" && "response" in err
-        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-        : null;
-      toast.error(msg ?? "Failed to save settings");
+      toast.error(getErrorMessage(err, "Failed to save settings"));
     } finally {
       setSavingChannel(null);
     }
@@ -416,10 +410,7 @@ export default function PreferencesPage() {
       await api.post(`/notifications/test/${channelId}`);
       toast.success("Test notification sent");
     } catch (err: unknown) {
-      const msg = err && typeof err === "object" && "response" in err
-        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-        : null;
-      toast.error(msg ?? "Failed to send test");
+      toast.error(getErrorMessage(err, "Failed to send test"));
     } finally {
       setTestingChannel(null);
     }
@@ -457,10 +448,7 @@ export default function PreferencesPage() {
       await fetchPushDevices();
       toast.success("Browser notifications enabled");
     } catch (err: unknown) {
-      const msg = err && typeof err === "object" && "response" in err
-        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-        : null;
-      toast.error(msg ?? "Failed to enable browser notifications");
+      toast.error(getErrorMessage(err, "Failed to enable browser notifications"));
       errorLogger.report(
         err instanceof Error ? err : new Error("Web push subscribe failed"),
         { source: "preferences-webpush" }

@@ -137,6 +137,53 @@ class AppLogExportService
     }
 
     /**
+     * Read the most recent N log entries from all log files, newest first.
+     *
+     * @return array<array{datetime: string, level: string, message: string, correlation_id: string|null}>
+     */
+    public function getRecentEntries(int $limit = 200, ?string $level = null, ?string $search = null): array
+    {
+        $files = $this->getLogFilesInRange(null, null);
+        // Process files in reverse order (newest files last in sorted list)
+        $files = array_reverse($files);
+
+        $entries = [];
+        foreach ($files as $path) {
+            if (! is_readable($path)) {
+                continue;
+            }
+            // Read all lines and reverse for newest-first ordering.
+            // file() is O(n) vs SplFileObject::seek() in a loop which is O(n^2).
+            $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            if ($lines === false) {
+                continue;
+            }
+            for ($i = count($lines) - 1; $i >= 0; $i--) {
+                $line = trim($lines[$i]);
+                if ($line === '') {
+                    continue;
+                }
+                $entry = $this->parseLine($line);
+                if ($entry === null) {
+                    continue;
+                }
+                if ($level && $entry['level'] !== $level) {
+                    continue;
+                }
+                if ($search && stripos($entry['message'], $search) === false) {
+                    continue;
+                }
+                $entries[] = $entry;
+                if (count($entries) >= $limit) {
+                    break 2;
+                }
+            }
+        }
+
+        return $entries;
+    }
+
+    /**
      * Check if entry datetime falls within date range (when parsed datetime is available).
      */
     public function inDateRange(array $entry, ?string $dateFrom, ?string $dateTo): bool

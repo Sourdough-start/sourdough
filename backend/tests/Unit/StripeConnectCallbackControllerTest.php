@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\StripeConnectCallbackController;
+use App\Http\Controllers\StripeConnectCallbackController;
 use App\Services\AuditService;
 use App\Services\SettingService;
 use App\Services\Stripe\StripeConnectService;

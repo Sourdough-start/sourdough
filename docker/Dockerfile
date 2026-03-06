@@ -11,10 +11,10 @@ WORKDIR /app/frontend
 # Copy package files
 COPY frontend/package*.json ./
 
-# Install dependencies
-# Using npm install instead of npm ci for cross-platform compatibility
-# (fsevents and other platform-specific optional deps differ between Windows and Linux)
-RUN npm install
+# Install dependencies (ci for reproducible builds).
+# Note: package-lock.json must be generated on Linux (or with --ignore-scripts)
+# to avoid integrity mismatches from platform-specific optional deps (e.g. fsevents).
+RUN npm ci
 
 # Copy frontend source
 COPY frontend/ ./
@@ -56,11 +56,11 @@ ENV BROADCAST_CONNECTION=reverb
 # and set REVERB_APP_KEY=your-key at runtime. Runtime-only changes will NOT update the frontend.
 ENV REVERB_APP_ID=sourdough
 ENV REVERB_APP_KEY=sourdough-key
-ENV REVERB_APP_SECRET=sourdough-secret
+ENV REVERB_APP_SECRET=""
 ENV REVERB_HOST=127.0.0.1
 ENV REVERB_PORT=6001
 ENV REVERB_SCHEME=http
-ENV REVERB_SERVER_HOST=0.0.0.0
+ENV REVERB_SERVER_HOST=127.0.0.1
 ENV REVERB_SERVER_PORT=6001
 # Meilisearch defaults (can be overridden at runtime)
 ENV MEILI_ENV=production
@@ -68,6 +68,10 @@ ENV MEILI_MASTER_KEY=""
 # PUID/PGID for volume permission matching (Unraid, Synology, etc.)
 # Set these to match your host volume ownership
 # Example for Unraid: PUID=99 PGID=100
+# SESSION_SECURE_COOKIE defaults to false so HTTP deployments (localhost, HTTP-only
+# reverse proxies) work out of the box. Set to true in production behind HTTPS.
+ENV SESSION_SECURE_COOKIE=false
+ENV SESSION_ENCRYPT=true
 ENV PUID=""
 ENV PGID=""
 
@@ -109,8 +113,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ARG MEILISEARCH_VERSION=1.34.2
 RUN cd /tmp \
     && curl -LO "https://github.com/meilisearch/meilisearch/releases/download/v${MEILISEARCH_VERSION}/meilisearch-linux-amd64" \
+    && curl -LO "https://github.com/meilisearch/meilisearch/releases/download/v${MEILISEARCH_VERSION}/meilisearch-linux-amd64.sha256" \
+    && sha256sum -c meilisearch-linux-amd64.sha256 \
     && mv meilisearch-linux-amd64 /usr/local/bin/meilisearch \
-    && chmod +x /usr/local/bin/meilisearch
+    && chmod +x /usr/local/bin/meilisearch \
+    && rm -f /tmp/meilisearch-linux-amd64.sha256
 
 # Install Composer
 COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
@@ -124,6 +131,9 @@ COPY --chown=www-data:www-data backend/ ./backend/
 # Install PHP dependencies
 WORKDIR /var/www/html/backend
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+
+# Remove dev tools not needed at runtime (nodejs is kept for Next.js standalone)
+RUN apt-get purge -y --auto-remove npm git && rm -rf /var/lib/apt/lists/*
 
 # Copy built frontend (standalone output - much smaller than full node_modules)
 WORKDIR /var/www/html

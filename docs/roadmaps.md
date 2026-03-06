@@ -2,11 +2,17 @@
 
 Development roadmaps and implementation history.
 
+## Bug Tracker
+
+Persistent log of suspected bugs and issues to investigate. Always kept up to date.
+
+**[Bug Tracker](plans/bug-tracker.md)**
+
 ## Active Development
 
 Currently in progress. Complete these before starting new work.
 
-_(None — pick from Planned Features below or add new items)_
+_(None — all items archived. Pick from Planned Features below or add new items.)_
 
 ## Next Up
 
@@ -18,15 +24,16 @@ _(None — pick from Planned Features below or add new items)_
 
 Requires foundation work or longer-term planning.
 
-- **Stripe Revenue Log** - Add a revenue/transaction log page under the Logs & Monitoring section in Configuration. Display a filterable, sortable table of all Stripe payments and payouts: date, customer, amount, platform fee, net revenue, payment status (succeeded/refunded/failed), and Stripe payment ID. Include date range filtering, summary stats (total revenue, total fees, net earnings), and CSV export. Data sourced from the existing `payments` and `stripe_webhook_events` tables. Protected by admin permission consistent with other log pages.
+_(None — add new items as needed)_
 
 ## Release Checklist
 
 Complete these tasks before each release:
 
-- [ ] **Documentation Architecture Review** - Fix cross-document inconsistencies, add architectural clarity, improve developer experience docs (see [Documentation Architecture Review](plans/documentation-architecture-review-roadmap.md))
-- [ ] **Final Code Review** - Review all modified files for bugs, debug code, hardcoded values, and adherence to patterns (see [Code Review recipe](ai/recipes/code-review.md))
-- [ ] **Roadmap Cleanup** - Archive completed roadmaps, verify all links work, update stale entries (see Roadmap Maintenance below)
+- [x] **Documentation Architecture Review** - Fix cross-document inconsistencies, add architectural clarity, improve developer experience docs (see [Documentation Architecture Review](plans/documentation-architecture-review-roadmap.md))
+- [x] **Code Review Remediation (Phase 5)** - Remaining test coverage expansion (see [Code Review Remediation](plans/code-review-remediation-roadmap.md))
+- [x] **Final Code Review** - Review all modified files for bugs, debug code, hardcoded values, and adherence to patterns (see [Code Review recipe](ai/recipes/code-review.md))
+- [x] **Roadmap Cleanup** - Archive completed roadmaps, verify all links work, update stale entries (see Roadmap Maintenance below)
 - [ ] **User Build Verification** - Manually verify the Docker build works end-to-end (see Build Verification below)
 
 ## Completed
@@ -135,11 +142,11 @@ To verify the build works end-to-end:
 3. Test: login flow, dashboard loads, configuration pages work
 4. Check browser console for errors
 
-**Production build verified 2026-02-15**: Docker build, registration, login, dashboard, configuration pages all working. Production standalone mode is clean.
+**Production build verified 2026-02-15** (stale — significant changes since; re-verify before release): Docker build, registration, login, dashboard, configuration pages all working. Production standalone mode is clean.
 
 **Known dev-mode issues** (do not affect production):
 - The dev compose (`docker-compose.yml`) runs Next.js in Turbopack dev mode. After a `down -v` (which deletes the `node_modules` volume), the `start-nextjs.sh` script auto-installs dependencies but Turbopack may produce stale module chunks for `lib/utils.ts` (e.g. `formatCurrency is not a function`). Workaround: restart the container once after the initial `npm install` completes, or test with a production container (`docker run` without source mounts).
 - Hydration mismatch warning (debug level) from Sonner Toaster's deferred client-side mount — cosmetic only, does not crash production builds.
 
-**Known issues to diagnose:**
-- `Failed to load resource: the server responded with a status of 500 (Internal Server Error)` — Intermittent or consistent 500 errors from the backend API. Needs investigation to identify which endpoint(s) are failing, root cause (unhandled exception, missing env var, migration issue, etc.), and whether it affects production or dev only.
+**Resolved issues:**
+- ~~500 errors~~ — Fixed: `RateLimitSensitive` middleware crashed when session wasn't initialized on 2FA verify; `UserService::deleteUser()` failed if `user_onboardings` table didn't exist; `MailSettingController::reset()` didn't translate frontend keys to schema keys; webhook encryption migration lacked `APP_KEY` guard.

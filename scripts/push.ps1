@@ -94,6 +94,24 @@ if ([string]::IsNullOrWhiteSpace($CommitMessage)) {
     }
 }
 
+# Check for sensitive files before staging
+Write-Host "`nChecking for sensitive files..." -ForegroundColor Cyan
+$SensitivePatterns = @("*.env", "*.env.local", "*.key", "*.pem", "*.p8", "*.pfx", "credentials*.json", "secrets*.json")
+$ChangedFiles = @(git status --porcelain | ForEach-Object { $_.Substring(3).Trim() })
+$SuspiciousFiles = @()
+foreach ($pattern in $SensitivePatterns) {
+    $SuspiciousFiles += @($ChangedFiles | Where-Object { $_ -like $pattern -and $_ -notlike "*.example" -and $_ -notlike "*.md" })
+}
+if ($SuspiciousFiles.Count -gt 0) {
+    Write-Warning "Potentially sensitive files detected:"
+    $SuspiciousFiles | ForEach-Object { Write-Warning "  - $_" }
+    $Response = Read-Host "Continue anyway? (y/N)"
+    if ($Response -ne "y" -and $Response -ne "Y") {
+        Write-Host "Aborted." -ForegroundColor Yellow
+        exit 1
+    }
+}
+
 # Stage all changes
 Write-Host "`nStaging all changes..." -ForegroundColor Cyan
 git add -A

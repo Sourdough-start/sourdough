@@ -36,7 +36,7 @@ We will use the following technology stack:
 - Laravel Socialite for SSO integration
 - Large ecosystem of packages
 
-### Frontend: Next.js 14+ (React 18, TypeScript)
+### Frontend: Next.js 16 (React 18, TypeScript)
 
 **Rationale:**
 - React's component model for building complex UIs

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Traits\ApiResponseTrait;
 use App\Models\Webhook;
 use App\Models\WebhookDelivery;
 use App\Services\UrlValidationService;
@@ -12,6 +13,7 @@ use Illuminate\Http\Request;
 
 class WebhookController extends Controller
 {
+    use ApiResponseTrait;
     public function __construct(
         private UrlValidationService $urlValidator,
         private WebhookService $webhookService
@@ -22,11 +24,26 @@ class WebhookController extends Controller
      */
     public function index(): JsonResponse
     {
-        $webhooks = Webhook::orderBy('created_at', 'desc')->get();
+        $webhooks = Webhook::orderBy('created_at', 'desc')->get()->map(function ($webhook) {
+            $data = $webhook->toArray();
+            $data['secret_set'] = !empty($webhook->getRawOriginal('secret'));
+            return $data;
+        });
 
-        return response()->json([
+        return $this->dataResponse([
             'webhooks' => $webhooks,
         ]);
+    }
+
+    /**
+     * Get a single webhook.
+     */
+    public function show(Webhook $webhook): JsonResponse
+    {
+        $data = $webhook->toArray();
+        $data['secret_set'] = !empty($webhook->getRawOriginal('secret'));
+
+        return $this->dataResponse(['webhook' => $data]);
     }
 
     /**
@@ -45,17 +62,19 @@ class WebhookController extends Controller
 
         // Validate URL for SSRF protection
         if (!$this->urlValidator->validateUrl($validated['url'])) {
-            return response()->json([
-                'message' => 'Invalid webhook URL: URLs pointing to internal or private addresses are not allowed',
-            ], 422);
+            return $this->errorResponse('Invalid webhook URL: URLs pointing to internal or private addresses are not allowed', 422);
         }
 
         $webhook = Webhook::create($validated);
 
-        return response()->json([
-            'message' => 'Webhook created successfully',
-            'webhook' => $webhook,
-        ], 201);
+        // Return secret only on creation (it's hidden from all other responses)
+        $response = $webhook->toArray();
+        $response['secret'] = $validated['secret'] ?? null;
+        $response['secret_set'] = !empty($validated['secret']);
+
+        return $this->createdResponse('Webhook created successfully', [
+            'webhook' => $response,
+        ]);
     }
 
     /**
@@ -74,16 +93,17 @@ class WebhookController extends Controller
 
         // Validate URL for SSRF protection if being updated
         if (isset($validated['url']) && !$this->urlValidator->validateUrl($validated['url'])) {
-            return response()->json([
-                'message' => 'Invalid webhook URL: URLs pointing to internal or private addresses are not allowed',
-            ], 422);
+            return $this->errorResponse('Invalid webhook URL: URLs pointing to internal or private addresses are not allowed', 422);
         }
 
         $webhook->update($validated);
 
-        return response()->json([
-            'message' => 'Webhook updated successfully',
-            'webhook' => $webhook->fresh(),
+        $fresh = $webhook->fresh();
+        $data = $fresh->toArray();
+        $data['secret_set'] = !empty($fresh->getRawOriginal('secret'));
+
+        return $this->successResponse('Webhook updated successfully', [
+            'webhook' => $data,
         ]);
     }
 
@@ -94,9 +114,7 @@ class WebhookController extends Controller
     {
         $webhook->delete();
 
-        return response()->json([
-            'message' => 'Webhook deleted successfully',
-        ]);
+        return $this->successResponse('Webhook deleted successfully');
     }
 
     /**
@@ -110,7 +128,7 @@ class WebhookController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
 
-        return response()->json($deliveries);
+        return $this->dataResponse($deliveries);
     }
 
     /**

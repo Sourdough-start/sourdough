@@ -2,17 +2,24 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\FileHelper;
 use App\Http\Controllers\Controller;
-use App\Models\SystemSetting;
+use App\Http\Traits\ApiResponseTrait;
 use App\Services\AuditService;
+use App\Services\SettingService;
 use App\Services\StorageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class StorageSettingController extends Controller
 {
+    use ApiResponseTrait;
+    private const GROUP = 'storage';
+
     public function __construct(
         private StorageService $storageService,
+        private SettingService $settingService,
+        private AuditService $auditService,
     ) {}
 
     /**
@@ -20,7 +27,7 @@ class StorageSettingController extends Controller
      */
     public function show(): JsonResponse
     {
-        $settings = SystemSetting::getGroup('storage');
+        $settings = $this->settingService->getGroup(self::GROUP);
 
         return response()->json([
             'settings' => $settings,
@@ -123,7 +130,7 @@ class StorageSettingController extends Controller
         $user = $request->user();
 
         foreach ($validated as $key => $value) {
-            SystemSetting::set($key, $value, 'storage', $user->id, false);
+            $this->settingService->set(self::GROUP, $key, $value, $user->id);
         }
 
         return response()->json([
@@ -157,7 +164,7 @@ class StorageSettingController extends Controller
         try {
             $result = $this->storageService->executeCleanup($validated['type']);
 
-            app(AuditService::class)->log('storage.cleanup', null, [], [
+            $this->auditService->log('storage.cleanup', null, [], [
                 'type' => $validated['type'],
                 'files_removed' => $result['files_removed'],
                 'bytes_freed' => $result['bytes_freed'],
@@ -167,7 +174,7 @@ class StorageSettingController extends Controller
                 'message' => 'Cleanup completed.',
                 'files_removed' => $result['files_removed'],
                 'bytes_freed' => $result['bytes_freed'],
-                'bytes_freed_formatted' => $this->formatBytesForResponse($result['bytes_freed']),
+                'bytes_freed_formatted' => FileHelper::formatBytes($result['bytes_freed']),
             ]);
         } catch (\InvalidArgumentException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -205,19 +212,5 @@ class StorageSettingController extends Controller
                 'error' => 'Unable to retrieve storage statistics: ' . $e->getMessage(),
             ], 500);
         }
-    }
-
-    /**
-     * Simple byte formatting for controller-level response decoration.
-     */
-    private function formatBytesForResponse(int $bytes, int $precision = 2): string
-    {
-        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-
-        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
-            $bytes /= 1024;
-        }
-
-        return round($bytes, $precision) . ' ' . $units[$i];
     }
 }

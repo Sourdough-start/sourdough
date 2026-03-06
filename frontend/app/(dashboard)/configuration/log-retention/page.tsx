@@ -198,7 +198,7 @@ export default function LogRetentionPage() {
           : "All access logs deleted."
       );
       setDeleteAllConfirmOpen(false);
-    } catch (err) {
+    } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to delete access logs");
       errorLogger.report(
         err instanceof Error ? err : new Error("Delete access logs failed"),

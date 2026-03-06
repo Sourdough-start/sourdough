@@ -195,6 +195,29 @@ fi
 export MEILISEARCH_KEY="${MEILISEARCH_KEY:-${MEILI_MASTER_KEY}}"
 
 #==============================================================================
+# Auto-generate and persist REVERB_APP_SECRET to data volume
+#==============================================================================
+REVERB_SECRET_FILE="${DATA_DIR}/.reverb_secret"
+if [ -z "${REVERB_APP_SECRET}" ]; then
+    if [ -f "${REVERB_SECRET_FILE}" ]; then
+        echo "Loading REVERB_APP_SECRET from persistent storage..."
+        export REVERB_APP_SECRET=$(cat "${REVERB_SECRET_FILE}")
+    else
+        echo "Generating new REVERB_APP_SECRET..."
+        REVERB_APP_SECRET=$(openssl rand -base64 32)
+        echo "${REVERB_APP_SECRET}" > "${REVERB_SECRET_FILE}"
+        chmod 600 "${REVERB_SECRET_FILE}"
+        chown www-data:www-data "${REVERB_SECRET_FILE}"
+        export REVERB_APP_SECRET
+        echo "REVERB_APP_SECRET generated and saved to persistent storage"
+    fi
+fi
+# Write REVERB_APP_SECRET into .env for Laravel
+if [ -f ".env" ]; then
+    sed -i "s#^REVERB_APP_SECRET=.*#REVERB_APP_SECRET=${REVERB_APP_SECRET}#" .env
+fi
+
+#==============================================================================
 # Auto-derive environment variables from APP_URL
 #==============================================================================
 # Default FRONTEND_URL to APP_URL (same origin in single-container setup)
@@ -219,7 +242,12 @@ rm -f ${BACKEND_DIR}/bootstrap/cache/routes-v7.php
 
 # Run database migrations with Scout disabled (Meilisearch not started yet)
 echo "Running database migrations..."
-SCOUT_DRIVER=null php artisan migrate --force
+if ! SCOUT_DRIVER=null php artisan migrate --force; then
+    echo "ERROR: Database migration failed. Fixing permissions and aborting..."
+    chown -R www-data:www-data ${BACKEND_DIR}/storage
+    chmod -R 775 ${BACKEND_DIR}/storage
+    exit 1
+fi
 
 # Clear and cache config in production
 # NOTE: This must run AFTER all env vars are derived (FRONTEND_URL, SANCTUM_STATEFUL_DOMAINS, etc.)

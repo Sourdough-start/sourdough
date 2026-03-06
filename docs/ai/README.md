@@ -85,7 +85,17 @@ Example plan reference:
 | Handle Stripe Webhooks | [handle-stripe-webhooks.md](recipes/handle-stripe-webhooks.md) |
 | Stripe Connect Onboarding | [stripe-connect-onboarding.md](recipes/stripe-connect-onboarding.md) |
 | Add Color Theme | [add-theme.md](recipes/add-theme.md) |
+| Add Changelog Entry | [add-changelog-entry.md](recipes/add-changelog-entry.md) |
+| Add File Manager Feature | [add-file-manager-feature.md](recipes/add-file-manager-feature.md) |
+| Add Passkey Support | [add-passkey-support.md](recipes/add-passkey-support.md) |
+| Add Real-Time Streaming | [add-real-time-streaming.md](recipes/add-real-time-streaming.md) |
+| Add Usage Tracking | [add-usage-tracking.md](recipes/add-usage-tracking.md) |
+| Add Webhook | [add-webhook.md](recipes/add-webhook.md) |
+| Extend Onboarding | [extend-onboarding.md](recipes/extend-onboarding.md) |
+| Test Notifications | [test-notifications.md](recipes/test-notifications.md) |
+| Verify Notification Config | [verify-notification-config.md](recipes/verify-notification-config.md) |
 | Update GraphQL API Docs | [update-graphql-docs.md](recipes/update-graphql-docs.md) |
+| Update AI Configs & Docs | [update-ai-configs-and-docs.md](recipes/update-ai-configs-and-docs.md) |
 
 ## Common Gotchas
 
@@ -121,6 +131,7 @@ When adding new external tools or dependencies:
 | [Context Loading](context-loading.md) | Full list of files to read per task type |
 | [Patterns](patterns/README.md) | Code patterns with copy-paste examples |
 | [Anti-Patterns](anti-patterns/README.md) | Common mistakes to avoid |
+| [Documentation Guide](documentation-guide.md) | How to write and maintain docs |
 | [Recipes](recipes/) | Step-by-step guides for common tasks |
 
 ## Related Documentation

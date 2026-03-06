@@ -14,14 +14,14 @@ Sourdough should offer a native app-like experience: installable, faster loads v
 
 ## Decision
 
-We will implement a **manual service worker** using **Workbox runtime** (loaded via CDN with `importScripts`), rather than using `next-pwa` or build-time precaching.
+We will implement a **manual service worker** using **Workbox runtime** (bundled locally in `frontend/public/workbox/` and loaded via `importScripts`), rather than using `next-pwa` or build-time precaching.
 
 ### Rationale for Manual SW + Workbox over next-pwa
 
 - **Control**: Full control over caching behavior and update flow; no opaque build-time plugin behavior.
 - **Debugging**: Easier to inspect and modify `sw.js` directly.
 - **Simplicity**: No webpack/Next.js plugin integration; the service worker is a static file in `public/`.
-- **Workbox runtime**: Loaded from CDN at SW install time; no npm dependency for the SW itself. Workbox provides industry-standard caching strategies.
+- **Workbox runtime**: Bundled locally (Workbox 7.3.0 in `frontend/public/workbox/`); no npm dependency or CDN fetch for the SW itself. Workbox provides industry-standard caching strategies.
 
 ### Caching Strategies
 

@@ -103,8 +103,9 @@ export default function SystemSettingsPage() {
   const queryClient = useQueryClient();
   const emailConfigured = features?.emailConfigured ?? false;
 
-  const { register, handleSubmit, formState: { errors, isDirty }, setValue, watch } = useForm<SystemForm>({
+  const { register, handleSubmit, formState: { errors, isDirty }, setValue, watch, reset } = useForm<SystemForm>({
     resolver: zodResolver(systemSchema),
+    mode: "onBlur",
     defaultValues: {
       general: {
         app_name: "",
@@ -162,18 +163,13 @@ export default function SystemSettingsPage() {
       };
 
       setSettings(formData);
-      Object.keys(formData).forEach((group) => {
-        const groupData = formData[group as keyof SystemForm] as Record<string, unknown>;
-        Object.keys(groupData).forEach((key) => {
-          setValue(`${group}.${key}` as any, groupData[key]);
-        });
-      });
+      reset(formData);
     } catch (error: unknown) {
       toast.error(getErrorMessage(error, "Failed to load system settings"));
     } finally {
       setIsLoading(false);
     }
-  }, [setValue]);
+  }, [reset]);
 
   useEffect(() => {
     fetchSettings();
@@ -257,7 +253,7 @@ export default function SystemSettingsPage() {
           <AlertDescription>
             Email features are disabled. Password reset and email verification
             will not work until you{" "}
-            <Link href="/configuration/mail" className="underline hover:no-underline">
+            <Link href="/configuration/email" className="underline hover:no-underline">
               configure email settings
             </Link>
             .

@@ -219,7 +219,7 @@ export default function AISettingsPage() {
       const response = await api.get("/llm/config");
       setProviders(response.data.providers || []);
       setMode(response.data.mode || "single");
-    } catch (error) {
+    } catch (error: unknown) {
       errorLogger.report(
         error instanceof Error ? error : new Error("Failed to fetch AI config"),
         { source: "ai-page" }

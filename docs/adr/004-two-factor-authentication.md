@@ -128,7 +128,7 @@ POST /api/2fa/recovery-codes  - Regenerate recovery codes
 ### Security Measures
 
 - TOTP secrets encrypted at rest with APP_KEY
-- Recovery codes hashed (bcrypt) after initial display
+- Recovery codes encrypted at rest using Laravel's `encrypted` cast (not bcrypt)
 - Rate limiting on verification attempts (5/minute)
 - Partial sessions expire after 5 minutes
 - 2FA required for sensitive operations (password change)
@@ -156,7 +156,7 @@ Key methods:
 - Users must securely store recovery codes
 - Lost phone + lost recovery = account lockout
 - TOTP requires reasonably accurate device clock
-- No hardware key support (WebAuthn/FIDO2)
+- ~~No hardware key support~~ — Now addressed by [ADR-018: Passkey/WebAuthn](./018-passkey-webauthn.md)
 
 ### Neutral
 
@@ -168,14 +168,15 @@ Key methods:
 
 - [ADR-002: Authentication Architecture](./002-authentication-architecture.md)
 - [ADR-003: SSO Provider Integration](./003-sso-provider-integration.md)
+- [ADR-018: Passkey/WebAuthn Authentication](./018-passkey-webauthn.md) – Hardware key support (implements Future Enhancement #1)
 
 ## Notes
 
 ### Future Enhancements
 
-1. **WebAuthn/FIDO2** - Hardware security key support
+1. ~~**WebAuthn/FIDO2**~~ - **[IMPLEMENTED]** See [ADR-018: Passkey/WebAuthn](./018-passkey-webauthn.md)
 2. **SMS Backup** - Phone number as 2FA backup (less secure)
-3. **Enforce 2FA** - Admin setting to require 2FA for all users
+3. ~~**Enforce 2FA**~~ - **[IMPLEMENTED]** Admin can set 2FA mode to required via `AuthSettingController`
 4. **Remember Device** - Skip 2FA on trusted devices for 30 days
 
 ### Implementation Library

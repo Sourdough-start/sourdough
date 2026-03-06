@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Traits\AdminAuthorizationTrait;
 use App\Http\Traits\ApiResponseTrait;
+use App\Services\AuditService;
+use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
@@ -13,6 +15,11 @@ class ProfileController extends Controller
 {
     use AdminAuthorizationTrait;
     use ApiResponseTrait;
+
+    public function __construct(
+        private UserService $userService,
+        private AuditService $auditService,
+    ) {}
 
     /**
      * Get user profile.
@@ -41,11 +48,16 @@ class ProfileController extends Controller
         // Check if email is being changed
         $emailChanged = isset($validated['email']) && $validated['email'] !== $user->email;
 
+        // Capture original values before mutation for audit logging
+        $original = $user->only(array_keys($validated));
+
         if ($emailChanged) {
             $validated['email_verified_at'] = null;
         }
 
         $user->update($validated);
+
+        $this->auditService->logModelChange($user, 'profile.updated', $original, $user->only(array_keys($validated)));
 
         if ($emailChanged) {
             $user->sendEmailVerificationNotification();
@@ -71,6 +83,8 @@ class ProfileController extends Controller
             'password' => $validated['password'],
         ]);
 
+        $this->auditService->log('profile.password_changed', $request->user());
+
         return $this->successResponse('Password updated successfully');
     }
 
@@ -89,13 +103,9 @@ class ProfileController extends Controller
             return $error;
         }
 
-        // Delete related data
-        $user->socialAccounts()->delete();
-        $user->settings()->delete();
-        $user->notifications()->delete();
-        $user->aiProviders()->delete();
+        $this->auditService->log('profile.deleted', $user);
 
-        $user->delete();
+        $this->userService->deleteUser($user, $user->id);
 
         return $this->successResponse('Account deleted successfully');
     }

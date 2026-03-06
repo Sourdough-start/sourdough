@@ -115,7 +115,7 @@ export async function GET() {
         'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     // Fallback to static manifest if backend is unavailable
     const fallbackManifest = {
       name: 'Sourdough',

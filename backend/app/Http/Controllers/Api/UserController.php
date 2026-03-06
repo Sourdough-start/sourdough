@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\QueryHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Traits\AdminAuthorizationTrait;
 use App\Http\Traits\ApiResponseTrait;
@@ -12,6 +13,7 @@ use App\Services\EmailConfigService;
 use App\Services\GroupService;
 use App\Services\NovuService;
 use App\Services\PermissionService;
+use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -26,7 +28,8 @@ class UserController extends Controller
     public function __construct(
         private AuditService $auditService,
         private NovuService $novuService,
-        private PermissionService $permissionService
+        private PermissionService $permissionService,
+        private UserService $userService
     ) {}
 
     /**
@@ -42,8 +45,9 @@ class UserController extends Controller
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                $escaped = QueryHelper::escapeLike($search);
+                $q->where('name', 'like', "%{$escaped}%")
+                  ->orWhere('email', 'like', "%{$escaped}%");
             });
         }
 
@@ -151,12 +155,7 @@ class UserController extends Controller
             return $this->errorResponse('Cannot delete your own account', 400);
         }
 
-        $this->auditService->log('user.deleted', $user, [
-            'name' => $user->name,
-            'email' => $user->email,
-        ], []);
-
-        $user->delete();
+        $this->userService->deleteUser($user, auth()->id());
 
         return $this->successResponse('User deleted successfully');
     }
@@ -209,6 +208,11 @@ class UserController extends Controller
         $user->update([
             'password' => $validated['password'],
         ]);
+
+        $this->auditService->log('user.password_reset', $user, [
+            'target_user' => $user->email,
+            'reset_by' => auth()->user()->email,
+        ], []);
 
         return $this->successResponse('Password reset successfully');
     }

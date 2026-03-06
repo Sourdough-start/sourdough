@@ -7,6 +7,7 @@ use App\Http\Traits\ApiResponseTrait;
 use App\Models\NotificationDelivery;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Helpers\QueryHelper;
 use Illuminate\Support\Facades\DB;
 
 class NotificationDeliveryController extends Controller
@@ -18,7 +19,7 @@ class NotificationDeliveryController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $perPage = min((int) $request->input('per_page', 50), 100);
+        $perPage = min((int) $request->input('per_page', config('app.pagination.audit_log', 50)), 100);
 
         $query = NotificationDelivery::with('user:id,name,email')
             ->orderBy('attempted_at', 'desc');
@@ -33,7 +34,7 @@ class NotificationDeliveryController extends Controller
             $query->where('status', $request->input('status'));
         }
         if ($request->filled('notification_type')) {
-            $query->where('notification_type', 'like', '%' . $request->input('notification_type') . '%');
+            $query->where('notification_type', 'like', '%' . QueryHelper::escapeLike($request->input('notification_type')) . '%');
         }
         if ($request->filled('date_from')) {
             $query->whereDate('attempted_at', '>=', $request->input('date_from'));

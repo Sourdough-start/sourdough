@@ -34,11 +34,15 @@ class RateLimitSensitive
             ]);
         }
 
-        RateLimiter::hit($key, $decaySeconds);
-
         $response = $next($request);
 
-        // Add rate limit headers to response
+        // Only count failed attempts against the rate limit
+        if ($response->getStatusCode() >= 400) {
+            RateLimiter::hit($key, $decaySeconds);
+        } else {
+            RateLimiter::clear($key);
+        }
+
         return $response->withHeaders([
             'X-RateLimit-Limit' => $maxAttempts,
             'X-RateLimit-Remaining' => RateLimiter::remaining($key, $maxAttempts),
@@ -59,7 +63,7 @@ class RateLimitSensitive
         }
 
         // For 2FA, include session ID if available
-        if ($limitKey === '2fa' && $request->session()->has('2fa:user_id')) {
+        if ($limitKey === '2fa' && $request->hasSession() && $request->session()->has('2fa:user_id')) {
             return "rate_limit:{$limitKey}:{$ip}:" . $request->session()->get('2fa:user_id');
         }
 

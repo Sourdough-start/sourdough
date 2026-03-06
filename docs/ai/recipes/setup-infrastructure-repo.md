@@ -40,7 +40,7 @@ DB_HOST=db
 DB_PORT=3306
 DB_DATABASE=<APP_SLUG>
 DB_USERNAME=<APP_SLUG>
-DB_PASSWORD=secret
+DB_PASSWORD=changeme
 ```
 
 Uncomment the MySQL block and comment out the SQLite block.
@@ -70,7 +70,7 @@ Uncomment the MySQL block and comment out the SQLite block.
       - DB_PORT=3306
       - DB_DATABASE=<APP_SLUG>
       - DB_USERNAME=<APP_SLUG>
-      - DB_PASSWORD=secret
+      - DB_PASSWORD=changeme
     depends_on:
       - db
 ```
@@ -105,7 +105,7 @@ DB_HOST=db
 DB_PORT=5432
 DB_DATABASE=<APP_SLUG>
 DB_USERNAME=postgres
-DB_PASSWORD=secret
+DB_PASSWORD=changeme
 ```
 
 **Add a `db` service to `docker-compose.yml`:**
@@ -269,7 +269,24 @@ Review `.github/workflows/` files:
 
 ---
 
-## Step 7: Final Verification
+## Step 7: Back Up the APP_KEY
+
+After the first successful boot, the Docker entrypoint auto-generates an `APP_KEY` and saves it to `${DATA_DIR}/.app_key`. This key encrypts all sensitive model attributes (AI provider API keys, webhook secrets) and backup settings.
+
+**Tell the user:**
+
+> Your `APP_KEY` has been auto-generated and saved to the data volume. **Back up this key now** — if the data volume is lost, all encrypted data (API keys, webhook secrets) becomes unrecoverable.
+>
+> To retrieve the key:
+> ```bash
+> docker exec <container-name> cat /data/.app_key
+> ```
+>
+> Store this value in a password manager or secure location outside the container. For production deployments, you can also set `APP_KEY` as an environment variable in your docker-compose file or orchestrator — the entrypoint will use the provided value instead of generating a new one.
+
+---
+
+## Step 8: Final Verification
 
 This is the most important step. Run through this checklist to make sure everything works.
 
@@ -279,7 +296,7 @@ bash scripts/verify-setup.sh
 ```
 This checks app name, fonts, database config, Docker, and git. Fix any failures before proceeding.
 
-### 7a: Rebuild and Start
+### 8a: Rebuild and Start
 
 ```bash
 docker-compose down
@@ -288,13 +305,13 @@ docker-compose up -d --build
 
 Wait for the container to be healthy (check with `docker-compose ps`).
 
-### 7b: Create First Account
+### 8b: Create First Account
 
 1. Open http://localhost:<DEV_PORT> in a browser
 2. Register a new account (the first user automatically becomes admin)
 3. Verify you can log in
 
-### 7c: Verify Identity & Branding (Tier 1)
+### 8c: Verify Identity & Branding (Tier 1)
 
 - [ ] App name shows correctly in the browser title bar
 - [ ] App name shows correctly on the login/register pages
@@ -302,7 +319,7 @@ Wait for the container to be healthy (check with `docker-compose ps`).
 - [ ] Fonts render correctly — headings should use the heading font, body text uses body font
 - [ ] Brand color appears in the mobile status bar / address bar (if testing on mobile or DevTools device mode)
 
-### 7d: Verify Feature Removal (Tier 2)
+### 8d: Verify Feature Removal (Tier 2)
 
 - [ ] Removed features are gone from the Configuration navigation
 - [ ] No broken links or 404 pages when navigating the app
@@ -310,14 +327,14 @@ Wait for the container to be healthy (check with `docker-compose ps`).
 - [ ] Auth features work as configured (SSO buttons present/absent, 2FA option available/hidden)
 - [ ] No console errors in browser DevTools
 
-### 7e: Verify Infrastructure (Tier 3)
+### 8e: Verify Infrastructure (Tier 3)
 
 - [ ] Database connection works (data persists after restart)
 - [ ] If MySQL/PostgreSQL: the db container is running and healthy
 - [ ] If search was kept: Meilisearch is running (check Configuration > Search)
 - [ ] Port is correct (app accessible at the configured port)
 
-### 7f: Set Runtime Branding
+### 8f: Set Runtime Branding
 
 After first boot, go to **Configuration > Branding** to:
 1. Set the brand color (if different from the default set in code)
@@ -336,6 +353,7 @@ After first boot, go to **Configuration > Branding** to:
 - [ ] Deployment target configured (proxy, PUID/PGID notes)
 - [ ] Git history reset or remote updated
 - [ ] CI/CD workflows reviewed
+- [ ] APP_KEY backed up from data volume
 - [ ] Docker rebuilt and started
 - [ ] First account created
 - [ ] App name verified in UI

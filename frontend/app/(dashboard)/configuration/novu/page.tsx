@@ -116,7 +116,7 @@ export default function NovuConfigurationPage() {
         socket_url: (settings.socket_url as string) ?? defaultValues.socket_url,
       });
       setTestResult(null);
-    } catch (err) {
+    } catch (err: unknown) {
       toast.error("Failed to load Novu settings");
       if (err instanceof Error) {
         errorLogger.report(err, { context: "NovuConfigurationPage.fetchSettings" });

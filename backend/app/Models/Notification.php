@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 use Laravel\Scout\Searchable;
@@ -26,7 +27,6 @@ class Notification extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'id',
         'user_id',
         'type',
         'title',
@@ -49,10 +49,8 @@ class Notification extends Model
     /**
      * Bootstrap the model.
      */
-    protected static function boot()
+    protected static function booted(): void
     {
-        parent::boot();
-
         static::creating(function ($model) {
             if (empty($model->id)) {
                 $model->id = (string) Str::uuid();
@@ -97,7 +95,7 @@ class Notification extends Model
     /**
      * Scope to filter unread notifications.
      */
-    public function scopeUnread($query)
+    public function scopeUnread(Builder $query): Builder
     {
         return $query->whereNull('read_at');
     }
@@ -105,7 +103,7 @@ class Notification extends Model
     /**
      * Scope to filter read notifications.
      */
-    public function scopeRead($query)
+    public function scopeRead(Builder $query): Builder
     {
         return $query->whereNotNull('read_at');
     }

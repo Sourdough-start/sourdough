@@ -7,7 +7,6 @@ use App\Http\Controllers\Api\SSOController;
 use App\Http\Controllers\Api\TwoFactorController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\SettingController;
-// NotificationSettingsController deprecated - routes now use UserNotificationSettingsController
 use App\Http\Controllers\Api\NotificationChannelConfigController;
 use App\Http\Controllers\Api\SystemSettingController;
 use App\Http\Controllers\Api\UserController;
@@ -104,7 +103,8 @@ Route::prefix('auth')->group(function () {
         ->middleware('rate.sensitive:password_reset');
     
     // Email Verification
-    Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
+    Route::post('/verify-email', [AuthController::class, 'verifyEmail'])
+        ->middleware('throttle:10,1');
     Route::post('/resend-verification', [AuthController::class, 'resendVerification'])
         ->middleware('auth:sanctum');
     
@@ -132,7 +132,7 @@ Route::prefix('auth')->group(function () {
             Route::post('/verify', [TwoFactorController::class, 'verify'])
                 ->withoutMiddleware('auth:sanctum')
                 ->middleware('rate.sensitive:2fa');
-            Route::get('/recovery-codes', [TwoFactorController::class, 'recoveryCodes']);
+            Route::post('/recovery-codes', [TwoFactorController::class, 'recoveryCodes']);
             Route::post('/recovery-codes/regenerate', [TwoFactorController::class, 'regenerateRecoveryCodes']);
         });
 
@@ -207,8 +207,8 @@ Route::middleware(['auth:sanctum', 'verified', '2fa.setup'])->group(function () 
         Route::get('/', [SettingController::class, 'index'])->middleware('can:settings.view');
         Route::put('/', [SettingController::class, 'update'])->middleware('can:settings.edit');
         // Legacy routes - deprecated, use /user/notification-settings instead
-        Route::get('/notifications', [UserNotificationSettingsController::class, 'show'])->middleware('log.access:Setting');
-        Route::put('/notifications', [UserNotificationSettingsController::class, 'update'])->middleware('log.access:Setting');
+        Route::get('/notifications', [UserNotificationSettingsController::class, 'show'])->middleware(['log.access:Setting', 'deprecate:/api/user/notification-settings']);
+        Route::put('/notifications', [UserNotificationSettingsController::class, 'update'])->middleware(['log.access:Setting', 'deprecate:/api/user/notification-settings']);
         Route::get('/{group}', [SettingController::class, 'show'])->middleware('can:settings.view');
         Route::put('/{group}', [SettingController::class, 'updateGroup'])->middleware('can:settings.edit');
     });
@@ -313,11 +313,12 @@ Route::middleware(['auth:sanctum', 'verified', '2fa.setup'])->group(function () 
         Route::get('/', [AccessLogController::class, 'index'])->middleware('can:logs.view');
         Route::get('/export', [AccessLogController::class, 'export'])->middleware('can:logs.export');
         Route::get('/stats', [AccessLogController::class, 'stats'])->middleware('can:logs.view');
-        Route::delete('/', [AccessLogController::class, 'deleteAll'])->middleware('can:logs.view');
+        Route::delete('/', [AccessLogController::class, 'deleteAll'])->middleware('can:logs.delete');
     });
 
     // Application logs export (permission: logs.export)
     Route::prefix('app-logs')->group(function () {
+        Route::get('/recent', [AppLogExportController::class, 'recent'])->middleware('can:logs.export');
         Route::get('/export', [AppLogExportController::class, 'export'])->middleware('can:logs.export');
     });
 
@@ -459,10 +460,11 @@ Route::middleware(['auth:sanctum', 'verified', '2fa.setup'])->group(function () 
         Route::post('/run/{command}', [JobController::class, 'run'])->middleware('can:settings.edit');
         Route::get('/queue', [JobController::class, 'queueStatus'])->middleware('can:settings.view');
         Route::get('/failed', [JobController::class, 'failedJobs'])->middleware('can:settings.view');
-        Route::post('/failed/{id}/retry', [JobController::class, 'retryJob'])->middleware('can:settings.edit');
-        Route::delete('/failed/{id}', [JobController::class, 'deleteJob'])->middleware('can:settings.edit');
+        // Static routes must come before parameterized routes to avoid shadowing
         Route::post('/failed/retry-all', [JobController::class, 'retryAllFailed'])->middleware('can:settings.edit');
         Route::delete('/failed/clear', [JobController::class, 'clearFailed'])->middleware('can:settings.edit');
+        Route::post('/failed/{id}/retry', [JobController::class, 'retryJob'])->middleware('can:settings.edit');
+        Route::delete('/failed/{id}', [JobController::class, 'deleteJob'])->middleware('can:settings.edit');
     });
 
     // Storage Settings (permission: settings.view / settings.edit)
@@ -489,8 +491,8 @@ Route::middleware(['auth:sanctum', 'verified', '2fa.setup'])->group(function () 
         Route::delete('/{path}', [FileManagerController::class, 'destroy'])->where('path', '.*');
     });
     
-    // API Tokens (Authenticated users)
-    Route::prefix('api-tokens')->group(function () {
+    // API Tokens — deprecated, use /user/api-keys instead (ApiKeyController)
+    Route::prefix('api-tokens')->middleware('deprecate:/api/user/api-keys')->group(function () {
         Route::get('/', [ApiTokenController::class, 'index']);
         Route::post('/', [ApiTokenController::class, 'store']);
         Route::delete('/{token}', [ApiTokenController::class, 'destroy']);
@@ -525,6 +527,7 @@ Route::middleware(['auth:sanctum', 'verified', '2fa.setup'])->group(function () 
         // More specific routes must come before parameterized routes
         Route::get('/{webhook}/deliveries', [WebhookController::class, 'deliveries'])->middleware('can:settings.view');
         Route::post('/{webhook}/test', [WebhookController::class, 'test'])->middleware('can:settings.edit');
+        Route::get('/{webhook}', [WebhookController::class, 'show'])->middleware('can:settings.view');
         Route::put('/{webhook}', [WebhookController::class, 'update'])->middleware('can:settings.edit');
         Route::delete('/{webhook}', [WebhookController::class, 'destroy'])->middleware('can:settings.edit');
     });

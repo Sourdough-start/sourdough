@@ -45,7 +45,7 @@ describe('StripePaymentController', function () {
             expect($data['payment']['id'])->toBe($payment->id);
         });
 
-        it('returns 404 when user does not own payment and lacks permission', function () {
+        it('returns 403 when user does not own payment and lacks permission', function () {
             $owner = createUser();
             $other = createUser();
             $payment = Payment::factory()->create(['user_id' => $owner->id]);
@@ -55,7 +55,7 @@ describe('StripePaymentController', function () {
 
             $response = $this->controller->show($request, $payment);
 
-            expect($response->getStatusCode())->toBe(404);
+            expect($response->getStatusCode())->toBe(403);
         });
     });
 

@@ -86,7 +86,7 @@ export default function UsagePage() {
 
       const response = await api.get<UsageStats>(`/usage/stats?${params}`);
       setStats(response.data);
-    } catch (err) {
+    } catch (err: unknown) {
       errorLogger.captureMessage("Failed to fetch usage stats", "error");
       toast.error("Failed to load usage data");
     } finally {
@@ -146,7 +146,7 @@ export default function UsagePage() {
       link.remove();
       window.URL.revokeObjectURL(url);
       toast.success("Export downloaded");
-    } catch (err) {
+    } catch (err: unknown) {
       errorLogger.captureMessage("Failed to export usage data", "error");
       toast.error("Failed to export usage data");
     } finally {

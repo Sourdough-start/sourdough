@@ -52,10 +52,7 @@ export function Sidebar() {
     useSidebar();
   const isMobile = useIsMobile();
 
-  // Safe admin check (handles stale bundle where isAdminUser might not exist)
-  // TODO: Remove Boolean(user?.is_admin) fallback once all bundles have been refreshed post-release
-  const isAdmin =
-    typeof isAdminUser === "function" ? isAdminUser(user) : Boolean(user?.is_admin);
+  const isAdmin = isAdminUser(user);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -156,6 +153,7 @@ export function Sidebar() {
             onClick={toggleSidebar}
             className="flex items-center justify-center hover:opacity-80 transition-opacity"
             title="Expand sidebar"
+            aria-label="Expand sidebar"
           >
             <Logo variant="icon" size="sm" />
           </button>

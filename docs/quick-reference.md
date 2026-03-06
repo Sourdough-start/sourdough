@@ -5,9 +5,11 @@
 ```
 backend/
 ├── app/Http/Controllers/Api/   # REST API endpoints
-├── app/Services/               # Business logic (Auth/, Backup/, LLM/, Notifications/)
+├── app/Helpers/                # Shared helpers (QueryHelper, FileHelper)
+├── app/Services/               # Business logic (Auth/, Backup/, LLM/, Notifications/, UserService)
 ├── app/Models/                 # Eloquent models
-├── config/                     # Laravel config files
+├── app/Http/Requests/          # Form Request validation classes
+├── config/                     # Laravel config files (settings-schema.php, user-settings-schema.php)
 ├── database/migrations/        # Database schema
 └── routes/api.php              # API route definitions
 

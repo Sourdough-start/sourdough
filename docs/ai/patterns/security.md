@@ -106,4 +106,36 @@ The `rate.sensitive` middleware is registered in `bootstrap/app.php` as an alias
 
 **Key files:** `backend/app/Http/Middleware/RateLimitSensitive.php`, `backend/bootstrap/app.php`, `backend/app/Services/UrlValidationService.php`, `backend/app/Http/Controllers/Api/BackupController.php`, `backend/app/Http/Controllers/Api/FileManagerController.php`
 
+## APP_KEY and Encrypted Model Attributes
+
+Laravel's `APP_KEY` is the master encryption key for the application. It is auto-generated on first Docker boot and persisted to `${DATA_DIR}/.app_key` on the data volume.
+
+**What APP_KEY encrypts:**
+- Session data and cookies
+- Any model attribute with the `'encrypted'` cast (e.g. `AIProvider.api_key`, `Webhook.secret`)
+- Backup settings exports (derived key from `APP_KEY` + user password)
+
+**Using the `encrypted` cast on models:**
+
+```php
+// In your model — follow the AIProvider / Webhook pattern:
+protected $hidden = ['api_key'];          // Never expose in JSON responses
+
+protected function casts(): array
+{
+    return [
+        'api_key' => 'encrypted',         // Transparent encrypt/decrypt via APP_KEY
+    ];
+}
+```
+
+**Best practices:**
+- **Back up the `.app_key` file** separately from your database. If the data volume is lost and no backup exists, all encrypted attributes become unrecoverable.
+- **Never commit APP_KEY** to version control. The `.env` file is gitignored; the `.app_key` file lives on the Docker data volume.
+- **Key rotation** requires re-encrypting all encrypted model attributes. There is no built-in rotation command — you must decrypt with the old key and re-encrypt with the new one.
+- **Use `$hidden`** on any model field with the `encrypted` cast to prevent it from appearing in API responses (JSON serialization).
+- **Return secrets only on creation** — if a user needs to see a secret (e.g. webhook signing secret), return it in the `store()` response only, never in `index()` or `update()`.
+
+**Key files:** `docker/entrypoint.sh` (auto-generation), `backend/app/Models/AIProvider.php` (reference pattern), `backend/app/Models/Webhook.php`
+
 **Related:** [Anti-patterns: Architecture](../anti-patterns/architecture.md)

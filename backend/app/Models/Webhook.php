@@ -20,9 +20,12 @@ class Webhook extends Model
         'last_triggered_at',
     ];
 
+    protected $hidden = ['secret'];
+
     protected function casts(): array
     {
         return [
+            'secret' => 'encrypted',
             'events' => 'array',
             'active' => 'boolean',
             'last_triggered_at' => 'datetime',

@@ -3,16 +3,22 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Traits\ApiResponseTrait;
 use App\Models\Notification;
 use App\Models\NotificationTemplate;
 use App\Services\Notifications\NotificationOrchestrator;
+use App\Services\SettingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class NotificationController extends Controller
 {
+    use ApiResponseTrait;
+
     public function __construct(
-        private NotificationOrchestrator $notificationOrchestrator
+        private NotificationOrchestrator $notificationOrchestrator,
+        private SettingService $settingService,
     ) {}
 
     /**
@@ -39,7 +45,7 @@ class NotificationController extends Controller
         $perPage = min((int) $request->input('per_page', config('app.pagination.default')), 100);
         $notifications = $query->paginate($perPage);
 
-        return response()->json($notifications);
+        return $this->dataResponse($notifications);
     }
 
     /**
@@ -49,9 +55,7 @@ class NotificationController extends Controller
     {
         $count = $request->user()->notifications()->unread()->count();
 
-        return response()->json([
-            'count' => $count,
-        ]);
+        return $this->dataResponse(['count' => $count]);
     }
 
     /**
@@ -70,9 +74,7 @@ class NotificationController extends Controller
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
-        return response()->json([
-            'message' => 'Notifications marked as read',
-        ]);
+        return $this->successResponse('Notifications marked as read');
     }
 
     /**
@@ -85,9 +87,7 @@ class NotificationController extends Controller
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
-        return response()->json([
-            'message' => 'All notifications marked as read',
-        ]);
+        return $this->successResponse('All notifications marked as read');
     }
 
     /**
@@ -97,16 +97,12 @@ class NotificationController extends Controller
     {
         // Ensure user owns this notification
         if ($notification->user_id !== $request->user()->id) {
-            return response()->json([
-                'message' => 'Notification not found',
-            ], 404);
+            return $this->errorResponse('Notification not found', 404);
         }
 
         $notification->delete();
 
-        return response()->json([
-            'message' => 'Notification deleted',
-        ]);
+        return $this->successResponse('Notification deleted');
     }
 
     /**
@@ -124,10 +120,7 @@ class NotificationController extends Controller
             ->whereIn('id', $validated['ids'])
             ->delete();
 
-        return response()->json([
-            'message' => "{$deleted} notification(s) deleted",
-            'deleted' => $deleted,
-        ]);
+        return $this->successResponse("{$deleted} notification(s) deleted", ['deleted' => $deleted]);
     }
 
     /**
@@ -136,10 +129,7 @@ class NotificationController extends Controller
     public function test(Request $request, string $channel): JsonResponse
     {
         if (!NotificationOrchestrator::isKnownChannel($channel)) {
-            return response()->json([
-                'message' => 'Unknown notification channel',
-                'error' => "Channel '{$channel}' is not a recognized notification channel.",
-            ], 422);
+            return $this->errorResponse("Unknown notification channel: '{$channel}'", 422);
         }
 
         $user = $request->user();
@@ -147,19 +137,13 @@ class NotificationController extends Controller
         try {
             $this->notificationOrchestrator->sendTestNotification($user, $channel);
 
-            return response()->json([
-                'message' => 'Test notification sent',
-                'channel' => $channel,
-            ]);
+            return $this->successResponse('Test notification sent', ['channel' => $channel]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning('Test notification failed', [
+            Log::warning('Test notification failed', [
                 'channel' => $channel,
                 'error' => $e->getMessage(),
             ]);
-            return response()->json([
-                'message' => 'Failed to send test notification',
-                'error' => $e->getMessage(),
-            ], 400);
+            return $this->errorResponse('Failed to send test notification: ' . $e->getMessage(), 400);
         }
     }
 
@@ -179,7 +163,7 @@ class NotificationController extends Controller
             $vapidPrivateKeySet = !empty(config('notifications.channels.webpush.private_key'));
 
             $availableToUsers = filter_var(
-                \App\Models\SystemSetting::get('channel_webpush_available', false, 'notifications'),
+                $this->settingService->get('notifications', 'channel_webpush_available', false),
                 FILTER_VALIDATE_BOOLEAN
             );
 
@@ -187,10 +171,10 @@ class NotificationController extends Controller
             $subscriptionCount = $user->pushSubscriptions()->count();
             $isAvailableFor = $channelInstance?->isAvailableFor($user) ?? false;
 
-            $queueEnabled = (bool) \App\Models\SystemSetting::get(
+            $queueEnabled = (bool) $this->settingService->get(
+                'notifications',
                 'queue_enabled',
-                config('notifications.queue.enabled', true),
-                'notifications'
+                config('notifications.queue.enabled', true)
             );
 
             $recentDeliveries = \App\Models\NotificationDelivery::where('user_id', $user->id)
@@ -199,7 +183,7 @@ class NotificationController extends Controller
                 ->limit(5)
                 ->get(['status', 'error', 'notification_type', 'attempted_at']);
 
-            return response()->json([
+            return $this->dataResponse([
                 'gates' => [
                     'channel_enabled' => $channelEnabled,
                     'vapid_public_key_set' => $vapidPublicKeySet,
@@ -213,10 +197,13 @@ class NotificationController extends Controller
                 'recent_deliveries' => $recentDeliveries,
             ]);
         } catch (\Throwable $e) {
-            return response()->json([
+            Log::error('Push notification diagnosis failed', [
+                'user_id' => $request->user()->id,
                 'error' => $e->getMessage(),
-                'trace' => app()->isProduction() ? null : $e->getTraceAsString(),
-            ], 500);
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->errorResponse('Push notification diagnosis failed. Check server logs for details.', 500);
         }
     }
 

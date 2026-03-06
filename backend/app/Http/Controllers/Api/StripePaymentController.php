@@ -27,7 +27,7 @@ class StripePaymentController extends Controller
 
         $payments = Payment::where('user_id', $request->user()->id)
             ->orderByDesc('created_at')
-            ->paginate(20);
+            ->paginate(min($request->integer('per_page', config('app.pagination.default', 20)), 100));
 
         return $this->dataResponse($payments);
     }
@@ -39,7 +39,7 @@ class StripePaymentController extends Controller
     {
 
         if ($payment->user_id !== $request->user()->id && ! $request->user()->can('payments.manage')) {
-            return $this->errorResponse('Not found', 404);
+            return $this->errorResponse('Forbidden', 403);
         }
 
         return $this->dataResponse(['payment' => $payment]);
@@ -92,7 +92,7 @@ class StripePaymentController extends Controller
 
         $payments = Payment::with('user')
             ->orderByDesc('created_at')
-            ->paginate(50);
+            ->paginate(min($request->integer('per_page', config('app.pagination.audit_log', 50)), 100));
 
         return $this->dataResponse($payments);
     }

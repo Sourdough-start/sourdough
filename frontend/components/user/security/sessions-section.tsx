@@ -34,7 +34,7 @@ export function SessionsSection() {
     try {
       const res = await api.get("/auth/sso/providers");
       setSsoProviders(res.data.providers || []);
-    } catch (error) {
+    } catch (error: unknown) {
       errorLogger.report(
         error instanceof Error ? error : new Error("Failed to fetch SSO providers"),
         { source: "sessions-section" }

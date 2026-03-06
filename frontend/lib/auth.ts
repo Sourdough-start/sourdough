@@ -16,6 +16,18 @@ export interface User {
   permissions?: string[];
 }
 
+/** Extended user type for admin views with additional fields. */
+export interface AdminUser extends User {
+  disabled_at: string | null;
+  created_at: string;
+}
+
+export interface LoginResult {
+  requires_2fa?: boolean;
+  user?: User;
+  message?: string;
+}
+
 /**
  * Fire-and-forget: send the browser's timezone to the backend.
  * Only sets it if the user hasn't explicitly chosen one.
@@ -45,7 +57,7 @@ interface AuthState {
   error: string | null;
   fetchUser: () => Promise<void>;
   initialize: () => Promise<void>;
-  login: (email: string, password: string, remember?: boolean) => Promise<any>;
+  login: (email: string, password: string, remember?: boolean) => Promise<LoginResult>;
   register: (name: string, email: string, password: string, passwordConfirmation: string) => Promise<void>;
   logout: () => Promise<void>;
   verify2FA: (code: string, remember?: boolean, isRecoveryCode?: boolean) => Promise<void>;
@@ -73,7 +85,7 @@ export const useAuth = create<AuthState>((set, get) => ({
         setUserTimezone(data.timezone);
       }
       set({ user, isLoading: false, error: null });
-    } catch (error) {
+    } catch (error: unknown) {
       set({ user: null, isLoading: false, error: null });
     }
   },

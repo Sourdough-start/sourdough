@@ -3,6 +3,7 @@
 namespace App\GraphQL\Queries;
 
 use App\GraphQL\Concerns\HandlesPagination;
+use App\Helpers\QueryHelper;
 use App\Models\User;
 use GraphQL\Error\Error;
 use Illuminate\Support\Facades\Auth;
@@ -23,11 +24,10 @@ class Users
         $query = User::query()->orderBy('created_at', 'desc');
 
         if (!empty($args['search'])) {
-            $search = $args['search'];
-            // Use parameterized queries to prevent LIKE injection
-            $query->where(function ($q) use ($search) {
-                $q->whereRaw('name LIKE ?', ["%{$search}%"])
-                    ->orWhereRaw('email LIKE ?', ["%{$search}%"]);
+            $escaped = QueryHelper::escapeLike($args['search']);
+            $query->where(function ($q) use ($escaped) {
+                $q->where('name', 'like', "%{$escaped}%")
+                    ->orWhere('email', 'like', "%{$escaped}%");
             });
         }
 

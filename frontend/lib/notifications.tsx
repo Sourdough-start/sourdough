@@ -13,7 +13,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { getEcho, disconnectEcho } from "@/lib/echo";
 
-export interface Notification {
+export interface AppNotification {
   id: string;
   user_id: number;
   type: string;
@@ -26,7 +26,7 @@ export interface Notification {
 }
 
 interface NotificationContextValue {
-  notifications: Notification[];
+  notifications: AppNotification[];
   unreadCount: number;
   isLoading: boolean;
   fetchNotifications: () => Promise<void>;
@@ -34,7 +34,7 @@ interface NotificationContextValue {
   markAsRead: (ids: string[]) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
-  prependNotification?: (n: Notification) => void;
+  prependNotification?: (n: AppNotification) => void;
 }
 
 const NotificationContext = createContext<NotificationContextValue | null>(null);
@@ -51,7 +51,7 @@ export function useNotifications() {
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const mounted = useRef(true);
@@ -71,7 +71,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const { data } = await api.get<{
-        data: Notification[];
+        data: AppNotification[];
         current_page: number;
         per_page: number;
         total: number;
@@ -148,7 +148,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     [user, fetchNotifications]
   );
 
-  const prependNotification = useCallback((n: Notification) => {
+  const prependNotification = useCallback((n: AppNotification) => {
     setNotifications((prev) => {
       const exists = prev.some((x) => x.id === n.id);
       if (exists) return prev;
@@ -183,22 +183,19 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       if (cancelled || !echo) return;
 
       const channel = echo.private(`user.${user.id}`);
-      channel.listen(".NotificationSent", (e: { id?: string; [k: string]: unknown }) => {
-        if (!mounted.current || !e) return;
-        const n = e as unknown as Notification;
-        if (n?.id && prependNotification) {
-          prependNotification({
-            id: n.id,
-            user_id: n.user_id,
-            type: n.type ?? "info",
-            title: n.title ?? "",
-            message: n.message ?? "",
-            data: (n.data as Record<string, unknown>) ?? null,
-            read_at: (n.read_at as string) ?? null,
-            created_at: n.created_at ?? new Date().toISOString(),
-            updated_at: n.updated_at ?? new Date().toISOString(),
-          });
-        }
+      channel.listen(".NotificationSent", (e: Record<string, unknown>) => {
+        if (!mounted.current || !e || typeof e.id !== "string") return;
+        prependNotification({
+          id: e.id,
+          user_id: typeof e.user_id === "number" ? e.user_id : 0,
+          type: typeof e.type === "string" ? e.type : "info",
+          title: typeof e.title === "string" ? e.title : "",
+          message: typeof e.message === "string" ? e.message : "",
+          data: e.data && typeof e.data === "object" ? (e.data as Record<string, unknown>) : null,
+          read_at: typeof e.read_at === "string" ? e.read_at : null,
+          created_at: typeof e.created_at === "string" ? e.created_at : new Date().toISOString(),
+          updated_at: typeof e.updated_at === "string" ? e.updated_at : new Date().toISOString(),
+        });
       });
 
       cleanup = () => {

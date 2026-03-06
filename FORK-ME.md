@@ -50,7 +50,7 @@ A complete full-stack application framework with enterprise-grade features ready
 
 Sourdough is **opinionated but modular**:
 
-- Architecture decisions are documented in `docs/adr/` (25 ADRs)
+- Architecture decisions are documented in `docs/adr/` (26 ADRs)
 - Features can be removed if you don't need them
 - Patterns and structure should remain consistent
 - Code follows established conventions (see `docs/ai/patterns/`)
@@ -65,7 +65,7 @@ This codebase is **optimized for AI coding assistants**. The documentation struc
 |----------|---------|
 | `docs/ai/README.md` | Development workflows and quick links |
 | `docs/ai/context-loading.md` | Which files to read for each task type |
-| `docs/ai/recipes/` | 47 step-by-step implementation guides |
+| `docs/ai/recipes/` | 49 step-by-step implementation guides |
 | `docs/ai/patterns/` | Code patterns with copy-paste examples |
 | `docs/ai/anti-patterns/` | Common mistakes to avoid |
 
@@ -104,6 +104,8 @@ docker-compose up -d
 
 Access at http://localhost:8080. The first user to register becomes admin.
 
+> **Important: Back up your APP_KEY.** On first boot, Docker auto-generates an `APP_KEY` (saved to `.app_key` on the data volume). This key encrypts sensitive data like API keys and webhook secrets. If the data volume is lost without a backup, all encrypted data is **unrecoverable**. For production, copy the `.app_key` file or the `APP_KEY` value to a secure location outside the container.
+
 ### 2. Explore the Application
 
 - Create an account and explore the features
@@ -127,7 +129,7 @@ Use the AI development guide (`docs/ai/README.md`) to add your own features. The
 - Adding configuration pages
 - Adding notification channels
 - Adding dashboard widgets
-- And 43 more...
+- And 45 more...
 
 ## What to Keep
 
@@ -167,7 +169,7 @@ docs/
 │   ├── context-loading.md   # Which files to read per task
 │   ├── patterns/            # Code patterns
 │   ├── anti-patterns/       # What to avoid
-│   └── recipes/             # 47 step-by-step guides
+│   └── recipes/             # 49 step-by-step guides
 ├── adr/                     # Architecture Decision Records
 ├── features.md              # Feature documentation
 ├── architecture.md          # Architecture overview

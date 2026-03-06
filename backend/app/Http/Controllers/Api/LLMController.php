@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateLLMConfigRequest;
+use App\Http\Traits\ApiResponseTrait;
 use App\Services\LLM\LLMOrchestrator;
 use App\Services\UrlValidationService;
 use Illuminate\Http\JsonResponse;
@@ -10,6 +12,7 @@ use Illuminate\Http\Request;
 
 class LLMController extends Controller
 {
+    use ApiResponseTrait;
     public function __construct(
         private LLMOrchestrator $orchestrator,
         private UrlValidationService $urlValidator
@@ -29,7 +32,7 @@ class LLMController extends Controller
                 'supports_tools' => $config['supports_tools'] ?? false,
             ]);
 
-        return response()->json([
+        return $this->dataResponse([
             'providers' => $providers,
             'current_mode' => config('llm.mode'),
             'primary' => config('llm.primary'),
@@ -47,7 +50,7 @@ class LLMController extends Controller
 
         $mode = $user->getSetting('defaults', 'llm_mode', config('llm.mode'));
 
-        return response()->json([
+        return $this->dataResponse([
             'mode' => $mode,
             'providers' => $providers,
         ]);
@@ -56,17 +59,9 @@ class LLMController extends Controller
     /**
      * Update user's LLM configuration.
      */
-    public function updateConfig(Request $request): JsonResponse
+    public function updateConfig(UpdateLLMConfigRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'mode' => ['sometimes', 'in:single,aggregation,council'],
-            'providers' => ['sometimes', 'array'],
-            'providers.*.provider' => ['required', 'string'],
-            'providers.*.api_key' => ['sometimes', 'nullable', 'string'],
-            'providers.*.model' => ['sometimes', 'string'],
-            'providers.*.is_enabled' => ['sometimes', 'boolean'],
-            'providers.*.is_primary' => ['sometimes', 'boolean'],
-        ]);
+        $validated = $request->validated();
 
         $this->orchestrator->updateUserConfig(
             $request->user(),
@@ -74,9 +69,7 @@ class LLMController extends Controller
             $validated['providers'] ?? null
         );
 
-        return response()->json([
-            'message' => 'LLM configuration updated',
-        ]);
+        return $this->successResponse('LLM configuration updated');
     }
 
     /**
@@ -100,9 +93,7 @@ class LLMController extends Controller
         // Check if provider already exists for this user
         $existing = $user->aiProviders()->where('provider', $validated['provider'])->first();
         if ($existing) {
-            return response()->json([
-                'message' => 'Provider already exists',
-            ], 400);
+            return $this->errorResponse('Provider already exists', 400);
         }
 
         $settings = $this->buildProviderSettings($validated, $validated['provider']);
@@ -116,10 +107,9 @@ class LLMController extends Controller
             'settings' => !empty($settings) ? $settings : null,
         ]);
 
-        return response()->json([
-            'message' => 'Provider added',
+        return $this->createdResponse('Provider added', [
             'provider' => $this->formatProvider($provider),
-        ], 201);
+        ]);
     }
 
     /**
@@ -165,8 +155,7 @@ class LLMController extends Controller
 
         $providerModel->update($validated);
 
-        return response()->json([
-            'message' => 'Provider updated',
+        return $this->successResponse('Provider updated', [
             'provider' => $this->formatProvider($providerModel->fresh()),
         ]);
     }
@@ -187,7 +176,7 @@ class LLMController extends Controller
             $user->aiProviders()->first()?->update(['is_primary' => true]);
         }
 
-        return response()->json(['message' => 'Provider removed']);
+        return $this->successResponse('Provider removed');
     }
 
     /**
@@ -269,9 +258,7 @@ class LLMController extends Controller
         $providerConfig = $user->aiProviders()->where('provider', $provider)->first();
 
         if (!$providerConfig) {
-            return response()->json([
-                'message' => 'Provider not configured',
-            ], 400);
+            return $this->errorResponse('Provider not configured', 400);
         }
 
         try {
@@ -282,18 +269,14 @@ class LLMController extends Controller
                 'last_test_success' => $result['success'],
             ]);
 
-            return response()->json($result);
+            return $this->dataResponse($result);
         } catch (\Exception $e) {
             $providerConfig->update([
                 'last_test_at' => now(),
                 'last_test_success' => false,
             ]);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Test failed',
-                'error' => $e->getMessage(),
-            ], 400);
+            return $this->errorResponse('Test failed: ' . $e->getMessage(), 400);
         }
     }
 
@@ -320,13 +303,9 @@ class LLMController extends Controller
                 provider: $validated['provider'] ?? null,
             );
 
-            return response()->json($result);
+            return $this->dataResponse($result);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Query failed',
-                'error' => $e->getMessage(),
-            ], 400);
+            return $this->errorResponse('Query failed: ' . $e->getMessage(), 400);
         }
     }
 
@@ -347,10 +326,7 @@ class LLMController extends Controller
         try {
             [$imageData, $mimeType] = $this->orchestrator->resolveImageInput($request, $this->urlValidator);
         } catch (\InvalidArgumentException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 400);
+            return $this->errorResponse($e->getMessage(), 400);
         }
 
         try {
@@ -364,13 +340,9 @@ class LLMController extends Controller
                 provider: $validated['provider'] ?? null,
             );
 
-            return response()->json($result);
+            return $this->dataResponse($result);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Vision query failed',
-                'error' => $e->getMessage(),
-            ], 400);
+            return $this->errorResponse('Vision query failed: ' . $e->getMessage(), 400);
         }
     }
 }

@@ -228,8 +228,8 @@ return [
 
 ### Future Enhancements
 
-1. **Streaming Support** - Stream responses in real-time
+1. ~~**Streaming Support**~~ - **[PARTIALLY IMPLEMENTED]** Real-time streaming available via Reverb/Echo ([ADR-027](./027-real-time-streaming.md)) for app logs and audit; LLM response streaming still pending
 2. **Tool Use** - Function calling across providers
 3. **Fine-tuned Routing** - Route to best provider per task
-4. **Cost Budgets** - Per-user spending limits
+4. ~~**Cost Budgets**~~ - **[PARTIALLY IMPLEMENTED]** Usage tracking and budget alerts via [ADR-029](./029-usage-tracking-alerts.md)
 5. **Context Caching** - Reuse long contexts across calls

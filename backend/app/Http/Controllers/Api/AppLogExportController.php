@@ -3,15 +3,32 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Traits\ApiResponseTrait;
 use App\Services\AppLogExportService;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AppLogExportController extends Controller
 {
+    use ApiResponseTrait;
     public function __construct(
         private AppLogExportService $exportService
     ) {}
+
+    /**
+     * Fetch recent log entries as JSON for display in the UI.
+     * Query params: limit (default 200, max 500), level, search.
+     */
+    public function recent(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $limit = min((int) $request->input('limit', 200), 500);
+        $level = $request->input('level');
+        $search = $request->input('search');
+
+        $entries = $this->exportService->getRecentEntries($limit, $level ?: null, $search ?: null);
+
+        return response()->json(['data' => $entries]);
+    }
 
     /**
      * Export application log files as CSV or JSON.

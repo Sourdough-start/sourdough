@@ -26,18 +26,20 @@ abstract class TestCase extends BaseTestCase
     /**
      * Create an authenticated user for testing.
      */
-    protected function actingAsUser(array $attributes = []): self
+    protected function actingAsUser(array $attributes = []): \App\Models\User
     {
         $user = \App\Models\User::factory()->create($attributes);
-        return $this->actingAs($user, 'sanctum');
+        $this->actingAs($user, 'sanctum');
+        return $user;
     }
 
     /**
      * Create an authenticated admin user for testing (in admin group).
      */
-    protected function actingAsAdmin(array $attributes = []): self
+    protected function actingAsAdmin(array $attributes = []): \App\Models\User
     {
         $user = \App\Models\User::factory()->admin()->create($attributes);
-        return $this->actingAs($user, 'sanctum');
+        $this->actingAs($user, 'sanctum');
+        return $user;
     }
 }

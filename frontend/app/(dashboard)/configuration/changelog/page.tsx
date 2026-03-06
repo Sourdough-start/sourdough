@@ -230,7 +230,7 @@ export default function ChangelogPage() {
       });
       setEntries(response.data.data);
       setMeta(response.data.meta);
-    } catch (err) {
+    } catch (err: unknown) {
       const message = getErrorMessage(err, "Failed to load changelog");
       setError(message);
       errorLogger.captureMessage("Failed to load changelog", "error", { component: "ChangelogPage", error: message });

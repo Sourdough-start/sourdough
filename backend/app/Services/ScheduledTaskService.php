@@ -37,6 +37,18 @@ class ScheduledTaskService
     ];
 
     /**
+     * Allowed options per command. Only these options may be passed via the API.
+     * Options not listed here are silently stripped to prevent injection.
+     */
+    private const ALLOWED_OPTIONS = [
+        'backup:run' => ['--dry-run'],
+        'log:cleanup' => ['--dry-run'],
+        'log:check-suspicious' => [],
+        'storage:check-alerts' => [],
+        'api-keys:prune-expired' => ['--dry-run'],
+    ];
+
+    /**
      * Minimum seconds between manual runs for rate-limited commands.
      */
     private const RATE_LIMIT_SECONDS = [
@@ -211,6 +223,40 @@ class ScheduledTaskService
             ->orderByDesc('started_at')
             ->limit($limit)
             ->get();
+    }
+
+    /**
+     * Get allowed options for a command, or empty array if none defined.
+     *
+     * @return string[]
+     */
+    public function getAllowedOptions(string $command): array
+    {
+        return self::ALLOWED_OPTIONS[$command] ?? [];
+    }
+
+    /**
+     * Filter options to only those allowed for the given command.
+     *
+     * @param  array<string, mixed>  $options
+     * @return array<string, mixed>
+     */
+    public function filterOptions(string $command, array $options): array
+    {
+        $allowed = $this->getAllowedOptions($command);
+        if (empty($allowed)) {
+            return [];
+        }
+
+        $filtered = [];
+        foreach ($options as $key => $value) {
+            $name = is_string($key) && str_starts_with($key, '--') ? $key : '--' . $key;
+            if (in_array($name, $allowed, true)) {
+                $filtered[$name] = $value;
+            }
+        }
+
+        return $filtered;
     }
 
     /**

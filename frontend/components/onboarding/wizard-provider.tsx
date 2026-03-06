@@ -67,7 +67,7 @@ export function WizardProvider({ children }: WizardProviderProps) {
         setStepsCompleted(data.steps_completed || []);
         setShowWizard(data.show_wizard);
         setInitialized(true);
-      } catch (error) {
+      } catch (error: unknown) {
         // If fetch fails, don't show wizard
         setShowWizard(false);
         setInitialized(true);
@@ -97,7 +97,7 @@ export function WizardProvider({ children }: WizardProviderProps) {
         { step }
       );
       setStepsCompleted(response.data.steps_completed);
-    } catch (error) {
+    } catch (error: unknown) {
       // Optimistically update locally even if API fails
       setStepsCompleted((prev) =>
         prev.includes(step) ? prev : [...prev, step]
@@ -108,7 +108,7 @@ export function WizardProvider({ children }: WizardProviderProps) {
   const completeWizard = useCallback(async () => {
     try {
       await api.post("/onboarding/wizard/complete");
-    } catch (error) {
+    } catch (error: unknown) {
       // Ignore API errors
     }
     setShowWizard(false);
@@ -118,7 +118,7 @@ export function WizardProvider({ children }: WizardProviderProps) {
   const dismissWizard = useCallback(async () => {
     try {
       await api.post("/onboarding/wizard/dismiss");
-    } catch (error) {
+    } catch (error: unknown) {
       // Ignore API errors
     }
     setShowWizard(false);
@@ -131,7 +131,7 @@ export function WizardProvider({ children }: WizardProviderProps) {
       setStepsCompleted([]);
       setCurrentStep(0);
       setShowWizard(true);
-    } catch (error) {
+    } catch (error: unknown) {
       // Ignore API errors
     }
   }, []);

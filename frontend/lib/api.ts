@@ -19,7 +19,8 @@ export const api = axios.create({
 
 // Set up online listener to retry queued requests (fallback when Background Sync not supported)
 if (typeof window !== "undefined") {
-  setupOfflineRetry(api);
+  const cleanupOfflineRetry = setupOfflineRetry(api);
+  window.addEventListener("beforeunload", cleanupOfflineRetry);
 }
 
 // Flag to prevent multiple redirects
@@ -60,8 +61,9 @@ api.interceptors.response.use(
           !window.location.pathname.includes("/auth/callback")
         ) {
           isRedirecting = true;
-          // Use replace to avoid adding to history, reset flag after navigation
           window.location.replace("/login");
+          // Reset flag after a delay in case navigation is blocked
+          setTimeout(() => { isRedirecting = false; }, 3000);
         }
       }
 
@@ -77,6 +79,7 @@ api.interceptors.response.use(
         ) {
           isRedirecting = true;
           window.location.replace("/user/security");
+          setTimeout(() => { isRedirecting = false; }, 3000);
         }
       }
 

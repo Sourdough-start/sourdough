@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
 import { errorLogger } from "@/lib/error-logger";
 
@@ -34,14 +34,14 @@ export function useGroups(): {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchGroups = async () => {
+  const fetchGroups = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const response = await api.get<GroupsResponse>("/groups");
       const list = response.data?.data ?? response.data;
       setGroups(Array.isArray(list) ? list : []);
-    } catch (err) {
+    } catch (err: unknown) {
       const e = err instanceof Error ? err : new Error(String(err));
       setError(e);
       errorLogger.report(e, { context: "useGroups.fetchGroups" });
@@ -49,11 +49,11 @@ export function useGroups(): {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchGroups();
-  }, []);
+  }, [fetchGroups]);
 
   return { groups, isLoading, error, refetch: fetchGroups };
 }

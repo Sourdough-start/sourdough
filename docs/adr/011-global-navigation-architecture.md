@@ -61,7 +61,7 @@ This architecture will be applied to all authenticated routes via the dashboard 
 
 ### Neutral
 
-- Sidebar is always visible (could be made collapsible in future)
+- Sidebar is collapsible (icon-only or icon+label mode, with expand/collapse toggle)
 - Settings navigation within settings pages remains separate (section-specific navigation)
 - Admin navigation within admin pages remains separate (section-specific navigation)
 
@@ -71,6 +71,6 @@ This architecture will be applied to all authenticated routes via the dashboard 
 
 ## Notes
 
-The sidebar uses a fixed width of 64px (w-16) to minimize space usage while remaining functional. Icons are used instead of text labels to keep the sidebar compact. The active state is indicated by button variant changes and background color.
+The sidebar supports two modes: collapsed (icon-only, 64px/w-16) and expanded (icon+label). Users can toggle between modes with an expand/collapse button. The active state is indicated by button variant changes and background color. On mobile, the sidebar is hidden and accessible via a sheet/drawer.
 
 The header uses `ml-auto` on the right-side container to explicitly push items to the right edge, ensuring proper right-justification regardless of content length.

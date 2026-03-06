@@ -37,7 +37,7 @@ export async function withOfflineFallback<T>(
 ): Promise<T> {
   try {
     return await fetcher();
-  } catch (error) {
+  } catch (error: unknown) {
     if (isOfflineError(error)) {
       return fallback;
     }

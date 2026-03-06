@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Backend**: routes in `backend/routes/api.php`, controllers in `backend/app/Http/Controllers/Api/`, services in `backend/app/Services/`
 - **Frontend**: pages in `frontend/app/(dashboard)/`, components in `frontend/components/`, utilities in `frontend/lib/`
 - **Config pages**: `frontend/app/(dashboard)/configuration/`, nav in `configuration/layout.tsx` (`navigationGroups`)
-- **Settings schema**: `backend/config/settings-schema.php` (SettingService for DB + env fallback)
+- **Settings schema**: `backend/config/settings-schema.php` (system settings via SettingService), `backend/config/user-settings-schema.php` (user settings allowlist)
 - **Search registration**: dual — `backend/config/search-pages.php` + `frontend/lib/search-pages.ts`
 
 ## Development Commands
@@ -71,9 +71,27 @@ docker exec sourdough-dev bash -c "cd /var/www/html/frontend && npx shadcn@lates
 | Help/Docs | `frontend/lib/help/help-content.ts`, `frontend/components/help/` |
 | Docker | [ADR-009](docs/adr/009-docker-single-container.md), `docker/Dockerfile`, `docker-compose.yml` |
 | Testing | [ADR-008](docs/adr/008-testing-strategy.md), `e2e/`, `backend/tests/` |
+| User Groups/Permissions | [ADR-020](docs/adr/020-user-groups-permissions.md), `backend/app/Services/GroupService.php`, `backend/app/Services/PermissionService.php` |
+| Audit Logging | [ADR-023](docs/adr/023-audit-logging-system.md), `backend/app/Services/AuditService.php`, [trigger-audit-logging recipe](docs/ai/recipes/trigger-audit-logging.md) |
+| Access Logging (HIPAA) | `backend/app/Services/AccessLogService.php`, `backend/app/Http/Middleware/LogResourceAccess.php`, [add-access-logging recipe](docs/ai/recipes/add-access-logging.md) |
+| Application Logging | `backend/app/Http/Middleware/AddCorrelationId.php`, `backend/app/Services/AppLogExportService.php`, [extend-logging recipe](docs/ai/recipes/extend-logging.md) |
+| Email Templates | [ADR-016](docs/adr/016-email-template-system.md), `backend/app/Services/EmailTemplateService.php`, [add-email-template recipe](docs/ai/recipes/add-email-template.md) |
+| Notification Templates | [ADR-017](docs/adr/017-notification-template-system.md), `backend/app/Services/NotificationTemplateService.php`, [add-notification-template recipe](docs/ai/recipes/add-notification-template.md) |
+| SSO | [ADR-003](docs/adr/003-sso-provider-integration.md), `backend/app/Services/Auth/SSOService.php`, [add-sso-provider recipe](docs/ai/recipes/add-sso-provider.md) |
+| Security Settings | `backend/app/Http/Controllers/Api/AuthSettingController.php`, `frontend/app/(dashboard)/configuration/security/page.tsx` |
+| Suspicious Activity | `backend/app/Services/SuspiciousActivityService.php`, `backend/app/Console/Commands/CheckSuspiciousActivityCommand.php` |
+| Scheduled Jobs | `backend/app/Services/ScheduledTaskService.php`, `backend/app/Http/Controllers/Api/JobController.php` |
 | PWA | [PWA roadmap](docs/plans/pwa-roadmap.md), `frontend/public/sw.js` |
 | Mobile/Responsive | [ADR-013](docs/adr/013-responsive-mobile-first-design.md), `frontend/lib/use-mobile.ts` |
 | Branding | `frontend/config/app.ts`, `frontend/components/logo.tsx`, `frontend/lib/app-config.tsx` |
+| Real-Time Streaming | [ADR-027](docs/adr/027-real-time-streaming.md), `frontend/lib/echo.ts`, [add-real-time-streaming recipe](docs/ai/recipes/add-real-time-streaming.md) |
+| Webhooks | [ADR-028](docs/adr/028-webhook-system.md), `backend/app/Services/WebhookService.php`, [add-webhook recipe](docs/ai/recipes/add-webhook.md) |
+| Usage Tracking | [ADR-029](docs/adr/029-usage-tracking-alerts.md), `backend/app/Services/UsageTrackingService.php`, [add-usage-tracking recipe](docs/ai/recipes/add-usage-tracking.md) |
+| File Manager | [ADR-030](docs/adr/030-file-manager.md), `backend/app/Http/Controllers/Api/FileManagerController.php`, [add-file-manager-feature recipe](docs/ai/recipes/add-file-manager-feature.md) |
+| Passkeys | [ADR-018](docs/adr/018-passkey-webauthn.md), `backend/app/Services/Auth/PasskeyService.php`, [add-passkey-support recipe](docs/ai/recipes/add-passkey-support.md) |
+| Onboarding | `backend/app/Http/Controllers/Api/OnboardingController.php`, [extend-onboarding recipe](docs/ai/recipes/extend-onboarding.md) |
+| Changelog | `backend/app/Services/ChangelogService.php`, [add-changelog-entry recipe](docs/ai/recipes/add-changelog-entry.md) |
+| API Keys | `backend/app/Services/ApiKeyService.php`, [api-key-service pattern](docs/ai/patterns/api-key-service.md) |
 | Release/Deploy | [commit-and-release recipe](docs/ai/recipes/commit-and-release.md), `scripts/push.ps1`, `VERSION` |
 | New Project Setup | Say **"Get cooking"** -- [setup-new-project recipe](docs/ai/recipes/setup-new-project.md) |
 
@@ -88,7 +106,7 @@ docker exec sourdough-dev bash -c "cd /var/www/html/frontend && npx shadcn@lates
 - **Sanctum cookies** - Auth uses session cookies, not Bearer tokens. Include `credentials: 'include'` in fetch
 - **SQLite default** - Test array/JSON columns carefully; code also supports MySQL/PostgreSQL
 - **API prefix** - All backend routes under `/api/`. Frontend calls go through Nginx proxy
-- **Settings models** - User settings use `Setting`; system settings use `SystemSetting`. For schema-backed settings, use **SettingService** (not `SystemSetting::get/set` directly)
+- **Settings models** - System settings use `SystemSetting` via **SettingService** (not `SystemSetting::get/set` directly). User settings use `Setting` model; schema in `backend/config/user-settings-schema.php`
 - **shadcn/ui** - Components in `frontend/components/ui/` are CLI-managed. Use `npx shadcn@latest add <component>` from `frontend/`
 - **Form fields optional by default** - Use `z.string().optional()`, `mode: "onBlur"`, `reset()` for initial values, `setValue(..., { shouldDirty: true })` for custom inputs
 - **Mobile-first CSS** - Base styles for mobile, add `md:`, `lg:` for larger. Use `useIsMobile()` for conditional rendering
@@ -96,6 +114,12 @@ docker exec sourdough-dev bash -c "cd /var/www/html/frontend && npx shadcn@lates
 - **Audit actions** - Use `AuditService` with `{resource}.{action}` naming (e.g. `user.created`)
 - **Config nav registration** - New config pages need an entry in `configuration/layout.tsx` `navigationGroups`
 - **Search dual registration** - New pages need entries in both `backend/config/search-pages.php` and `frontend/lib/search-pages.ts`
+- **User deletion** - Always use `UserService::deleteUser()`, never `$user->delete()` directly — handles cascade cleanup
+- **SSRF protection** - Any user-supplied URL (webhooks, Ollama host, SSO URIs) must validate through `UrlValidationService`
+- **Correlation IDs** - `AddCorrelationId` middleware adds `X-Correlation-ID` to every request. Use `app('correlation_id')` for log correlation, don't generate your own
+- **Route deprecation** - Use `DeprecateRoute` middleware to add RFC 8594 `Deprecation` + `Sunset` headers to old routes
+
+- **Bug tracker** - When you encounter or suspect a bug that could affect multiple locations, **always** log it in [docs/plans/bug-tracker.md](docs/plans/bug-tracker.md) before moving on. Include file path, what's wrong, suspected scope, and severity. This ensures nothing gets lost.
 
 **Pre-submit checklist:** [docs/ai/anti-patterns/README.md](docs/ai/anti-patterns/README.md#quick-checklist)
 

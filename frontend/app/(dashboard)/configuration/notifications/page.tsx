@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormRegister, FieldErrors, UseFormWatch, UseFormSetValue } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { errorLogger } from "@/lib/error-logger";
+import { getErrorMessage } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -280,12 +281,6 @@ const CHANNEL_CONFIGS: ChannelConfig[] = [
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
-function extractErrorMessage(err: unknown): string | null {
-  if (err && typeof err === "object" && "response" in err) {
-    return (err as { response?: { data?: { message?: string } } }).response?.data?.message ?? null;
-  }
-  return null;
-}
 
 function getDefaultValue(field: string): string | boolean {
   if (field === "ntfy_enabled") return true;
@@ -356,8 +351,7 @@ function ChannelCredentialCard({
       await api.post(`/notification-settings/test/${config.channelId}`);
       setTestResult({ status: "success", message: "Test notification sent successfully" });
     } catch (err: unknown) {
-      const msg = extractErrorMessage(err);
-      setTestResult({ status: "error", message: msg ?? `Test failed for ${config.title}` });
+      setTestResult({ status: "error", message: getErrorMessage(err, `Test failed for ${config.title}`) });
     }
   };
 
@@ -381,8 +375,7 @@ function ChannelCredentialCard({
       });
       if (hasCredentials) await runTest();
     } catch (err: unknown) {
-      const msg = extractErrorMessage(err);
-      toast.error(msg ?? `Failed to save ${config.title} credentials`);
+      toast.error(getErrorMessage(err, `Failed to save ${config.title} credentials`));
     } finally {
       setIsSaving(false);
     }
@@ -397,8 +390,7 @@ function ChannelCredentialCard({
       setValue("vapid_private_key", private_key, { shouldDirty: true });
       toast.success("VAPID keys generated. Click Save to apply.");
     } catch (err: unknown) {
-      const msg = extractErrorMessage(err);
-      toast.error(msg ?? "Failed to generate VAPID keys");
+      toast.error(getErrorMessage(err, "Failed to generate VAPID keys"));
     } finally {
       setIsGeneratingVapid(false);
     }
@@ -473,13 +465,12 @@ function ChannelCredentialCard({
 
 // ── Field renderers ──────────────────────────────────────────────────────
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 function renderChannelFields(
   channelId: string,
-  register: any,
-  errors: any,
-  watch: any,
-  setValue: any,
+  register: UseFormRegister<Record<string, string>>,
+  errors: FieldErrors<Record<string, string>>,
+  watch: UseFormWatch<Record<string, string>>,
+  setValue: UseFormSetValue<Record<string, string>>,
   extra: {
     isGeneratingVapid: boolean;
     onGenerateVapid: () => void;
@@ -663,8 +654,6 @@ function renderChannelFields(
       return null;
   }
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
-
 // ── Main page ────────────────────────────────────────────────────────────
 
 export default function NotificationsPage() {
@@ -691,7 +680,7 @@ export default function NotificationsPage() {
       setSettings(settingsRes.data?.settings ?? {});
       // Invalidate app-config cache so feature flags (webpushEnabled etc.) update immediately
       queryClient.invalidateQueries({ queryKey: ["app-config"] });
-    } catch (e) {
+    } catch (e: unknown) {
       errorLogger.report(
         e instanceof Error ? e : new Error("Failed to fetch notification config"),
         { source: "notifications-page" }
@@ -726,8 +715,7 @@ export default function NotificationsPage() {
       setChannels((prev) =>
         prev.map((ch) => (ch.id === channelId ? { ...ch, available: !available } : ch))
       );
-      const msg = extractErrorMessage(err);
-      toast.error(msg ?? "Failed to update channel");
+      toast.error(getErrorMessage(err, "Failed to update channel"));
     } finally {
       setSavingChannels((prev) => {
         const next = new Set(prev);
@@ -746,8 +734,7 @@ export default function NotificationsPage() {
       toast.success("SMS provider updated");
     } catch (err: unknown) {
       setSmsProvider(previous);
-      const msg = extractErrorMessage(err);
-      toast.error(msg ?? "Failed to update SMS provider");
+      toast.error(getErrorMessage(err, "Failed to update SMS provider"));
     }
   };
 
@@ -767,8 +754,7 @@ export default function NotificationsPage() {
         toast.success(`All ${successes} enabled channels passed`);
       }
     } catch (err: unknown) {
-      const msg = extractErrorMessage(err);
-      toast.error(msg ?? "Failed to test channels");
+      toast.error(getErrorMessage(err, "Failed to test channels"));
     } finally {
       setIsTestingAll(false);
     }
@@ -1019,8 +1005,7 @@ function RateLimitingCard({
       reset(data);
       await onSaved();
     } catch (err: unknown) {
-      const msg = extractErrorMessage(err);
-      toast.error(msg ?? "Failed to save rate limiting settings");
+      toast.error(getErrorMessage(err, "Failed to save rate limiting settings"));
     } finally {
       setIsSaving(false);
     }

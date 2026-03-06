@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "./auth";
+import { useAuth, isAdminUser } from "./auth";
 
 /**
  * Check if the current user has a single permission.
@@ -9,6 +9,7 @@ import { useAuth } from "./auth";
 export function usePermission(permission: string): boolean {
   const { user } = useAuth();
   if (!user) return false;
+  if (isAdminUser(user)) return true;
   return user.permissions?.includes(permission) ?? false;
 }
 
@@ -19,5 +20,6 @@ export function usePermission(permission: string): boolean {
 export function usePermissions(permissions: string[]): boolean[] {
   const { user } = useAuth();
   if (!user) return permissions.map(() => false);
+  if (isAdminUser(user)) return permissions.map(() => true);
   return permissions.map((p) => user.permissions?.includes(p) ?? false);
 }

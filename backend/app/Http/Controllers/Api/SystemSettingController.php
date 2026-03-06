@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Traits\ApiResponseTrait;
 use App\Models\SystemSetting;
 use App\Services\AuditService;
 use App\Services\EmailConfigService;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Validator;
 
 class SystemSettingController extends Controller
 {
+    use ApiResponseTrait;
     public function __construct(
         private AuditService $auditService,
         private SettingService $settingService
@@ -32,7 +34,7 @@ class SystemSettingController extends Controller
         $general['app_url'] = config('app.url');
         $settings['general'] = $general;
 
-        return response()->json([
+        return $this->dataResponse([
             'settings' => $settings,
         ]);
     }
@@ -68,7 +70,7 @@ class SystemSettingController extends Controller
             FILTER_VALIDATE_BOOLEAN
         );
 
-        return response()->json([
+        return $this->dataResponse([
             'settings' => $settings,
             'features' => [
                 'email_configured' => $emailConfigured,
@@ -93,6 +95,11 @@ class SystemSettingController extends Controller
      */
     public function show(Request $request, string $group): JsonResponse
     {
+        $schema = config('settings-schema');
+        if (!isset($schema[$group])) {
+            return $this->errorResponse("Unknown settings group: {$group}", 404);
+        }
+
         $settings = SystemSetting::where('group', $group)
             ->get()
             ->pluck('value', 'key')
@@ -103,7 +110,7 @@ class SystemSettingController extends Controller
             $settings['app_url'] = config('app.url');
         }
 
-        return response()->json([
+        return $this->dataResponse([
             'group' => $group,
             'settings' => $settings,
         ]);
@@ -123,6 +130,17 @@ class SystemSettingController extends Controller
         ]);
 
         $user = $request->user();
+
+        // Validate all group/key pairs against the settings schema
+        $schema = config('settings-schema');
+        foreach ($validated['settings'] as $setting) {
+            if ($setting['group'] === 'general' && $setting['key'] === 'app_url') {
+                continue;
+            }
+            if (!isset($schema[$setting['group']][$setting['key']])) {
+                return $this->errorResponse("Unknown setting: {$setting['group']}.{$setting['key']}", 422);
+            }
+        }
 
         foreach ($validated['settings'] as $setting) {
             // app_url is controlled by APP_URL env var, not stored in DB
@@ -144,8 +162,6 @@ class SystemSettingController extends Controller
 
         $this->auditService->logSettings('system', [], ['settings' => $validated['settings']], $user->id);
 
-        return response()->json([
-            'message' => 'System settings updated successfully',
-        ]);
+        return $this->successResponse('System settings updated successfully');
     }
 }

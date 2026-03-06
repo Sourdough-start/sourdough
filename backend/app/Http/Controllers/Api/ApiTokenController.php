@@ -3,12 +3,18 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Traits\ApiResponseTrait;
 use App\Models\ApiToken;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @deprecated Use ApiKeyController instead. These routes serve legacy tokens
+ *             without key_prefix. New tokens should use the /user/api-keys endpoints.
+ */
 class ApiTokenController extends Controller
 {
+    use ApiResponseTrait;
     /**
      * Get user's API tokens.
      */

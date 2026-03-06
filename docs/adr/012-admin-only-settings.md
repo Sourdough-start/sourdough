@@ -48,7 +48,7 @@ We will restrict all settings pages to admin users only:
 
 ### Neutral
 
-- Future consideration: May need to add user-specific preferences separate from system settings
+- **[IMPLEMENTED]** User-specific preferences now live at `/user/preferences` and `/user/security`, separate from admin-only system settings under `/configuration/`
 - Settings pages remain accessible to admins via sidebar and dashboard cards
 - No changes to backend API - access control is frontend-only (backend should also validate)
 

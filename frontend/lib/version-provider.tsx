@@ -27,7 +27,7 @@ function useVersionQuery() {
       try {
         const response = await api.get("/version");
         return response.data;
-      } catch (error) {
+      } catch (error: unknown) {
         // If API fails, return empty values - components should handle loading/error states
         return {
           version: "",

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Helpers\QueryHelper;
 use App\Models\ApiToken;
 use App\Models\User;
 use Carbon\Carbon;
@@ -176,8 +177,9 @@ class ApiKeyService
      *
      * @param array<string, mixed> $filters  Keys: status, user_id, user, expiring_soon
      */
-    public function listAdminKeys(array $filters, int $perPage = 50): LengthAwarePaginator
+    public function listAdminKeys(array $filters, ?int $perPage = null): LengthAwarePaginator
     {
+        $perPage = $perPage ?? (int) config('app.pagination.audit_log', 50);
         $query = ApiToken::withTrashed()
             ->whereNotNull('key_prefix')
             ->where('key_prefix', 'like', 'sk_%')
@@ -197,10 +199,10 @@ class ApiKeyService
         }
 
         if (!empty($filters['user'])) {
-            $search = str_replace(['%', '_'], ['\\%', '\\_'], $filters['user']);
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+            $escaped = QueryHelper::escapeLike($filters['user']);
+            $query->whereHas('user', function ($q) use ($escaped) {
+                $q->where('name', 'like', "%{$escaped}%")
+                  ->orWhere('email', 'like', "%{$escaped}%");
             });
         }
 

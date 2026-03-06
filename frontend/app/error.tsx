@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { errorLogger } from "@/lib/error-logger";
 
 export default function GlobalError({
   error,
@@ -11,7 +12,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Unhandled error:", error);
+    errorLogger.report(error);
   }, [error]);
 
   return (

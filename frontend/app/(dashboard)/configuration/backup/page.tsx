@@ -180,7 +180,7 @@ export default function BackupPage() {
     try {
       const response = await api.get("/backup");
       setBackups(response.data.backups || []);
-    } catch (error) {
+    } catch (error: unknown) {
       errorLogger.report(
         error instanceof Error ? error : new Error("Failed to fetch backups"),
         { source: "backup-page" }
@@ -297,7 +297,7 @@ export default function BackupPage() {
         notify_failure: settings.notify_failure ?? defaultBackupSettings.notify_failure,
       };
       reset(formValues);
-    } catch (e) {
+    } catch (e: unknown) {
       toast.error("Failed to load backup settings");
     } finally {
       setSettingsLoading(false);

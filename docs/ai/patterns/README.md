@@ -47,7 +47,15 @@ Follow these patterns for consistency across the codebase. Read only the files r
 |---------|------|-------------|
 | Error Handling | [error-handling.md](error-handling.md) | Backend + frontend error handling |
 | Security | [security.md](security.md) | SSRF, webhooks, passwords, OAuth, filename validation |
+| Sanitize | [sanitize.md](sanitize.md) | HTML/CSS sanitization for user content |
 | GraphQL Documentation | [graphql-docs.md](graphql-docs.md) | Keeping API docs in sync with schema |
+| Theming | [theming.md](theming.md) | Color themes and CSS custom properties |
+| Auth Middleware Stack | [auth-middleware.md](auth-middleware.md) | 2FA, email verification, admin middleware |
+| Webhook Service | [webhook-service.md](webhook-service.md) | Outbound webhooks with HMAC signatures |
+| API Key Service | [api-key-service.md](api-key-service.md) | API key lifecycle, rate limiting |
+| Real-Time Streaming | [real-time-streaming.md](real-time-streaming.md) | Laravel Reverb/Echo WebSocket streaming |
+| Stripe Service | [stripe-service.md](stripe-service.md) | Stripe Connect integration |
+| Stripe Webhooks | [stripe-webhooks.md](stripe-webhooks.md) | Handling Stripe webhook events |
 
 ## Naming Conventions
 
@@ -62,3 +70,9 @@ Follow these patterns for consistency across the codebase. Read only the files r
 | Frontend page | `page.tsx` in route folder | `app/(dashboard)/example/page.tsx` |
 | Frontend component | `kebab-case.tsx` | `example-card.tsx` |
 | Migration | `{timestamp}_create_{table}_table.php` | `2024_01_01_000000_create_examples_table.php` |
+| Hook | `use-{feature}.ts` | `use-permission.ts` |
+| Test (PHP) | `{Feature}Test.php` | `AuthTest.php` |
+| Test (TS) | `{feature}.test.ts(x)` | `api.test.ts` |
+| Factory | `{Model}Factory.php` | `UserFactory.php` |
+| Middleware | `{PascalCase}.php` | `AddCorrelationId.php` |
+| Helper | `{Feature}Helper.php` | `QueryHelper.php` |
