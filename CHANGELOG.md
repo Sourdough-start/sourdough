@@ -15,6 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.9.1] - 2026-03-05
+
+### Fixed
+- CI build failures - TS type error and composer audit abandoned pkg
+
+### Changed
+- Release v0.9.0
 ## [0.9.0] - 2026-03-05
 
 ### Changed
