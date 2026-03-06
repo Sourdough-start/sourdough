@@ -159,8 +159,10 @@ Write-Host "Frontend tests passed!" -ForegroundColor Green
 
 # Run frontend lint (matches CI)
 Write-Host "`nRunning frontend lint in Docker..." -ForegroundColor Yellow
+$ErrorActionPreference = "Continue"
 docker compose exec -T app bash -c "cd /var/www/html/frontend && npm run lint" 2>&1
 $LintExit = $LASTEXITCODE
+$ErrorActionPreference = "Stop"
 
 if ($LintExit -ne 0) {
     Write-Host "`nFrontend lint failed!" -ForegroundColor Red
@@ -173,8 +175,10 @@ Write-Host "Frontend lint passed!" -ForegroundColor Green
 
 # Run frontend build / TypeScript check (matches CI)
 Write-Host "`nRunning frontend build in Docker..." -ForegroundColor Yellow
+$ErrorActionPreference = "Continue"
 docker compose exec -T app bash -c "cd /var/www/html/frontend && npm run build" 2>&1
 $BuildExit = $LASTEXITCODE
+$ErrorActionPreference = "Stop"
 
 if ($BuildExit -ne 0) {
     Write-Host "`nFrontend build failed!" -ForegroundColor Red
@@ -187,8 +191,10 @@ Write-Host "Frontend build passed!" -ForegroundColor Green
 
 # Run composer audit (matches CI)
 Write-Host "`nRunning composer audit in Docker..." -ForegroundColor Yellow
+$ErrorActionPreference = "Continue"
 docker compose exec -T app bash -c "cd /var/www/html/backend && composer audit --abandoned=report" 2>&1
 $AuditExit = $LASTEXITCODE
+$ErrorActionPreference = "Stop"
 
 if ($AuditExit -ne 0) {
     Write-Host "`nComposer audit found security vulnerabilities!" -ForegroundColor Red
