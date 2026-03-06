@@ -465,12 +465,15 @@ function ChannelCredentialCard({
 
 // ── Field renderers ──────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyFormValues = Record<string, any>;
+
 function renderChannelFields(
   channelId: string,
-  register: UseFormRegister<Record<string, string>>,
-  errors: FieldErrors<Record<string, string>>,
-  watch: UseFormWatch<Record<string, string>>,
-  setValue: UseFormSetValue<Record<string, string>>,
+  register: UseFormRegister<AnyFormValues>,
+  errors: FieldErrors<AnyFormValues>,
+  watch: UseFormWatch<AnyFormValues>,
+  setValue: UseFormSetValue<AnyFormValues>,
   extra: {
     isGeneratingVapid: boolean;
     onGenerateVapid: () => void;

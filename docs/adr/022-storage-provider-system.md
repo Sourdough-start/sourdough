@@ -199,6 +199,14 @@ Other Sourdough subsystems (notifications, LLM, backup) use a custom interface p
 
 Instead of custom provider classes, `StorageService` uses `ConfigServiceProvider` to inject database-stored credentials into Laravel's filesystem config at boot time. Adding a new storage provider means adding a new disk configuration in `filesystems.php` and a form section in the frontend — no new PHP class needed.
 
+## API Documentation
+
+- [AWS S3 API](https://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html)
+- [Google Cloud Storage](https://cloud.google.com/storage/docs/apis)
+- [Azure Blob Storage REST API](https://learn.microsoft.com/en-us/rest/api/storageservices/blob-service-rest-api)
+- [DigitalOcean Spaces API](https://docs.digitalocean.com/reference/api/spaces/)
+- [Backblaze B2 Documentation](https://www.backblaze.com/docs)
+
 ## Related Decisions
 
 - [ADR-007: Backup System Design](./007-backup-system-design.md) - Backup destinations use similar providers (custom interface)

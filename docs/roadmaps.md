@@ -18,7 +18,7 @@ _(None — all items archived. Pick from Planned Features below or add new items
 
 Ready to start. These are unblocked and can begin immediately.
 
-_(None — pick from Planned Features below or add new items)_
+- [ ] **ADR & API Documentation Audit** - Systematic audit of all 30 ADRs against API docs and actual code implementation. Verify docs accuracy, ADR alignment, and implementation completeness. (see [ADR API Audit](plans/adr-api-audit-roadmap.md))
 
 ## Planned Features
 

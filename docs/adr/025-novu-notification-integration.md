@@ -80,6 +80,11 @@ We will integrate Novu as an **optional** notification path:
 - `frontend/next.config.js` — Turbopack resolve alias for `@novu/react`
 - `frontend/scripts/patch-novu-exports.js` — flattens `@novu/react` exports for Turbopack
 
+## API Documentation
+
+- [Novu API Reference](https://docs.novu.co/api-reference/overview)
+- [Novu React SDK](https://docs.novu.co/sdks/react)
+
 ### Recipe
 
 - [Configure Novu](../ai/recipes/configure-novu.md)

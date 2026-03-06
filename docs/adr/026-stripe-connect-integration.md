@@ -107,6 +107,12 @@ We will integrate **Stripe Connect with destination charges** as an optional pay
 - `frontend/app/(dashboard)/configuration/payments/page.tsx` — payment history
 - `backend/app/Services/Stripe/LICENSE.md` — commercial license
 
+## API Documentation
+
+- [Stripe API Reference](https://docs.stripe.com/api)
+- [Stripe Connect](https://docs.stripe.com/connect)
+- [Stripe.js Reference](https://docs.stripe.com/js)
+
 ### Recipes
 
 - [Setup Stripe](../ai/recipes/setup-stripe.md)

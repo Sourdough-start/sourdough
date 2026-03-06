@@ -72,6 +72,12 @@ Use **Laravel Reverb** as the WebSocket server with **Laravel Echo** (Pusher pro
 - Channel authorization reuses Sanctum session — no separate auth mechanism
 - Reverb config (`backend/config/reverb.php`) uses standard Laravel conventions
 
+## API Documentation
+
+- [Laravel Reverb](https://laravel.com/docs/12.x/reverb)
+- [Laravel Broadcasting](https://laravel.com/docs/12.x/broadcasting)
+- [Laravel Echo](https://github.com/laravel/echo)
+
 ## Related Decisions
 
 - [ADR-009](./009-docker-single-container.md) — single-container architecture (Reverb runs as Supervisor process)

@@ -149,6 +149,16 @@ The frontend dynamically shows only enabled providers.
 - [ADR-002: Authentication Architecture](./002-authentication-architecture.md)
 - [ADR-004: Two-Factor Authentication](./004-two-factor-authentication.md)
 
+## API Documentation
+
+- [Laravel Socialite](https://laravel.com/docs/12.x/socialite)
+- [Google OAuth2](https://developers.google.com/identity/protocols/oauth2)
+- [GitHub OAuth Apps](https://docs.github.com/en/apps/oauth-apps)
+- [Microsoft Entra ID OAuth2](https://learn.microsoft.com/en-us/entra/architecture/auth-oauth2)
+- [Apple Sign In](https://developer.apple.com/documentation/signinwithapple)
+- [Discord OAuth2](https://docs.discord.com/developers/topics/oauth2)
+- [GitLab OAuth2](https://docs.gitlab.com/api/oauth2/)
+
 ## Notes
 
 For generic OIDC provider (enterprise IdPs), we use the `socialiteproviders/oidc` package which supports:

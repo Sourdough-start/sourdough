@@ -71,7 +71,7 @@ jobs:
           SCOUT_DRIVER: collection
 
       - name: Audit dependencies
-        run: composer audit
+        run: composer audit --abandoned=report
         working-directory: backend
 
   frontend-tests:

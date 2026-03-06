@@ -59,6 +59,11 @@ Modern passkeys are discoverable credentials that sync across devices via platfo
 
 This means a single registered passkey may authenticate from multiple devices without re-registration. Deleting a passkey server-side removes access but does not remove the credential from the user's sync provider. Users should be informed that removing a passkey on the server only disables authentication — the credential data persists in their password manager until manually deleted there.
 
+## API Documentation
+
+- [Laragear WebAuthn](https://github.com/Laragear/WebAuthn)
+- [Web Authentication (WebAuthn) W3C Spec](https://www.w3.org/TR/webauthn-2/)
+
 ## Consequences
 
 - Users can sign in with passkeys when enabled, improving security and UX.

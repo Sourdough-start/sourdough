@@ -209,6 +209,27 @@ TWILIO_TOKEN=xxxxx
 TWILIO_FROM=+15551234567
 ```
 
+## API Documentation
+
+### Email Providers
+- [Mailgun](https://documentation.mailgun.com/)
+- [SendGrid](https://www.twilio.com/docs/sendgrid/api-reference)
+- [AWS SES](https://docs.aws.amazon.com/ses/latest/APIReference/Welcome.html)
+
+### Chat/Messaging Providers
+- [Telegram Bot API](https://core.telegram.org/bots/api)
+- [Discord Webhooks](https://discord.com/developers/docs/resources/webhook)
+- [Slack Incoming Webhooks](https://docs.slack.dev/messaging/sending-messages-using-incoming-webhooks/)
+
+### SMS Providers
+- [Twilio Messaging API](https://www.twilio.com/docs/messaging/api)
+- [Vonage SMS API](https://developer.vonage.com/en/messaging/sms/overview)
+- [AWS SNS](https://docs.aws.amazon.com/sns/latest/api/welcome.html)
+
+### Push Notification Providers
+- [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging/)
+- [Web Push VAPID (RFC 8292)](https://datatracker.ietf.org/doc/html/rfc8292)
+
 ### WebSocket for Real-Time
 
 For real-time in-app notifications:

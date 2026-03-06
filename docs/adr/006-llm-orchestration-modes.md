@@ -226,6 +226,15 @@ return [
    - Optional: dissenting views on disagreements
 6. Return structured response
 
+## API Documentation
+
+- [Anthropic Claude API](https://docs.anthropic.com/en/docs)
+- [OpenAI API](https://platform.openai.com/docs/api-reference/introduction)
+- [Google Gemini API](https://ai.google.dev/gemini-api/docs)
+- [Ollama API](https://github.com/ollama/ollama/blob/main/docs/api.md)
+- [AWS Bedrock API](https://docs.aws.amazon.com/bedrock/latest/APIReference/welcome.html)
+- [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
+
 ### Future Enhancements
 
 1. ~~**Streaming Support**~~ - **[PARTIALLY IMPLEMENTED]** Real-time streaming available via Reverb/Echo ([ADR-027](./027-real-time-streaming.md)) for app logs and audit; LLM response streaming still pending

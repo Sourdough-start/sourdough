@@ -175,6 +175,11 @@ Meilisearch runs as a Supervisor-managed process within the container:
 - `frontend/lib/search-pages.ts` - Page search utilities
 - `frontend/app/(dashboard)/configuration/search/page.tsx` - Admin search config
 
+## API Documentation
+
+- [Meilisearch Documentation](https://www.meilisearch.com/docs)
+- [Laravel Scout](https://laravel.com/docs/12.x/scout)
+
 ## Related Decisions
 
 - [ADR-009: Docker Single-Container Architecture](./009-docker-single-container.md) - Meilisearch embedded in container
