@@ -157,6 +157,48 @@ if ($FrontendTestExit -ne 0) {
 
 Write-Host "Frontend tests passed!" -ForegroundColor Green
 
+# Run frontend lint (matches CI)
+Write-Host "`nRunning frontend lint in Docker..." -ForegroundColor Yellow
+docker compose exec -T app bash -c "cd /var/www/html/frontend && npm run lint" 2>&1
+$LintExit = $LASTEXITCODE
+
+if ($LintExit -ne 0) {
+    Write-Host "`nFrontend lint failed!" -ForegroundColor Red
+    Write-Host "Fix the lint errors and try again." -ForegroundColor Red
+    git reset --soft HEAD~1
+    exit 1
+}
+
+Write-Host "Frontend lint passed!" -ForegroundColor Green
+
+# Run frontend build / TypeScript check (matches CI)
+Write-Host "`nRunning frontend build in Docker..." -ForegroundColor Yellow
+docker compose exec -T app bash -c "cd /var/www/html/frontend && npm run build" 2>&1
+$BuildExit = $LASTEXITCODE
+
+if ($BuildExit -ne 0) {
+    Write-Host "`nFrontend build failed!" -ForegroundColor Red
+    Write-Host "Fix the build errors and try again." -ForegroundColor Red
+    git reset --soft HEAD~1
+    exit 1
+}
+
+Write-Host "Frontend build passed!" -ForegroundColor Green
+
+# Run composer audit (matches CI)
+Write-Host "`nRunning composer audit in Docker..." -ForegroundColor Yellow
+docker compose exec -T app bash -c "cd /var/www/html/backend && composer audit --abandoned=report" 2>&1
+$AuditExit = $LASTEXITCODE
+
+if ($AuditExit -ne 0) {
+    Write-Host "`nComposer audit found security vulnerabilities!" -ForegroundColor Red
+    Write-Host "Fix the vulnerabilities and try again." -ForegroundColor Red
+    git reset --soft HEAD~1
+    exit 1
+}
+
+Write-Host "Composer audit passed!" -ForegroundColor Green
+
 Write-Host "`n========================================" -ForegroundColor Green
 Write-Host "All tests passed! Proceeding with release..." -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green

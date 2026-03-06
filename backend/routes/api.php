@@ -116,7 +116,9 @@ Route::prefix('auth')->group(function () {
         ->middleware('auth:sanctum');
     Route::delete('/sso/{provider}/unlink', [SSOController::class, 'unlink'])
         ->middleware('auth:sanctum');
-    
+    Route::get('/sso/linked-accounts', [SSOController::class, 'linkedAccounts'])
+        ->middleware('auth:sanctum');
+
     // Authenticated routes
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/user', [AuthController::class, 'user'])->middleware('2fa.setup');
@@ -146,11 +148,11 @@ Route::prefix('auth')->group(function () {
         });
     });
 
-    // Passkey login (unauthenticated, rate limited)
+    // Passkey login (unauthenticated, rate limited like other login methods)
     Route::post('/passkeys/login/options', [PasskeyController::class, 'loginOptions'])
-        ->middleware('throttle:10,1');
+        ->middleware('rate.sensitive:passkey');
     Route::post('/passkeys/login', [PasskeyController::class, 'login'])
-        ->middleware('throttle:10,1');
+        ->middleware('rate.sensitive:passkey');
 });
 
 /*

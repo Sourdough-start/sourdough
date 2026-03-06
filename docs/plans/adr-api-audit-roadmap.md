@@ -4,9 +4,9 @@ Systematic audit of all 30 ADRs against API documentation (`docs/api/README.md`,
 
 ## Summary
 
-- **Total ADRs audited**: 0/30
-- **API doc issues found**: 0
-- **Implementation gaps found**: 0
+- **Total ADRs audited**: 8/30
+- **API doc issues found**: 9
+- **Implementation gaps found**: 2
 - **ADR updates needed**: 0
 
 ## How to Audit
@@ -26,14 +26,14 @@ For each ADR:
 
 | ADR | Title | Docs Accuracy | ADR Alignment | Implementation Complete | Notes |
 |-----|-------|--------------|---------------|------------------------|-------|
-| 002 | Authentication Architecture | | | | |
-| 003 | SSO Provider Integration | | | | |
-| 004 | Two-Factor Authentication | | | | |
-| 012 | Admin-Only Settings Access | | | | |
-| 015 | Env-Only Settings | | | | |
-| 018 | Passkey/WebAuthn | | | | |
-| 020 | User Groups & Permissions | | | | |
-| 024 | Security Hardening | | | | |
+| 002 | Authentication Architecture | ✅ | ✅ | ✅ | All endpoints, rate limiting, session auth correct |
+| 003 | SSO Provider Integration | ⚠️ | ✅ | ⚠️ | 5 endpoints missing from OpenAPI. `linkedAccounts()` was unrouted — fixed |
+| 004 | Two-Factor Authentication | ⚠️ | ✅ | ✅ | Recovery code endpoints missing from OpenAPI. 2FA verify schema had `recovery_code` instead of `is_recovery_code` — fixed |
+| 012 | Admin-Only Settings Access | ✅ | ✅ | ✅ | All settings routes use `can:settings.view/edit` middleware |
+| 015 | Env-Only Settings | ✅ | ✅ | ✅ | APP_KEY, DB_*, LOG_* correctly excluded from SettingService |
+| 018 | Passkey/WebAuthn | ⚠️ | ✅ | ⚠️ | Passkey login used generic `throttle:10,1` instead of `rate.sensitive` — fixed. OpenAPI passkey ID type was integer instead of string — fixed |
+| 020 | User Groups & Permissions | ✅ | ✅ | ✅ | 13 permissions, GroupService/PermissionService with caching, all routes permission-gated |
+| 024 | Security Hardening | ✅ | ✅ | ✅ | SSRF, backup SQL injection, OAuth state, webhook signatures all implemented |
 
 **Key files**: `AuthController`, `SSOController`, `TwoFactorController`, `PasskeyController`, `GroupController`, `AuthSettingController`
 
@@ -93,15 +93,25 @@ For each ADR:
 
 ### API Doc Fixes Needed
 
-_(None yet — populate during audit)_
+**Batch 1 (Auth & Identity):**
+1. ~~`POST /auth/check-email` missing from OpenAPI~~ — added
+2. ~~`POST /auth/2fa/recovery-codes` missing from OpenAPI~~ — added
+3. ~~`POST /auth/2fa/recovery-codes/regenerate` missing from OpenAPI~~ — added
+4. ~~`POST /auth/sso/{provider}/link` missing from OpenAPI~~ — added
+5. ~~`DELETE /auth/sso/{provider}/unlink` missing from OpenAPI~~ — added
+6. ~~`DELETE /profile` path documented as `/profile/delete` in OpenAPI~~ — fixed
+7. ~~2FA verify schema used `recovery_code` string instead of `is_recovery_code` boolean~~ — fixed
+8. ~~Passkey `{id}` parameter typed as integer instead of string~~ — fixed
 
 ### Implementation Gaps
 
-_(None yet — populate during audit)_
+**Batch 1 (Auth & Identity):**
+1. ~~`SSOController::linkedAccounts()` unrouted~~ — added `GET /auth/sso/linked-accounts` route
+2. ~~Passkey login rate limiting too permissive (`throttle:10,1` vs `rate.sensitive`)~~ — upgraded to `rate.sensitive:passkey`
 
 ### ADR Updates Needed
 
-_(None yet — populate during audit)_
+_(None found in Batch 1)_
 
 ---
 

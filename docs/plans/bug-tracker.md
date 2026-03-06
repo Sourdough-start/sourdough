@@ -14,7 +14,12 @@ Each entry should include:
 
 ## Active Bugs
 
-_(None yet — entries will be added as bugs are discovered)_
+### Registration test fails with 500 — missing cache directory
+- **Where found**: `tests/Feature/AuthTest.php:17`, error in `Filesystem.php:738`
+- **What's wrong**: `it can register a new user` test returns 500. Root cause: `FilesystemIterator::__construct` fails on missing cache directory (`storage/framework/cache/data/68`). Registration triggers cache operations (likely GroupService default group setup) that fail when cache dir doesn't exist.
+- **Scope**: Could affect any test that triggers cache writes in a fresh environment. Registration flow only.
+- **Severity**: Medium (test-only, production unaffected since cache dirs exist)
+- **Date added**: 2026-03-05
 
 ## Under Investigation
 

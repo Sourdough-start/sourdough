@@ -78,6 +78,7 @@ class RateLimitSensitive
         return match ($limitKey) {
             'login' => 5,           // 5 login attempts
             '2fa' => 5,             // 5 2FA verification attempts
+            'passkey' => 5,         // 5 passkey login attempts
             'password_reset' => 3,  // 3 password reset requests
             'register' => 3,        // 3 registration attempts
             default => 10,          // Default for other sensitive operations
@@ -92,6 +93,7 @@ class RateLimitSensitive
         return match ($limitKey) {
             'login' => 300,          // 5 minutes lockout
             '2fa' => 300,            // 5 minutes lockout
+            'passkey' => 300,        // 5 minutes lockout
             'password_reset' => 3600, // 1 hour lockout
             'register' => 3600,      // 1 hour lockout
             default => 60,           // 1 minute default

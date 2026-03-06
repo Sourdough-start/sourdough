@@ -224,6 +224,34 @@ paths:
           $ref: '#/components/responses/ValidationError'
 
   # ==================== SSO ====================
+  /auth/check-email:
+    post:
+      tags: [Authentication]
+      summary: Check email availability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Email availability status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available:
+                    type: boolean
+        '429':
+          description: Rate limited (10 requests per minute)
+
   /auth/sso/providers:
     get:
       tags: [SSO]
@@ -259,6 +287,90 @@ paths:
           description: Redirect to SSO provider
         '400':
           description: Invalid or disabled provider
+
+  /auth/sso/{provider}/link:
+    post:
+      tags: [SSO]
+      summary: Link SSO provider to existing account
+      security:
+        - sanctum: []
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [google, github, microsoft, apple, discord, gitlab]
+      responses:
+        '200':
+          description: Redirect URL for OAuth flow
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  redirect_url:
+                    type: string
+                    format: uri
+        '400':
+          description: Invalid or disabled provider
+
+  /auth/sso/{provider}/unlink:
+    delete:
+      tags: [SSO]
+      summary: Unlink SSO provider from account
+      security:
+        - sanctum: []
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [google, github, microsoft, apple, discord, gitlab]
+      responses:
+        '200':
+          description: Provider unlinked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Cannot unlink last authentication method
+
+  /auth/sso/linked-accounts:
+    get:
+      tags: [SSO]
+      summary: List linked SSO accounts
+      security:
+        - sanctum: []
+      responses:
+        '200':
+          description: List of linked SSO providers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  linked_accounts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        provider:
+                          type: string
+                        provider_id:
+                          type: string
+                        nickname:
+                          type: string
+                        avatar:
+                          type: string
+                        created_at:
+                          type: string
+                          format: date-time
 
   # ==================== Two-Factor Authentication ====================
   /auth/2fa/status:
@@ -359,8 +471,9 @@ paths:
     post:
       tags: [Two-Factor Authentication]
       summary: Verify 2FA code during login
-      security:
-        - sanctum: []
+      description: |
+        Verify 2FA code during login. This endpoint does not require authentication
+        as it is used during the login flow before full auth is established.
       requestBody:
         required: true
         content:
@@ -371,13 +484,87 @@ paths:
               properties:
                 code:
                   type: string
-                recovery_code:
-                  type: string
+                  description: 6-digit TOTP code or recovery code
+                is_recovery_code:
+                  type: boolean
+                  default: false
+                  description: Set to true when using a recovery code instead of TOTP
       responses:
         '200':
-          description: 2FA verified
+          description: 2FA verified, user authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
         '400':
           description: Invalid code
+        '429':
+          description: Rate limited (5 attempts per 5 minutes)
+
+  /auth/2fa/recovery-codes:
+    post:
+      tags: [Two-Factor Authentication]
+      summary: Get recovery codes
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Recovery codes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recovery_codes:
+                    type: array
+                    items:
+                      type: string
+                    example: ["ABCD-1234", "EFGH-5678"]
+        '400':
+          description: Invalid password
+
+  /auth/2fa/recovery-codes/regenerate:
+    post:
+      tags: [Two-Factor Authentication]
+      summary: Regenerate recovery codes
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: New recovery codes generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recovery_codes:
+                    type: array
+                    items:
+                      type: string
+        '400':
+          description: Invalid password
 
   # ==================== Profile ====================
   /profile:
@@ -417,6 +604,25 @@ paths:
           description: Profile updated
         '422':
           $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [Profile]
+      summary: Delete user account
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Account deleted
 
   /profile/password:
     put:
@@ -872,7 +1078,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       requestBody:
         required: true
         content:
@@ -896,7 +1102,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         '200':
           description: Passkey deleted
@@ -961,28 +1167,6 @@ paths:
       responses:
         '200':
           description: Verification email sent
-
-  # ==================== Profile Delete ====================
-  /profile/delete:
-    delete:
-      tags: [Profile]
-      summary: Delete user account
-      security:
-        - sanctum: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [password]
-              properties:
-                password:
-                  type: string
-                  format: password
-      responses:
-        '200':
-          description: Account deleted
 
   # ==================== User Settings ====================
   /user/settings:

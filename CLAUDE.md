@@ -120,6 +120,7 @@ docker exec sourdough-dev bash -c "cd /var/www/html/frontend && npx shadcn@lates
 - **Route deprecation** - Use `DeprecateRoute` middleware to add RFC 8594 `Deprecation` + `Sunset` headers to old routes
 
 - **Bug tracker** - When you encounter or suspect a bug that could affect multiple locations, **always** log it in [docs/plans/bug-tracker.md](docs/plans/bug-tracker.md) before moving on. Include file path, what's wrong, suspected scope, and severity. This ensures nothing gets lost.
+- **Journaling** - After completing any non-trivial implementation task, **always** write a journal entry in `docs/journal/YYYY-MM-DD-brief-description.md` following the template in [documentation-guide.md](docs/ai/documentation-guide.md). Link the journal entry from related ADRs, recipes, patterns, and roadmaps. When working on a task, check `docs/journal/` for existing entries that provide useful context.
 
 **Pre-submit checklist:** [docs/ai/anti-patterns/README.md](docs/ai/anti-patterns/README.md#quick-checklist)
 
