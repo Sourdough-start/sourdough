@@ -1,6 +1,6 @@
 {
   "name": "sourdough-frontend",
-  "version": "0.9.2",
+  "version": "0.10.0",
   "private": true,
   "scripts": {
     "predev": "node scripts/patch-novu-exports.js",
