@@ -248,3 +248,11 @@ Update the AI development guide so future SSO providers follow the same enhanced
 8. FormFields have helpful descriptions and proper placeholders
 9. Users can successfully configure and test SSO without leaving the app for documentation
 10. The `add-sso-provider` recipe is updated so new providers automatically include all enhanced features (logo, setup modal, test button, per-provider save)
+
+## Implementation Journal
+
+- [SSO Settings Migration (Env to Database Phase 5)](../journal/2026-01-28-sso-settings-migration.md)
+- [SSO Settings Enhancement](../journal/2026-01-30-sso-settings-enhancement.md)
+- [SSO Redirect URI Fix](../journal/2026-02-05-sso-redirect-uri-fix.md)
+- [SSO Callback Page Fix](../journal/2026-02-06-sso-callback-page-fix.md)
+- [SSO Session Persistence Fix](../journal/2026-02-06-sso-session-persistence-fix.md)

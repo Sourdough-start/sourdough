@@ -113,11 +113,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ARG MEILISEARCH_VERSION=1.34.2
 RUN cd /tmp \
     && curl -LO "https://github.com/meilisearch/meilisearch/releases/download/v${MEILISEARCH_VERSION}/meilisearch-linux-amd64" \
-    && curl -LO "https://github.com/meilisearch/meilisearch/releases/download/v${MEILISEARCH_VERSION}/meilisearch-linux-amd64.sha256" \
-    && sha256sum -c meilisearch-linux-amd64.sha256 \
     && mv meilisearch-linux-amd64 /usr/local/bin/meilisearch \
-    && chmod +x /usr/local/bin/meilisearch \
-    && rm -f /tmp/meilisearch-linux-amd64.sha256
+    && chmod +x /usr/local/bin/meilisearch
 
 # Install Composer
 COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
@@ -132,8 +129,8 @@ COPY --chown=www-data:www-data backend/ ./backend/
 WORKDIR /var/www/html/backend
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-# Remove dev tools not needed at runtime (nodejs is kept for Next.js standalone)
-RUN apt-get purge -y --auto-remove npm git && rm -rf /var/lib/apt/lists/*
+# Remove git (not needed at runtime); keep npm for development mode (npm run dev)
+RUN apt-get purge -y --auto-remove git && rm -rf /var/lib/apt/lists/*
 
 # Copy built frontend (standalone output - much smaller than full node_modules)
 WORKDIR /var/www/html

@@ -314,3 +314,10 @@ Benefits:
 
 **Documentation**:
 - `docs/adr/005-notification-system-architecture.md` - Notification system architecture
+
+## Implementation Journal
+
+- [Notifications UI & Real-Time Implementation](../journal/2026-01-27-notifications-implementation.md)
+- [Notification Config Split (Global vs Per-User)](../journal/2026-01-28-notification-config-split.md)
+- [Notification Templates Implementation](../journal/2026-01-30-notification-templates.md)
+- [Novu Notification Refactor](../journal/2026-02-07-novu-notification-refactor.md)

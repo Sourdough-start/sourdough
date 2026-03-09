@@ -21,6 +21,13 @@ Each entry should include:
 - **Severity**: Medium (test-only, production unaffected since cache dirs exist)
 - **Date added**: 2026-03-05
 
+### GET /storage-settings returns incomplete data (missing provider config)
+- **Where found**: `backend/app/Http/Controllers/Api/StorageSettingController.php:30`
+- **What's wrong**: `show()` calls `settingService->getGroup('storage')` which only resolves keys defined in `settings-schema.php` (4 alert settings). It does NOT return `driver`, `max_upload_size`, `allowed_file_types`, or any provider credentials — even though these are accepted by `update()` and stored in the DB. The `StorageService` itself reads provider settings correctly via `SystemSetting::getGroup('storage')` (bypasses schema), so storage functionality works. Only the API response from `GET /storage-settings` is affected.
+- **Scope**: `StorageSettingController::show()` only. Frontend storage settings page likely works because it re-fetches via `StorageService`-backed endpoints, but the raw `GET /storage-settings` response is incomplete.
+- **Severity**: Low (functional storage works; API response is incomplete for external consumers)
+- **Date added**: 2026-03-08
+
 ## Under Investigation
 
 _(Bugs currently being looked into)_

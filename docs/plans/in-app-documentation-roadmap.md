@@ -347,3 +347,8 @@ backend/
 - Consider user feedback to prioritize which tutorials/articles are most needed
 - Tooltips should be concise (1-2 sentences max)
 - Help articles can be more detailed with examples and screenshots
+
+## Implementation Journal
+
+- [In-App Documentation Completion](../journal/2026-02-05-in-app-docs-completion.md)
+- [In-App Documentation & Onboarding (Phases 1-3)](../journal/2026-02-05-in-app-documentation-phases-1-3.md)

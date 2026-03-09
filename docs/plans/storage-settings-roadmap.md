@@ -213,3 +213,9 @@ Improved visibility into storage usage and trends.
 - Consider adding per-user storage quotas in future
 - WebSocket support for real-time upload progress could enhance UX
 - Consider integrating with backup system for "backup to cloud" functionality
+
+## Implementation Journal
+
+- [Storage Settings Phase 1 (Local Storage Transparency)](../journal/2026-01-30-storage-settings-phase-1.md)
+- [Storage Settings Phase 2 (Additional Storage Providers)](../journal/2026-01-30-storage-providers-phase-2.md)
+- [Storage Phase 4: Analytics & Monitoring](../journal/2026-01-30-storage-phase-4-analytics.md)

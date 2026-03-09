@@ -21,13 +21,13 @@ export default function DashboardPage() {
         <OfflineBadge />
       </div>
       <WelcomeWidget />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         <StatsWidget />
         <QuickActionsWidget />
       </div>
       {canViewUsage && (
         <div>
-          <h2 className="text-lg font-semibold mb-3">Usage & Costs</h2>
+          <h2 className="font-heading text-lg font-semibold mb-3">Usage & Costs</h2>
           <UsageDashboardWidget />
         </div>
       )}

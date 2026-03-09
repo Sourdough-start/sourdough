@@ -48,7 +48,7 @@ export function DownloadDocsButton({
       className="gap-1.5"
     >
       <Download className="h-3.5 w-3.5" />
-      Download as Markdown
+      Download Full API Docs
     </Button>
   );
 }

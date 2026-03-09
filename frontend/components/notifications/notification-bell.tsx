@@ -45,20 +45,22 @@ export function NotificationBell() {
     >
       <Bell className="h-5 w-5" />
       {hasUnread && (
-        <span
-          className={cn(
-            "absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground",
-            unreadCount > 99 && "px-1.5"
+        <span className="absolute -top-0.5 -right-0.5">
+          {!open && (
+            <span
+              className="absolute inset-0 animate-ping rounded-full bg-primary opacity-75"
+              aria-hidden
+            />
           )}
-        >
-          {unreadCount > 99 ? "99+" : unreadCount}
+          <span
+            className={cn(
+              "relative flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground",
+              unreadCount > 99 && "px-1.5"
+            )}
+          >
+            {unreadCount > 99 ? "99+" : unreadCount}
+          </span>
         </span>
-      )}
-      {hasUnread && !open && (
-        <span
-          className="absolute -top-0.5 -right-0.5 h-2 w-2 animate-ping rounded-full bg-primary opacity-75"
-          aria-hidden
-        />
       )}
     </Button>
   );

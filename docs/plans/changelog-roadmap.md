@@ -127,3 +127,8 @@ Each version displayed as a card with:
 
 - [Versioning System Roadmap](versioning-system-roadmap.md) - VERSION file, bump script, GitHub release workflow
 - [In-App Documentation Roadmap](in-app-documentation-roadmap.md) - Help center pattern (similar user-facing content)
+
+## Implementation Journal
+
+- [Changelog Page & Theme Adherence Fixes](../journal/2026-02-14-changelog-and-theme-fixes.md)
+- [Changelog Docker Fix & Branding Null Serialization Bug](../journal/2026-02-15-changelog-docker-fix-and-branding-null-bug.md)

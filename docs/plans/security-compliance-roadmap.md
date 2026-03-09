@@ -190,3 +190,11 @@ Automated security scanning is integrated into CI/CD:
 
 - [Audit Logs & Logging](audit-logs-roadmap.md) - Prerequisite for compliance
 - [Admin Features](admin-features-roadmap.md) - User management for access control
+
+## Implementation Journal
+
+- [Security Vulnerability Fixes](../journal/2026-02-01-security-vulnerability-fixes.md)
+- [Security Review Phase 1: Security Headers & CORS Hardening](../journal/2026-02-02-security-review-phase-1.md)
+- [Security SAST Automation](../journal/2026-02-02-security-sast-automation.md)
+- [Compliance Templates](../journal/2026-02-05-compliance-templates.md)
+- [Security Compliance Documentation Completion](../journal/2026-02-05-security-compliance-documentation-completion.md)

@@ -48,3 +48,10 @@ Future work for log storage, archival, export, and cleanup.
 
 - [Audit Logs Roadmap](audit-logs-roadmap.md)
 - [Logging standards](../logging.md)
+
+## Implementation Journal
+
+- [Console and Application Logging](../journal/2026-01-29-console-app-logging.md)
+- [Live Console Logs & HIPAA Access Logging](../journal/2026-01-29-live-logs-hipaa-logging.md)
+- [Access Logs Field Tracking](../journal/2026-01-29-access-logs-field-tracking.md)
+- [HIPAA Access Logging Toggle](../journal/2026-01-29-hipaa-logging-toggle.md)

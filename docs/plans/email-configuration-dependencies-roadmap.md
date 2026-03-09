@@ -142,3 +142,7 @@ When email is not configured:
 - [x] Admins can view and edit email templates via Configuration > Email Templates (Chunk C)
 - [x] Password reset, email verification, and notification emails use customizable templates (Chunk D)
 - [x] Admin and email configuration documentation in user-docs.md (Chunk D)
+## Implementation Journal
+
+- [Email Template Infrastructure (Chunk B)](../journal/2026-01-29-email-template-infrastructure.md)
+- [Email Template Integration (Chunk D)](../journal/2026-01-29-email-template-integration-chunk-d.md)

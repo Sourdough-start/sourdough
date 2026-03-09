@@ -172,3 +172,8 @@ After completing audit, verify:
 - No unnecessary packages or files in image
 - Scripts handle errors gracefully
 - Documentation is accurate and complete
+
+## Implementation Journal
+
+- [Docker Container Audit](../journal/2026-02-05-docker-container-audit.md)
+- [Docker Build Optimization & Security Updates](../journal/2026-02-05-docker-optimization-and-security-updates.md)

@@ -28,7 +28,7 @@ Implement a three-service usage tracking architecture:
 
 `IntegrationUsage` model with fields: `integration`, `provider`, `metric`, `quantity`, `estimated_cost`, `metadata` (JSON), `user_id` (nullable). Scoped query methods: `byIntegration()`, `byProvider()`, `byDateRange()`, `byUser()`.
 
-Integration types: `llm`, `email`, `sms`, `storage`, `broadcasting`, `payments`, `api`.
+Integration types: `llm`, `email`, `sms`, `storage`, `broadcasting`, `payments`.
 
 ### Settings (via SettingService)
 

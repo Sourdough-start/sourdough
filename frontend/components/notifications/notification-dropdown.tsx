@@ -84,20 +84,26 @@ export function NotificationDropdown({
             Loading…
           </div>
         ) : recent.length === 0 ? (
-          <div className="py-8 text-center text-sm text-muted-foreground space-y-2">
+          <div className="py-8 text-center text-muted-foreground space-y-2">
             <Bell className="mx-auto h-10 w-10 opacity-40" />
-            <p>No notifications yet</p>
+            <p className="font-heading text-base">No notifications yet</p>
+            <p className="text-xs">When you receive notifications, they&apos;ll appear here.</p>
           </div>
         ) : (
-          recent.map((n) => (
-            <NotificationItem
+          recent.map((n, i) => (
+            <div
               key={n.id}
-              notification={n}
-              compact
-              showMarkRead
-              onMarkRead={handleMarkRead}
-              onClick={handleItemClick}
-            />
+              className="animate-in fade-in slide-in-from-bottom-1 duration-300 fill-mode-both"
+              style={{ animationDelay: `${i * 50}ms` }}
+            >
+              <NotificationItem
+                notification={n}
+                compact
+                showMarkRead
+                onMarkRead={handleMarkRead}
+                onClick={handleItemClick}
+              />
+            </div>
           ))
         )}
       </div>

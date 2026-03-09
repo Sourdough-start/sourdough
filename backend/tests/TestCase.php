@@ -16,9 +16,15 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
+        // Force Scout to use the collection driver in tests so that
+        // tests don't require a running Meilisearch instance.
+        // The docker-compose.yml sets SCOUT_DRIVER=meilisearch as a
+        // process-level env var, which phpunit.xml cannot override.
+        $this->app['config']->set('scout.driver', 'collection');
+
         // Disable rate limiting middleware in tests to prevent 429 errors
         $this->withoutMiddleware(ThrottleRequests::class);
-        
+
         // Clear cache to reset any rate limiter state
         Cache::flush();
     }

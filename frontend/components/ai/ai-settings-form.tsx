@@ -23,8 +23,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Cpu } from "lucide-react";
+import type { LLMMode } from "@/components/ai/ai-types";
 
-type LLMMode = "single" | "aggregation" | "council";
 type CouncilStrategy = "majority" | "weighted" | "synthesize";
 
 const SYSTEM_DEFAULTS_INIT = {

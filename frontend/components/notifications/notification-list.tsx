@@ -40,7 +40,7 @@ export function NotificationList({
         )}
       >
         <Bell className={cn("opacity-40", compact ? "h-10 w-10" : "h-12 w-12")} />
-        <p className={cn("mt-2", compact ? "text-sm" : "text-base")}>
+        <p className={cn("mt-2 font-heading", compact ? "text-sm" : "text-base")}>
           {emptyMessage}
         </p>
       </div>

@@ -36,10 +36,11 @@ Implement an outbound webhook system with the following design:
 |--------|----------|---------|
 | `GET` | `/api/webhooks` | List all webhooks |
 | `POST` | `/api/webhooks` | Create webhook |
-| `PUT` | `/api/webhooks/{id}` | Update webhook |
-| `DELETE` | `/api/webhooks/{id}` | Delete webhook |
-| `GET` | `/api/webhooks/{id}/deliveries` | Paginated delivery history |
-| `POST` | `/api/webhooks/{id}/test` | Send test delivery |
+| `GET` | `/api/webhooks/{webhook}` | Get single webhook |
+| `PUT` | `/api/webhooks/{webhook}` | Update webhook |
+| `DELETE` | `/api/webhooks/{webhook}` | Delete webhook |
+| `GET` | `/api/webhooks/{webhook}/deliveries` | Paginated delivery history |
+| `POST` | `/api/webhooks/{webhook}/test` | Send test delivery |
 
 ### Event Filtering
 

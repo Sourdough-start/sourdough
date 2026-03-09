@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Palette, Bell, Brain, Send, Smartphone, Download, Globe, ChevronDown, SlidersHorizontal, Trash2 } from "lucide-react";
 import { SaveButton } from "@/components/ui/save-button";
 
@@ -39,6 +40,7 @@ import {
 import { useAppConfig } from "@/lib/app-config";
 import { HelpLink } from "@/components/help/help-link";
 import { useInstallPrompt } from "@/lib/use-install-prompt";
+import { useIsMobile } from "@/lib/use-mobile";
 import { TIMEZONES } from "@/lib/timezones";
 import { setUserTimezone } from "@/lib/utils";
 import { ThemePicker } from "@/components/theme-picker";
@@ -196,6 +198,7 @@ export default function PreferencesPage() {
   const { features, novu } = useAppConfig();
   const { isOffline } = useOnline();
   const { canPrompt, isInstalled, promptInstall } = useInstallPrompt();
+  const isMobile = useIsMobile();
 
   const fetchChannels = useCallback(async () => {
     try {
@@ -540,117 +543,129 @@ export default function PreferencesPage() {
         <OfflineBadge />
       </div>
 
-      {/* Appearance */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Palette className="h-5 w-5" />
-            Appearance
-          </CardTitle>
-          <CardDescription>
-            Choose your preferred mode and color theme.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ThemePicker />
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="appearance">
+        <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsTrigger value="appearance">Appearance</TabsTrigger>
+          <TabsTrigger value="defaults">Defaults & Regional</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="pwa">PWA & Devices</TabsTrigger>
+        </TabsList>
 
-      {/* Defaults */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
-            Defaults
-          </CardTitle>
-          <CardDescription>
-            Set your default preferences for AI interactions.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="default_llm_mode">Default LLM Mode</Label>
-            <Select
-              value={preferences.default_llm_mode ?? "single"}
-              onValueChange={(value) => {
-                if (isOffline) return;
-                const validMode = ["single", "aggregation", "council"].includes(value)
-                  ? (value as "single" | "aggregation" | "council")
-                  : "single";
-                savePreferences({
-                  default_llm_mode: validMode,
-                });
-              }}
-              disabled={isOffline}
-            >
-              <SelectTrigger id="default_llm_mode">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="single">Single Provider</SelectItem>
-                <SelectItem value="aggregation">Aggregation</SelectItem>
-                <SelectItem value="council">Council</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-sm text-muted-foreground">
-              <strong>Single:</strong> Uses one provider (fastest, cheapest).{" "}
-              <strong>Aggregation:</strong> Queries all providers, primary synthesizes responses.{" "}
-              <strong>Council:</strong> Providers vote for consensus (best for accuracy).
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+        <TabsContent value="appearance" className="mt-4 space-y-6">
+          {/* Appearance */}
+          <Card className="border-t-2 border-primary">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                Appearance
+              </CardTitle>
+              <CardDescription>
+                Choose your preferred mode and color theme.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ThemePicker />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Regional */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5" />
-            Regional
-          </CardTitle>
-          <CardDescription>
-            Set your preferred timezone for dates and times throughout the app.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="timezone">Timezone</Label>
-            <Select
-              value={preferences.timezone ?? ""}
-              onValueChange={(value) => {
-                if (isOffline) return;
-                savePreferences({ timezone: value === "__system_default__" ? null : value });
-              }}
-              disabled={isOffline}
-            >
-              <SelectTrigger id="timezone">
-                <SelectValue placeholder="Use system default" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__system_default__">Use system default</SelectItem>
-                {/* Show current value if not in curated list (e.g. auto-detected unusual timezone) */}
-                {preferences.timezone && !TIMEZONES.some((tz) => tz.value === preferences.timezone) && (
-                  <SelectItem key={preferences.timezone} value={preferences.timezone}>
-                    {preferences.timezone} (detected)
-                  </SelectItem>
-                )}
-                {TIMEZONES.map((tz) => (
-                  <SelectItem key={tz.value} value={tz.value}>
-                    {tz.label} ({tz.value})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-sm text-muted-foreground">
-              {preferences.timezone
-                ? `Manually set to ${preferences.timezone}.`
-                : `Auto-detected from your browser. Currently using: ${effectiveTimezone}.`}
-              {" "}Select &quot;Use system default&quot; to revert to automatic detection.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+        <TabsContent value="defaults" className="mt-4 space-y-6">
+          {/* Defaults */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5" />
+                Defaults
+              </CardTitle>
+              <CardDescription>
+                Set your default preferences for AI interactions.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="default_llm_mode">Default LLM Mode</Label>
+                <Select
+                  value={preferences.default_llm_mode ?? "single"}
+                  onValueChange={(value) => {
+                    if (isOffline) return;
+                    const validMode = ["single", "aggregation", "council"].includes(value)
+                      ? (value as "single" | "aggregation" | "council")
+                      : "single";
+                    savePreferences({
+                      default_llm_mode: validMode,
+                    });
+                  }}
+                  disabled={isOffline}
+                >
+                  <SelectTrigger id="default_llm_mode">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="single">Single Provider</SelectItem>
+                    <SelectItem value="aggregation">Aggregation</SelectItem>
+                    <SelectItem value="council">Council</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  <strong>Single:</strong> Uses one provider (fastest, cheapest).{" "}
+                  <strong>Aggregation:</strong> Queries all providers, primary synthesizes responses.{" "}
+                  <strong>Council:</strong> Providers vote for consensus (best for accuracy).
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
+          {/* Regional */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                Regional
+              </CardTitle>
+              <CardDescription>
+                Set your preferred timezone for dates and times throughout the app.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="timezone">Timezone</Label>
+                <Select
+                  value={preferences.timezone ?? ""}
+                  onValueChange={(value) => {
+                    if (isOffline) return;
+                    savePreferences({ timezone: value === "__system_default__" ? null : value });
+                  }}
+                  disabled={isOffline}
+                >
+                  <SelectTrigger id="timezone">
+                    <SelectValue placeholder="Use system default" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__system_default__">Use system default</SelectItem>
+                    {preferences.timezone && !TIMEZONES.some((tz) => tz.value === preferences.timezone) && (
+                      <SelectItem key={preferences.timezone} value={preferences.timezone}>
+                        {preferences.timezone} (detected)
+                      </SelectItem>
+                    )}
+                    {TIMEZONES.map((tz) => (
+                      <SelectItem key={tz.value} value={tz.value}>
+                        {tz.label} ({tz.value})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  {preferences.timezone
+                    ? `Manually set to ${preferences.timezone}.`
+                    : `Auto-detected from your browser. Currently using: ${effectiveTimezone}.`}
+                  {" "}Select &quot;Use system default&quot; to revert to automatic detection.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="notifications" className="mt-4 space-y-6">
       {/* Notification Preferences */}
       <Card>
         <CardHeader>
@@ -873,54 +888,92 @@ export default function PreferencesPage() {
                   <p className="text-sm text-muted-foreground mb-4">
                     Control which notification types are sent to each channel. Unchecked types will be silenced on that channel.
                   </p>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-2 pr-4 font-medium">Type</th>
-                          {enabledChannels.map((ch) => (
-                            <th key={ch.id} className="text-center py-2 px-2 font-medium whitespace-nowrap">
-                              {ch.name}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {categories.map((cat) => (
-                          <React.Fragment key={cat.category}>
-                            <tr>
-                              <td colSpan={enabledChannels.length + 1} className="pt-4 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                {cat.categoryLabel}
-                              </td>
-                            </tr>
-                            {cat.types.map(({ type, label, icon: Icon }) => (
-                              <tr key={type} className="border-b border-border/50">
-                                <td className="py-2 pr-4">
-                                  <span className="flex items-center gap-2">
-                                    <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-                                    {label}
-                                  </span>
-                                </td>
+                  {isMobile ? (
+                    /* Mobile: stacked card layout per notification type */
+                    <div className="space-y-4">
+                      {categories.map((cat) => (
+                        <div key={cat.category} className="space-y-2">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            {cat.categoryLabel}
+                          </p>
+                          {cat.types.map(({ type, label, icon: Icon }) => (
+                            <div key={type} className="rounded-lg border p-3 space-y-2">
+                              <span className="flex items-center gap-2 text-sm font-medium">
+                                <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                                {label}
+                              </span>
+                              <div className="flex flex-wrap gap-3">
                                 {enabledChannels.map((ch) => {
                                   const checked = typePreferences[type]?.[ch.id] !== false;
                                   return (
-                                    <td key={ch.id} className="text-center py-2 px-2">
+                                    <label key={ch.id} className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                       <Checkbox
                                         checked={checked}
                                         onCheckedChange={(val) => toggleTypePreference(type, ch.id, !!val)}
                                         disabled={isOffline}
                                         aria-label={`${label} via ${ch.name}`}
                                       />
-                                    </td>
+                                      {ch.name}
+                                    </label>
                                   );
                                 })}
-                              </tr>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    /* Desktop: table layout */
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left py-2 pr-4 font-medium">Type</th>
+                            {enabledChannels.map((ch) => (
+                              <th key={ch.id} className="text-center py-2 px-2 font-medium whitespace-nowrap">
+                                {ch.name}
+                              </th>
                             ))}
-                          </React.Fragment>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {categories.map((cat) => (
+                            <React.Fragment key={cat.category}>
+                              <tr>
+                                <td colSpan={enabledChannels.length + 1} className="pt-4 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                  {cat.categoryLabel}
+                                </td>
+                              </tr>
+                              {cat.types.map(({ type, label, icon: Icon }) => (
+                                <tr key={type} className="border-b border-border/50">
+                                  <td className="py-2 pr-4">
+                                    <span className="flex items-center gap-2">
+                                      <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                                      {label}
+                                    </span>
+                                  </td>
+                                  {enabledChannels.map((ch) => {
+                                    const checked = typePreferences[type]?.[ch.id] !== false;
+                                    return (
+                                      <td key={ch.id} className="text-center py-2 px-2">
+                                        <Checkbox
+                                          checked={checked}
+                                          onCheckedChange={(val) => toggleTypePreference(type, ch.id, !!val)}
+                                          disabled={isOffline}
+                                          aria-label={`${label} via ${ch.name}`}
+                                        />
+                                      </td>
+                                    );
+                                  })}
+                                </tr>
+                              ))}
+                            </React.Fragment>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </CollapsibleContent>
               </Collapsible>
             );
@@ -928,6 +981,9 @@ export default function PreferencesPage() {
         </CardContent>
       </Card>
 
+        </TabsContent>
+
+        <TabsContent value="pwa" className="mt-4 space-y-6">
       {/* Install App (PWA) */}
       <Card>
         <CardHeader>
@@ -972,7 +1028,8 @@ export default function PreferencesPage() {
           )}
         </CardContent>
       </Card>
-
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

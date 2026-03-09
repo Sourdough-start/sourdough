@@ -211,3 +211,13 @@ Index static navigation pages in Meilisearch with rich content so users can find
 - Advanced filters (faceted search)
 - Search result ranking customization
 - Multi-tenancy support (scoped indexes)
+
+## Implementation Journal
+
+- [Meilisearch Integration (Phases 1-3)](../journal/2026-01-30-meilisearch-phases-1-3.md)
+- [Meilisearch Integration (Phases 4-6)](../journal/2026-01-30-meilisearch-phases-4-6.md)
+- [Meilisearch Configuration](../journal/2026-01-30-meilisearch-configuration.md)
+- [Meilisearch Embedded in Container](../journal/2026-01-30-meilisearch-embedded.md)
+- [Alpine to Debian Migration for Meilisearch](../journal/2026-01-30-alpine-to-debian-meilisearch.md)
+- [Meilisearch Production Permission Denied Fix](../journal/2026-02-05-meilisearch-production-permissions.md)
+- [Search Reindex Bugfixes](../journal/2026-02-05-search-reindex-bugfixes.md)

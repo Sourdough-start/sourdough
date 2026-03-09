@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class UserService
 {
@@ -25,6 +26,11 @@ class UserService
             'name' => $user->name,
             'email' => $user->email,
         ], [], $performedByUserId);
+
+        // Clean up avatar file from disk
+        if ($user->avatar && str_starts_with($user->avatar, '/storage/avatars/')) {
+            Storage::disk('public')->delete('avatars/' . basename($user->avatar));
+        }
 
         // Delete related data (order: leaf relations first)
         $user->socialAccounts()->delete();

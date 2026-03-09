@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
+import { SortingState } from "@tanstack/react-table";
 import { api } from "@/lib/api";
 import { useAuth, AdminUser } from "@/lib/auth";
 import { useDebounce } from "@/lib/use-debounce";
@@ -26,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useGroups } from "@/lib/use-groups";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { HelpLink } from "@/components/help/help-link";
 
 interface PaginatedResponse {
@@ -45,8 +46,12 @@ export default function UsersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const perPage = 15;
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<string>("");
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "created_at", desc: true },
+  ]);
   const { groups } = useGroups();
   const debouncedSearch = useDebounce(search, 300);
 
@@ -55,13 +60,17 @@ export default function UsersPage() {
     try {
       const params = new URLSearchParams({
         page: currentPage.toString(),
-        per_page: "15",
+        per_page: perPage.toString(),
       });
       if (debouncedSearch) {
         params.append("search", debouncedSearch);
       }
       if (selectedGroup) {
         params.append("group", selectedGroup);
+      }
+      if (sorting.length > 0) {
+        params.append("sort", sorting[0].id);
+        params.append("sort_dir", sorting[0].desc ? "desc" : "asc");
       }
 
       const response = await api.get<PaginatedResponse>(`/users?${params}`);
@@ -74,7 +83,7 @@ export default function UsersPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, debouncedSearch, selectedGroup]);
+  }, [currentPage, perPage, debouncedSearch, selectedGroup, sorting]);
 
   useEffect(() => {
     fetchUsers();
@@ -89,6 +98,15 @@ export default function UsersPage() {
     setSelectedGroup(value === "all" ? "" : value);
     setCurrentPage(1);
   };
+
+  const handleSortingChange = (newSorting: SortingState) => {
+    setSorting(newSorting);
+    setCurrentPage(1);
+  };
+
+  // Pagination display helpers
+  const startItem = (currentPage - 1) * perPage + 1;
+  const endItem = Math.min(currentPage * perPage, total);
 
   return (
     <div className="space-y-6">
@@ -161,12 +179,14 @@ export default function UsersPage() {
                 users={users}
                 onUserUpdated={fetchUsers}
                 currentUserId={currentUser?.id}
+                sorting={sorting}
+                onSortingChange={handleSortingChange}
               />
 
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <div className="text-sm text-muted-foreground">
-                    Page {currentPage} of {totalPages}
+                    Showing {startItem}–{endItem} of {total} users
                   </div>
                   <div className="flex gap-2">
                     <Button

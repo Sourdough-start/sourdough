@@ -162,12 +162,66 @@
   word-break: normal;
 }
 
-/* Syntax-like coloring for code blocks */
-.dark .help-article-prose pre code {
-  color: hsl(210 40% 80%);
+/* Syntax highlighting — theme-aware token colors via highlight.js classes */
+.help-article-prose pre code.hljs {
+  background: transparent;
+  color: hsl(var(--foreground));
 }
 .help-article-prose pre code {
-  color: hsl(215 25% 27%);
+  color: hsl(var(--foreground));
+}
+.help-article-prose .hljs-comment,
+.help-article-prose .hljs-quote {
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+}
+.help-article-prose .hljs-keyword,
+.help-article-prose .hljs-selector-tag,
+.help-article-prose .hljs-built_in {
+  color: hsl(var(--primary));
+  font-weight: 500;
+}
+.help-article-prose .hljs-string,
+.help-article-prose .hljs-attr {
+  color: hsl(142 71% 35%);
+}
+.dark .help-article-prose .hljs-string,
+.dark .help-article-prose .hljs-attr {
+  color: hsl(142 71% 65%);
+}
+.help-article-prose .hljs-number,
+.help-article-prose .hljs-literal {
+  color: hsl(25 95% 45%);
+}
+.dark .help-article-prose .hljs-number,
+.dark .help-article-prose .hljs-literal {
+  color: hsl(25 95% 65%);
+}
+.help-article-prose .hljs-title,
+.help-article-prose .hljs-section,
+.help-article-prose .hljs-name {
+  color: hsl(var(--primary));
+}
+.help-article-prose .hljs-variable,
+.help-article-prose .hljs-template-variable {
+  color: hsl(var(--foreground));
+}
+.help-article-prose .hljs-type,
+.help-article-prose .hljs-tag {
+  color: hsl(220 80% 50%);
+}
+.dark .help-article-prose .hljs-type,
+.dark .help-article-prose .hljs-tag {
+  color: hsl(220 80% 70%);
+}
+.help-article-prose .hljs-meta {
+  color: hsl(var(--muted-foreground));
+}
+.help-article-prose .hljs-deletion {
+  color: hsl(0 84% 60%);
+}
+.help-article-prose .hljs-addition {
+  color: hsl(142 71% 45%);
 }
 
 /* PWA standalone mode: prevent pull-to-refresh overscroll bounce */

@@ -211,3 +211,7 @@ AUTH_PASSKEY_MODE=disabled|optional|required
 - [x] Features gracefully degrade when dependencies unavailable (warning when email not configured)
 - [x] Documentation covers all configuration options
 - [x] No breaking changes to existing deployments (sensible defaults)
+
+## Implementation Journal
+
+- [Configurable Auth Features](../journal/2026-01-30-configurable-auth-features.md)

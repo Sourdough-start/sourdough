@@ -28,22 +28,32 @@ export function AuthPageLayout({
   usePageTitle(title);
 
   return (
-    <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
-      <div className={cn("flex w-full max-w-sm flex-col gap-6", className)}>
-        <div className="flex items-center gap-2 self-center">
+    <div className="flex min-h-svh bg-muted">
+      {/* Decorative left panel — desktop only */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-primary/20 via-primary/10 to-background items-center justify-center border-r">
+        <div className="max-w-md text-center space-y-4 px-8">
+          <Logo variant="full" size="lg" />
+        </div>
+      </div>
+
+      {/* Form panel */}
+      <div className="flex flex-1 flex-col items-center justify-center gap-6 p-6 md:p-10">
+        <div className="lg:hidden flex items-center gap-2 self-center">
           <Logo variant="full" size="md" />
         </div>
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle className="text-xl">{title}</CardTitle>
-            {description && (
-              <CardDescription>{description}</CardDescription>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {children}
-          </CardContent>
-        </Card>
+        <div className={cn("flex w-full max-w-sm flex-col gap-6", className)}>
+          <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <CardHeader className="text-center">
+              <CardTitle className="text-xl">{title}</CardTitle>
+              {description && (
+                <CardDescription>{description}</CardDescription>
+              )}
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {children}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

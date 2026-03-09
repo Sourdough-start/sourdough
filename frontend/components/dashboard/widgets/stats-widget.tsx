@@ -5,7 +5,7 @@ import { api } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { errorLogger } from "@/lib/error-logger";
 import { Users, HardDrive } from "lucide-react";
-import { AuditStatsCard } from "@/components/audit/audit-stats-card";
+import { AuditStatsCard, type AuditStatsCardVariant } from "@/components/audit/audit-stats-card";
 import type { LucideIcon } from "lucide-react";
 
 interface Metric {
@@ -20,6 +20,11 @@ interface StatsResponse {
 const metricIcons: Record<string, LucideIcon> = {
   "Total Users": Users,
   "Storage Used": HardDrive,
+};
+
+const metricVariants: Record<string, AuditStatsCardVariant> = {
+  "Total Users": "info",
+  "Storage Used": "success",
 };
 
 export function StatsWidget() {
@@ -51,13 +56,19 @@ export function StatsWidget() {
 
   return (
     <>
-      {metrics.map((metric: Metric) => (
-        <AuditStatsCard
+      {metrics.map((metric: Metric, index: number) => (
+        <div
           key={metric.label}
-          title={metric.label}
-          value={metric.value}
-          icon={metricIcons[metric.label] ?? Users}
-        />
+          className="animate-in fade-in slide-in-from-bottom-2"
+          style={{ animationDelay: `${index * 75}ms`, animationFillMode: "backwards" }}
+        >
+          <AuditStatsCard
+            title={metric.label}
+            value={metric.value}
+            icon={metricIcons[metric.label] ?? Users}
+            variant={metricVariants[metric.label] ?? "default"}
+          />
+        </div>
       ))}
     </>
   );

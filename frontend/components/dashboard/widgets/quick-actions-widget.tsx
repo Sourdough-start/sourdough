@@ -11,7 +11,10 @@ const actions = [
 
 export function QuickActionsWidget() {
   return (
-    <Card>
+    <Card
+      className="animate-in fade-in slide-in-from-bottom-2"
+      style={{ animationDelay: "150ms", animationFillMode: "backwards" }}
+    >
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
       </CardHeader>

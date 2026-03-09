@@ -18,11 +18,40 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CheckCheck, Trash2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { AppNotification } from "@/lib/notifications";
 import { cn } from "@/lib/utils";
 import { getAllCategories } from "@/lib/notification-types";
 
 const PER_PAGE = 20;
+
+function getDateBucket(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const weekAgo = new Date(today);
+  weekAgo.setDate(weekAgo.getDate() - 6);
+
+  if (date >= today) return "Today";
+  if (date >= yesterday) return "Yesterday";
+  if (date >= weekAgo) return "Earlier this week";
+  return "Older";
+}
+
+function groupByDate(notifications: AppNotification[]): { label: string; items: AppNotification[] }[] {
+  const bucketOrder = ["Today", "Yesterday", "Earlier this week", "Older"];
+  const groups = new Map<string, AppNotification[]>();
+  for (const n of notifications) {
+    const bucket = getDateBucket(n.created_at);
+    if (!groups.has(bucket)) groups.set(bucket, []);
+    groups.get(bucket)!.push(n);
+  }
+  return bucketOrder
+    .filter((label) => groups.has(label))
+    .map((label) => ({ label, items: groups.get(label)! }));
+}
 
 interface PaginatedResponse {
   data: AppNotification[];
@@ -226,7 +255,7 @@ export default function NotificationsPage() {
           </div>
         </div>
 
-        <TabsContent value="all" className="mt-6">
+        <TabsContent value="all" className="mt-4">
           <NotificationsContent
             notifications={notifications}
             isLoading={isLoading}
@@ -237,7 +266,7 @@ export default function NotificationsPage() {
             emptyMessage="No notifications yet."
           />
         </TabsContent>
-        <TabsContent value="unread" className="mt-6">
+        <TabsContent value="unread" className="mt-4">
           <NotificationsContent
             notifications={notifications}
             isLoading={isLoading}
@@ -250,27 +279,34 @@ export default function NotificationsPage() {
         </TabsContent>
       </Tabs>
 
-      {lastPage > 1 && !isLoading && (
-        <div className="mt-6 flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => goToPage(page - 1)}
-            disabled={page <= 1}
-          >
-            Previous
-          </Button>
-          <span className="text-sm text-muted-foreground px-2">
-            Page {page} of {lastPage}
+      {!isLoading && total > 0 && (
+        <div className="mt-6 flex flex-col items-center gap-2">
+          <span className="text-sm text-muted-foreground">
+            Showing {Math.min((page - 1) * PER_PAGE + 1, total)}&ndash;{Math.min(page * PER_PAGE, total)} of {total} notifications
           </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => goToPage(page + 1)}
-            disabled={page >= lastPage}
-          >
-            Next
-          </Button>
+          {lastPage > 1 && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => goToPage(page - 1)}
+                disabled={page <= 1}
+              >
+                Previous
+              </Button>
+              <span className="text-sm text-muted-foreground px-2">
+                Page {page} of {lastPage}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => goToPage(page + 1)}
+                disabled={page >= lastPage}
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -317,38 +353,44 @@ function NotificationsContent({
     );
   }
 
+  const dateGroups = groupByDate(notifications);
+
   return (
     <div className="space-y-4">
-      <label className="flex items-center gap-2 text-sm cursor-pointer">
-        <input
-          type="checkbox"
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="select-all"
           checked={notifications.every((n) => selectedIds.has(n.id))}
-          onChange={onToggleSelectAll}
-          className="rounded border-input"
+          onCheckedChange={() => onToggleSelectAll()}
         />
-        <span className="text-muted-foreground">Select all on page</span>
-      </label>
-      <div className="space-y-2">
-        {notifications.map((n) => (
-          <div key={n.id} className="flex items-start gap-3">
-            <input
-              type="checkbox"
-              checked={selectedIds.has(n.id)}
-              onChange={() => onToggleSelect(n.id)}
-              className={cn(
-                "mt-4 rounded border-input shrink-0",
-                "focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              )}
-              aria-label={`Select notification: ${n.title}`}
-            />
-            <div className="flex-1 min-w-0">
-              <NotificationItem
-                notification={n}
-                compact={false}
-                showMarkRead
-                onMarkRead={(id) => onMarkRead([id])}
-              />
-            </div>
+        <label htmlFor="select-all" className="text-sm text-muted-foreground cursor-pointer">
+          Select all on page
+        </label>
+      </div>
+      <div className="space-y-4">
+        {dateGroups.map((group) => (
+          <div key={group.label} className="space-y-2">
+            <h3 className="text-sm font-medium text-muted-foreground py-1">
+              {group.label}
+            </h3>
+            {group.items.map((n) => (
+              <div key={n.id} className="flex items-start gap-3">
+                <Checkbox
+                  checked={selectedIds.has(n.id)}
+                  onCheckedChange={() => onToggleSelect(n.id)}
+                  className="mt-4 shrink-0"
+                  aria-label={`Select notification: ${n.title}`}
+                />
+                <div className="flex-1 min-w-0">
+                  <NotificationItem
+                    notification={n}
+                    compact={false}
+                    showMarkRead
+                    onMarkRead={(id) => onMarkRead([id])}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         ))}
       </div>

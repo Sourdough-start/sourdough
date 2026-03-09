@@ -124,6 +124,7 @@ export default function RegisterPage() {
             type="text"
             placeholder="John Doe"
             autoFocus
+            className="h-10"
             {...register("name")}
             disabled={isLoading}
             aria-invalid={!!errors.name?.message}
@@ -142,6 +143,7 @@ export default function RegisterPage() {
               type="email"
               placeholder="you@example.com"
               className={cn(
+                "h-10",
                 (isChecking || isAvailable !== undefined) && "pr-10"
               )}
               {...register("email")}
@@ -179,6 +181,7 @@ export default function RegisterPage() {
           <PasswordInput
             id="password"
             placeholder="••••••••"
+            className="h-10"
             {...register("password")}
             disabled={isLoading}
           />
@@ -193,6 +196,7 @@ export default function RegisterPage() {
           <PasswordInput
             id="password_confirmation"
             placeholder="••••••••"
+            className="h-10"
             {...register("password_confirmation")}
             disabled={isLoading}
           />

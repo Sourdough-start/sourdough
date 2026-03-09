@@ -124,6 +124,7 @@ function LoginPageContent() {
             type="email"
             placeholder="you@example.com"
             autoFocus
+            className="h-10"
             {...register("email")}
             disabled={isLoading}
             aria-invalid={!!errors.email?.message}
@@ -151,6 +152,7 @@ function LoginPageContent() {
           <PasswordInput
             id="password"
             placeholder="••••••••"
+            className="h-10"
             {...register("password")}
             disabled={isLoading}
           />

@@ -25,15 +25,17 @@ Implement a file manager API using `StorageService` as the backend, with path va
 
 ### API
 
+All endpoints require `can:admin` middleware.
+
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
-| `GET` | `/api/files` | List files/directories (paginated) |
-| `GET` | `/api/files/show` | File/directory details + preview URL |
-| `POST` | `/api/files/upload` | Upload file(s) |
-| `GET` | `/api/files/download` | Download a file |
-| `DELETE` | `/api/files` | Delete file/directory |
-| `POST` | `/api/files/rename` | Rename file/directory |
-| `POST` | `/api/files/move` | Move file/directory |
+| `GET` | `/api/storage/files` | List files/directories (paginated) |
+| `POST` | `/api/storage/files` | Upload file(s) |
+| `GET` | `/api/storage/files/{path}` | File/directory details + preview URL |
+| `GET` | `/api/storage/files/{path}/download` | Download a file |
+| `PUT` | `/api/storage/files/{path}/rename` | Rename file/directory |
+| `PUT` | `/api/storage/files/{path}/move` | Move file/directory |
+| `DELETE` | `/api/storage/files/{path}` | Delete file/directory |
 
 ### Storage Integration
 

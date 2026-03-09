@@ -95,3 +95,11 @@ Handle connection switching and validation.
 - Multiple index configuration (different instances per model type)
 - Search analytics dashboard integration
 - Meilisearch Cloud wizard/integration
+
+## Implementation Journal
+
+- [Meilisearch Configuration](../journal/2026-01-30-meilisearch-configuration.md)
+- [Meilisearch Embedded in Container](../journal/2026-01-30-meilisearch-embedded.md)
+- [Alpine to Debian Migration for Meilisearch](../journal/2026-01-30-alpine-to-debian-meilisearch.md)
+- [Meilisearch Production Permission Denied Fix](../journal/2026-02-05-meilisearch-production-permissions.md)
+- [Search Reindex Bugfixes](../journal/2026-02-05-search-reindex-bugfixes.md)

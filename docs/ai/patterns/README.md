@@ -38,7 +38,7 @@ Follow these patterns for consistency across the codebase. Read only the files r
 | Dashboard Widget | [dashboard-widget.md](dashboard-widget.md) | Adding dashboard widgets |
 | Responsive & Mobile-First | [responsive.md](responsive.md) | Mobile-first CSS, responsive layouts |
 | Global Components | [components.md](components.md) | Reusable components, charts, redirects |
-| UI Components | [ui-patterns.md](ui-patterns.md) | CollapsibleCard, ProviderIcon, Help, Auth, PWA |
+| UI Components | [ui-patterns.md](ui-patterns.md) | CollapsibleCard, ProviderIcon, Help, Auth, PWA, Avatar, Loading, Animations, Typography, Notifications, Safe Area |
 | Interactive Patterns | [interactive.md](interactive.md) | Test connection, file download, confirmation dialog |
 
 ## Cross-Cutting Patterns

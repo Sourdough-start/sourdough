@@ -262,6 +262,163 @@ const { canPrompt, isInstalled, promptInstall } = useInstallPrompt();
 
 **Related:** [Recipe: Add collapsible section](../recipes/add-collapsible-section.md), [Recipe: Add SSO Provider](../recipes/add-sso-provider.md), [Recipe: Add help article](../recipes/add-help-article.md), [Recipe: Add configuration menu item](../recipes/add-configuration-menu-item.md), [Recipe: Add PWA install prompt](../recipes/add-pwa-install-prompt.md)
 
+## Avatar & Initials
+
+Always use shadcn `Avatar`/`AvatarFallback` — never a raw `div` with `bg-primary/10`. Extract initials via the shared `getInitials()` utility in `frontend/lib/utils.ts` (two initials, not one).
+
+```tsx
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getInitials } from "@/lib/utils";
+
+<Avatar>
+  <AvatarImage src={user.avatar_url} />
+  <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+</Avatar>
+```
+
+**Key files:** `frontend/components/ui/avatar.tsx`, `frontend/lib/utils.ts`
+
+## Loading States
+
+Two standardized patterns — pick based on context:
+
+| Context | Pattern |
+|---------|---------|
+| Full settings/config page initial load | `<SettingsPageSkeleton />` |
+| Inline / smaller loading indicator | `<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />` |
+
+Never use a raw `<div className="border-b-2 border-primary animate-spin ...">` spinner.
+
+```tsx
+import { SettingsPageSkeleton } from "@/components/ui/settings-page-skeleton";
+import { Loader2 } from "lucide-react";
+
+// Full page
+if (isLoading) return <SettingsPageSkeleton />;
+
+// Inline
+<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+```
+
+## Entrance Animations
+
+Use `tailwindcss-animate` utilities (already installed). Do **not** add framer-motion.
+
+```tsx
+// Card/section entrance
+<div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+// Staggered list items (use CSS custom property for delay)
+<div
+  className="animate-in fade-in slide-in-from-bottom-2"
+  style={{ animationDelay: `${index * 75}ms` }}
+>
+
+// Hover micro-interaction on icon buttons
+<Button className="transition-transform duration-150 hover:scale-105" />
+```
+
+**Key file:** `frontend/app/globals.css` (tailwindcss-animate plugin)
+
+## Typography — Newsreader (Serif Heading Font)
+
+The app uses Inter (body) + Newsreader (serif heading accent). Apply `font-heading` explicitly where a serif feel is wanted — the CSS variable is set but not automatic on all headings.
+
+```tsx
+// Welcome / hero headings — use font-heading
+<h1 className="font-heading text-3xl font-bold">Welcome back</h1>
+
+// Empty state messages — Newsreader adds warmth
+<p className="font-heading text-lg text-muted-foreground">Nothing here yet.</p>
+
+// Standard page headings — use Inter (no font-heading)
+<h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+```
+
+**Key files:** `frontend/config/fonts.ts`, `frontend/app/globals.css`
+
+## Notification Icons — Color Coding
+
+Notification icons should be color-coded by type. Define `color` on `NotificationTypeMeta` and wrap icons in a `rounded-full p-1.5` container:
+
+```tsx
+// notification-types.ts — add color field
+export const notificationTypes: Record<string, NotificationTypeMeta> = {
+  backup_completed: { icon: CheckCircle, color: "text-green-600", bg: "bg-green-600/10" },
+  payment_failed:   { icon: XCircle,    color: "text-red-600",   bg: "bg-red-600/10"   },
+  storage_quota:    { icon: AlertCircle,color: "text-amber-600", bg: "bg-amber-600/10" },
+  system_update:    { icon: Info,       color: "text-blue-600",  bg: "bg-blue-600/10"  },
+};
+
+// notification-item.tsx — apply color
+<div className={cn("rounded-full p-1.5", meta.bg)}>
+  <meta.icon className={cn("h-4 w-4", meta.color)} />
+</div>
+```
+
+**Key files:** `frontend/lib/notification-types.ts`, `frontend/components/notifications/notification-item.tsx`
+
+## PWA Safe Area Insets
+
+PWA standalone mode on iOS/Android requires safe area insets for notch and home indicator. CSS utilities exist in `globals.css` — apply them to layout components:
+
+```tsx
+// Header — top safe area
+<header className="sticky top-0 h-14 pt-[env(safe-area-inset-top)]">
+
+// Bottom-pinned elements (mobile sheet actions, floating buttons)
+<div className="pb-[env(safe-area-inset-bottom)]">
+```
+
+Also verify `<meta name="viewport">` includes `viewport-fit=cover`.
+
+**Key files:** `frontend/app/layout.tsx`, `frontend/components/header.tsx`, `frontend/components/sidebar.tsx`, `frontend/app/globals.css`
+
+## PasswordInput
+
+For password fields outside of auth pages (e.g., user security page), use the `PasswordInput` component which includes a show/hide toggle:
+
+```tsx
+import { PasswordInput } from "@/components/ui/password-input";
+
+<PasswordInput id="current_password" {...register("current_password")} />
+```
+
+Never use a plain `<Input type="password">` inside the app — only acceptable on the auth pages where `PasswordInput` is not yet wired.
+
+**Key file:** `frontend/components/ui/password-input.tsx`
+
+## Configuration Page Conventions
+
+All configuration pages should follow these conventions for consistency:
+
+### Layout & Spacing
+- Root wrapper: `<div className="space-y-6">`
+- Page heading: `<h1>` + description `<p>` + `<HelpLink>`, then cards below
+- Use `space-y-6` between all top-level sections (never `space-y-4` or `space-y-8`)
+
+### State Management
+- **Form-based settings pages** (System, Branding, Email, SSO): Use `react-hook-form` + `zodResolver` + `SaveButton`
+- **Display/action pages** (Audit Log, Users, API Keys): Use `useState` for local UI state
+- New settings pages should default to `react-hook-form` pattern
+
+### Error Handling
+- **Action results** (save, delete, test): Use `toast.success()` / `toast.error()` from `sonner`
+- **Persistent error states** (failed to load): Use inline `Alert` component with `variant="destructive"`
+- Never use `alert()` or `console.error()` for user-facing errors
+
+### Card Intent
+- Use `CollapsibleCard intent="danger"` for destructive/dangerous settings sections
+- Use `CollapsibleCard intent="info"` for informational sections
+- Default cards need no `intent` prop
+
+### Loading States
+- Full page initial load: `<SettingsPageSkeleton />`
+- In-card loading: `<Loader2 className="h-4 w-4 animate-spin" />`
+- Data tables: `<Skeleton>` matching the table row shape
+
+**Key files:** `frontend/components/ui/collapsible-card.tsx`, `frontend/components/ui/settings-page-skeleton.tsx`, `frontend/components/ui/save-button.tsx`
+
 ## Implementation Journal
 
 - [Navigation Refactor (2026-01-26)](../../journal/2026-01-26-navigation-refactor.md)

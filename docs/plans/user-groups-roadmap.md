@@ -663,3 +663,9 @@ Completed: `is_admin` column removed; admin status is determined solely by membe
 - [Dashboard Improvements](dashboard-improvements-roadmap.md) - Uses groups for widget permissions
 - [Admin Features](admin-features-roadmap.md) - User management integration
 - [Security Compliance](security-compliance-roadmap.md) - RBAC requirements
+
+## Implementation Journal
+
+- [User Groups Phase 4: Admin UI](../journal/2026-01-30-user-groups-phase-4-admin-ui.md)
+- [Remove is_admin, Admin Group Only](../journal/2026-01-30-remove-is-admin-group-only.md)
+- [User Management Admin](../journal/2026-01-29-user-management-admin.md)
