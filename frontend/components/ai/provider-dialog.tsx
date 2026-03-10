@@ -139,29 +139,30 @@ export function ProviderDialog({
     region: activeProvider === "bedrock" ? region || undefined : undefined,
     access_key: activeProvider === "bedrock" ? accessKey || undefined : undefined,
     secret_key: activeProvider === "bedrock" ? secretKey || undefined : undefined,
+    provider_id: isEditing ? editingProvider!.id : undefined,
   });
 
   const testApiKey = async () => {
     if (activeProvider === "ollama") {
-      if (!baseUrl?.trim()) {
+      if (!baseUrl?.trim() && !isEditing) {
         setKeyError("Enter Ollama host (e.g. http://localhost:11434)");
         return;
       }
     } else if (activeProvider === "azure") {
-      if (!endpoint?.trim()) {
+      if (!endpoint?.trim() && !isEditing) {
         setKeyError("Enter Azure OpenAI endpoint (e.g. https://your-resource.openai.azure.com)");
         return;
       }
-      if (!apiKey?.trim()) {
+      if (!apiKey?.trim() && !isEditing) {
         setKeyError("Enter your API key");
         return;
       }
     } else if (activeProvider === "bedrock") {
-      if (!accessKey?.trim() || !secretKey?.trim()) {
+      if ((!accessKey?.trim() || !secretKey?.trim()) && !isEditing) {
         setKeyError("Enter AWS access key and secret key");
         return;
       }
-    } else if (!apiKey?.trim()) {
+    } else if (!apiKey?.trim() && !isEditing) {
       setKeyError("Enter your API key");
       return;
     }
@@ -187,13 +188,13 @@ export function ProviderDialog({
 
   const discoverModels = async () => {
     if (activeProvider === "ollama") {
-      if (!baseUrl?.trim()) { setDiscoveryError("Enter Ollama host first"); return; }
+      if (!baseUrl?.trim() && !isEditing) { setDiscoveryError("Enter Ollama host first"); return; }
     } else if (activeProvider === "azure") {
-      if (!endpoint?.trim()) { setDiscoveryError("Enter Azure OpenAI endpoint first"); return; }
-      if (!apiKey?.trim()) { setDiscoveryError("Enter your API key first"); return; }
+      if (!endpoint?.trim() && !isEditing) { setDiscoveryError("Enter Azure OpenAI endpoint first"); return; }
+      if (!apiKey?.trim() && !isEditing) { setDiscoveryError("Enter your API key first"); return; }
     } else if (activeProvider === "bedrock") {
-      if (!accessKey?.trim() || !secretKey?.trim()) { setDiscoveryError("Enter AWS access key and secret key first"); return; }
-    } else if (!apiKey?.trim()) {
+      if ((!accessKey?.trim() || !secretKey?.trim()) && !isEditing) { setDiscoveryError("Enter AWS access key and secret key first"); return; }
+    } else if (!apiKey?.trim() && !isEditing) {
       setDiscoveryError("Enter your API key first");
       return;
     }
@@ -298,14 +299,15 @@ export function ProviderDialog({
   };
 
   const isDiscoverDisabled =
-    (templateData?.requires_api_key && !apiKey?.trim()) ||
-    (activeProvider === "ollama" && !baseUrl?.trim()) ||
-    (activeProvider === "azure" && (!endpoint?.trim() || !apiKey?.trim())) ||
-    (activeProvider === "bedrock" && (!accessKey?.trim() || !secretKey?.trim())) ||
+    (!isEditing && templateData?.requires_api_key && !apiKey?.trim()) ||
+    (!isEditing && activeProvider === "ollama" && !baseUrl?.trim()) ||
+    (!isEditing && activeProvider === "azure" && (!endpoint?.trim() || !apiKey?.trim())) ||
+    (!isEditing && activeProvider === "bedrock" && (!accessKey?.trim() || !secretKey?.trim())) ||
     isDiscovering;
 
   const isTestDisabled = (() => {
     if (isTestingKey) return true;
+    if (isEditing) return false;
     if (activeProvider === "ollama") return !baseUrl?.trim();
     if (activeProvider === "azure") return !endpoint?.trim() || !apiKey?.trim();
     if (activeProvider === "bedrock") return !accessKey?.trim() || !secretKey?.trim();

@@ -57,6 +57,41 @@ _(Bugs currently being looked into)_
 - **What's wrong**: Three issues: (1) VAPID keys read in constructor but channel instances cached by singleton orchestrator — runtime config updates from `applyNotificationsConfigForRequest` never reached the channel. (2) `send()` returned normally even when ALL notifications failed (non-expired), so test endpoint reported "success" for failed sends. (3) `sendOneNotification` exceptions were uncaught, bubbling up with library-internal messages instead of user-friendly errors.
 - **Resolution**: Moved VAPID key reads from constructor to `send()` method so runtime config updates are always picked up. Added throw when all sends fail with collected error reasons. Wrapped `sendOneNotification` in try/catch. Added explicit `contentEncoding` to `Subscription::create()`. Date: 2026-03-09.
 
+### Avatar image squishes when uploaded
+- **Where found**: `frontend/components/user/avatar-upload.tsx`
+- **What's wrong**: `<AvatarImage>` missing `object-cover`, so non-square images get distorted.
+- **Resolution**: Added `className="object-cover"` to `<AvatarImage>`. Date: 2026-03-09.
+
+### Breadcrumb "Account" link gives 404
+- **Where found**: `frontend/components/app-breadcrumbs.tsx`
+- **What's wrong**: `/dashboard/user` segment was rendered as a clickable link but no page exists at that route.
+- **Resolution**: Added `NON_NAVIGABLE_SEGMENTS` set — segments listed there render as non-clickable `BreadcrumbPage` instead of `BreadcrumbLink`. Date: 2026-03-09.
+
+### Disabling 2FA requires password but frontend sends none
+- **Where found**: `backend/app/Http/Controllers/Api/TwoFactorController.php`, `frontend/components/user/security/two-factor-section.tsx`
+- **What's wrong**: Backend `disable()`, `recoveryCodes()`, and `regenerateRecoveryCodes()` required password validation, but frontend sent no body — causing 422 errors.
+- **Resolution**: Removed password validation from all three controller methods (`disable`, `recoveryCodes`, `regenerateRecoveryCodes`). Date: 2026-03-09.
+
+### 2FA TOTP verification fails — InvalidCharactersException in base32 string
+- **Where found**: `backend/app/Services/Auth/TwoFactorService.php`
+- **What's wrong**: Decrypted `two_factor_secret` could contain whitespace or `=` padding characters that Google2FA's strict base32 validator rejects.
+- **Resolution**: Added `rtrim(trim(...), '=')` sanitization on the secret before passing to `verifyKey()`. Date: 2026-03-09.
+
+### WebPush/queue workers crash — "Not enough arguments (missing: queues)"
+- **Where found**: `docker/supervisord.conf`
+- **What's wrong**: `queue:work` command missing the queue connection argument, causing workers to crash on startup.
+- **Resolution**: Added explicit `database` connection argument: `queue:work database --sleep=3 --tries=3 --max-time=3600`. Date: 2026-03-09.
+
+### Notification delivery log is blank despite notifications being sent
+- **Where found**: `frontend/components/notifications/delivery-log-tab.tsx`
+- **What's wrong**: Frontend status type, badge variants, labels, and stats cards were missing the `"queued"` status that the backend writes for async notifications.
+- **Resolution**: Added `"queued"` to `NotificationDeliveryRecord` status union, `STATUS_VARIANTS` (blue badge), `STATUS_LABELS`, and stats card grid (now 5 columns). Queue worker fix (above) also resolves records stuck in `queued` state. Date: 2026-03-09.
+
+### AI provider edit dialog blocks model discovery — key field is blank but no fallback
+- **Where found**: `frontend/components/ai/provider-dialog.tsx`, `backend/app/Http/Controllers/Api/LLMModelController.php`
+- **What's wrong**: In edit mode, API key field intentionally blank (security), but discover/test guards required a key — making it impossible to refresh models without re-entering the key.
+- **Resolution**: Frontend: skip credential guards in edit mode (`isEditing`), pass `provider_id` in credential payload. Backend: accept optional `provider_id` in discover/test-key endpoints, fall back to stored `AIProvider` credentials when request credentials are missing. Date: 2026-03-09.
+
 ### Theme setting in config overwritten by user preference
 - **Where found**: `frontend/components/providers.tsx`, `frontend/components/theme-provider.tsx`, `frontend/lib/app-config.tsx`
 - **What's wrong**: Admin-configured default theme (`defaults.default_theme`) was never read by the frontend. `ThemeProvider` used a hardcoded `"system"` fallback. The `defaults` group was also missing from `settings-schema.php`, so saving it from the System Settings page would have been rejected by schema validation.

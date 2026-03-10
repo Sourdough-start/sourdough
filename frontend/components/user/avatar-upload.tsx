@@ -133,7 +133,7 @@ export function AvatarUpload({ user, onAvatarUpdated }: AvatarUploadProps) {
     <div className="flex flex-col items-center text-center rounded-xl bg-muted/30 py-8 px-6">
       <div className="relative group">
         <Avatar className="h-28 w-28">
-          <AvatarImage src={displayUrl} />
+          <AvatarImage src={displayUrl} className="object-cover" />
           <AvatarFallback className="text-2xl">
             {user?.name ? getInitials(user.name) : "?"}
           </AvatarFallback>

@@ -42,7 +42,7 @@ interface NotificationDeliveryRecord {
   user_id: number;
   notification_type: string;
   channel: string;
-  status: "success" | "failed" | "rate_limited" | "skipped";
+  status: "success" | "failed" | "rate_limited" | "skipped" | "queued";
   error: string | null;
   attempt: number;
   attempted_at: string;
@@ -69,6 +69,7 @@ const STATUS_VARIANTS: Record<string, string> = {
   failed: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
   rate_limited: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
   skipped: "bg-muted text-muted-foreground border-muted",
+  queued: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -76,6 +77,7 @@ const STATUS_LABELS: Record<string, string> = {
   failed: "Failed",
   rate_limited: "Rate Limited",
   skipped: "Skipped",
+  queued: "Queued",
 };
 
 const CHANNELS = [
@@ -168,8 +170,8 @@ export function DeliveryLogTab() {
     <div className="space-y-6">
       {/* Stats cards */}
       {stats && stats.by_status && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {(["success", "failed", "rate_limited", "skipped"] as const).map((status) => (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {(["success", "failed", "rate_limited", "skipped", "queued"] as const).map((status) => (
             <Card key={status}>
               <CardHeader className="pb-2">
                 <CardDescription>{STATUS_LABELS[status]}</CardDescription>

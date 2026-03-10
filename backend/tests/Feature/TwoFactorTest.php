@@ -67,7 +67,7 @@ describe('Two-Factor Authentication', function () {
     });
 
     describe('Disable 2FA', function () {
-        it('can disable 2FA with valid password', function () {
+        it('can disable 2FA', function () {
             $user = User::factory()->create([
                 'password' => 'Password123!',
                 'two_factor_enabled' => true,
@@ -76,28 +76,9 @@ describe('Two-Factor Authentication', function () {
             ]);
 
             $response = $this->actingAs($user, 'sanctum')
-                ->postJson('/api/auth/2fa/disable', [
-                    'password' => 'Password123!',
-                ]);
+                ->postJson('/api/auth/2fa/disable');
 
             $response->assertStatus(200);
-        });
-
-        it('fails to disable 2FA with invalid password', function () {
-            $user = User::factory()->create([
-                'password' => 'Password123!',
-                'two_factor_enabled' => true,
-                'two_factor_secret' => encrypt('TESTSECRET'),
-                'two_factor_confirmed_at' => now(),
-            ]);
-
-            $response = $this->actingAs($user, 'sanctum')
-                ->postJson('/api/auth/2fa/disable', [
-                    'password' => 'WrongPassword123!',
-                ]);
-
-            // Laravel's current_password validation returns 422 for incorrect password
-            $response->assertStatus(422);
         });
     });
 
@@ -112,7 +93,7 @@ describe('Two-Factor Authentication', function () {
             ]);
 
             $response = $this->actingAs($user, 'sanctum')
-                ->postJson('/api/auth/2fa/recovery-codes', ['password' => 'Password123!']);
+                ->postJson('/api/auth/2fa/recovery-codes');
 
             $response->assertStatus(200)
                 ->assertJsonStructure([

@@ -5,10 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.1] - 2026-03-08
+
+### Added
+- Dashboard redesign with modular widget components: system health, recent activity, notifications, storage overview, upcoming tasks, and environment info
+- Reusable DashboardSection wrapper component for consistent dashboard layout
+- Dashboard API endpoint for aggregated widget data
+- Notification configuration extracted into dedicated tab components: channels, delivery log, email, Novu, and templates
+- AI provider dialog decomposed into ProviderCredentialFields and ProviderModelSelection sub-components with model caching
+- Two-factor authentication service improvements
+
+### Changed
+- Redesign dashboard page from monolithic layout to modular widget-based architecture
+- Refactor notification configuration: extract ~2,600 lines across 5 tab components
+- Refactor AI provider dialog: extract credential fields and model selection with response caching
+- Refactor email configuration, email templates, notification deliveries, and Novu pages into leaner compositions
+- Improve WebPush channel delivery logic
+- Improve avatar upload component
+- Update Docker entrypoint with improved initialization
+
 ## [0.10.0] - 2026-03-08
 
 ### Added
-- ADR API audit, frontend component refactoring, design review improvements, and documentation updates
+- Avatar upload component for user profiles
+- AI provider management dialog with full CRUD for LLM provider configuration
+- SSO configuration decomposed into provider cards, OIDC card, and global options card
+- Security overview dashboard on the user security page
+- Reusable DataTable component for consistent table rendering
+- Help center article table of contents with scroll-spy navigation
+- Profile API endpoint for user profile management
+- OWASP ASVS security audit roadmap and design review roadmap
+
+### Changed
+- Refactor AI configuration page: extract type definitions, provider cards, orchestration mode cards, and provider list into dedicated components (page reduced from ~1,400 to ~200 lines)
+- Refactor SSO configuration page into sso-provider-card, sso-oidc-card, sso-global-options-card, and shared types
+- Refactor admin user table into smaller, maintainable pieces
+- Redesign about dialog, sidebar navigation, user dropdown menu, and auth page layout
+- Redesign notification list items and notification bell/dropdown
+- Expand user preferences page with additional settings
+- Rewrite OpenAPI specification with expanded endpoint documentation
 
 ## [0.9.2] - 2026-03-05
 
@@ -18,81 +53,173 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.1] - 2026-03-05
 
 ### Fixed
-- CI build failures - TS type error and composer audit abandoned pkg
+- Fix TypeScript type error breaking CI build
+- Fix composer audit failure from abandoned package
 
 ## [0.9.0] - 2026-03-05
 
+### Added
+- API audit with consistent validation across all controllers (form requests, authorization checks)
+- DeprecateRoute middleware for RFC 8594 route deprecation headers
+- 9 new backend test suites: AccessLog, FileManager, Job, MailSetting, Profile, Setting, SystemSetting, User, Webhook controllers
+- 4 new frontend test suites: sanitize, use-permission, utils, validation-schemas
+- FileHelper and QueryHelper utility classes
+- use-debounce hook for input field optimization
+- 4 new ADRs: Real-Time Streaming (027), Webhook System (028), Usage Tracking (029), File Manager (030)
+- 7 new recipes: changelog entry, file manager, passkey, real-time streaming, usage tracking, webhook, onboarding
+- 6 new patterns: API key service, auth middleware, real-time streaming, sanitize, security, webhook service
+- UserService with deleteUser() for proper cascade cleanup
+- Dependabot configuration for automated dependency updates
+- Bug tracker for cross-cutting issue tracking
+
 ### Changed
-- RC1
+- Refactor all API controllers with consistent error handling and validation
+- Consolidate notification settings into NotificationController (remove separate NotificationSettingsController)
+- Rework logs configuration page with improved filtering
+- Split monolithic patterns.md (2,643 lines) and anti-patterns.md (1,049 lines) into individual focused documents
+- Expand Docker entrypoint with improved initialization logic
+- Update Nginx security headers configuration
+
+### Security
+- Encrypt webhook secrets at rest with migration for existing secrets
+- Add input sanitization with expanded XSS prevention
+- Tighten rate limiting on sensitive endpoints
+- Add Dependabot for automated security patch monitoring
+
+### Removed
+- Remove NotificationSettingsController (consolidated into NotificationController)
 
 ## [0.8.6] - 2026-03-03
 
 ### Fixed
-- Help center code block overflow and download button in modal
+- Help center code block overflow causing horizontal scroll
+- Download button not working in help center modal
 
 ## [0.8.5] - 2026-03-03
 
 ### Added
-- Update branding assets, help content, and add docs site
+- Standalone documentation site for public-facing project docs
+- socket.io-client dependency for improved real-time connectivity
 
-### Fixed
-- Sync package-lock.json with socket.io-client dependency
+### Changed
+- Replace all branding assets with new design (favicon, PWA icons in all sizes, apple-touch-icon)
+- Update logo component with new SVG design
+- Rewrite README with updated project description and setup instructions
+- Update help article rendering with improved typography
 
 ## [0.8.4] - 2026-03-02
 
+### Added
+- Setup verification script (verify-setup.sh) for validating project configuration
+- Recipe for updating AI configs and documentation after project customization
+- Pre-flight validation in release workflow
+
+### Changed
+- Improve onboarding recipes (get-cooking, setup-features-auth, setup-new-project) with expanded guidance
+- Expand release script (push.ps1) with additional checks
+
 ### Fixed
-- Conditional WebSocket upgrade headers and improve onboarding recipes
+- Fix WebSocket upgrade headers to be conditional — prevents errors when Reverb is not configured
+- Fix help center download button and modal edge cases
 
 ## [0.8.3] - 2026-03-01
 
 ### Added
-- Add GraphQL API documentation and refactor user settings
+- Comprehensive GraphQL API documentation in help center (1,200+ lines of content)
+- Download Docs button in help center for offline reference
+- Backend search pages registry (search-pages.php) for server-side page indexing
+- Frontend search pages registry (search-pages.ts)
+- GraphQL configuration page placeholder
 
-### Fixed
-- Sanitize search highlight HTML and tighten security defaults
+### Changed
+- Refactor UserSettingController with improved validation and error handling
+
+### Security
+- Sanitize search result highlights with DOMPurify to prevent stored XSS
+- Pin rollup >= 4.59.0 to patch CVE-2026-27606
+- Change GraphQL CORS default from wildcard (*) to app frontend URL
 
 ## [0.8.2] - 2026-02-28
 
-### Added
-- Refine theme system and update docs
+### Changed
+- Refine theme picker with improved UX and layout
+- Simplify theme provider architecture (centralize theme config in app-config)
+- Update theme toggle with cleaner mode switching
+- Add user setting validation in UserSettingController
+
+## [0.8.1] - 2026-02-28
+
+### Changed
+- Restrict color theme picker to admin-only Configuration > Branding page
+- Simplify user preferences to show light/dark/system mode toggle only
+- Update onboarding wizard to show mode selection instead of color theme grid
 
 ## [0.8.0] - 2026-02-28
 
 ### Added
-- Admin-only theming, Reverb defaults, inline migration seeders
+- Inline migration seeders for email and notification templates (no separate seeder step needed)
+- Database audit index cleanup migration for improved query performance
+
+### Changed
+- Switch to Laravel Reverb defaults for WebSocket broadcasting (removes manual Pusher/broadcasting config)
+- Simplify theme selection in user preferences and onboarding
+- Update Docker image with additional build dependencies
+
+### Removed
+- Remove standalone broadcasting.php config file (Reverb uses framework defaults)
 
 ## [0.7.11] - 2026-02-27
 
 ### Added
-- Theming engine, auth UI redesign, dashboard widget improvements
+- Theming engine with 18 color themes (Amber, Bubblegum, Catppuccin, Coffee, Cyberpunk, Dracula, Forest, Lavender, Midnight, Mono, Nord, Ocean, Rose, Sakura, Slate, Solarized, Sunset, and Default)
+- Theme picker component with live preview
+- Breadcrumb navigation component across all pages
+- WebAuthn certificate attestation support for passkeys
+
+### Changed
+- Redesign auth pages (login, forgot password, reset password) with updated layout and styling
+- Restyle dashboard widgets (stats, welcome, quick actions, usage) with theme-aware colors
+- Refactor real-time streaming hooks (Echo, audit stream, app log stream) for reliability
+
+## [0.7.10] - 2026-02-27
+
+### Fixed
+- Fix email verification page firing verification request twice
+- Add user_id and disabled_at columns to webauthn_credentials table for proper user scoping
+- Fix Echo config missing Pusher cluster field
 
 ## [0.7.8] - 2026-02-26
 
 ### Changed
-- Update notification, passkey, and Docker configuration
+- Refactor notification controller for improved reliability
+- Update Docker configuration
 
 ### Fixed
-- Passkey error handling, push notification device matching, and WebAuthn permissions policy
+- Fix passkey error handling for invalid credentials
+- Fix push notification device matching across multiple devices
+- Fix WebAuthn permissions policy header
 
 ## [0.7.6] - 2026-02-26
 
 ### Added
-- Add push notification diagnostics endpoint and delivery debug logging
+- Push notification diagnostics endpoint for troubleshooting delivery issues
+- Delivery debug logging for push notification channel
 
 ## [0.7.5] - 2026-02-26
 
 ### Fixed
-- Always show native push notification regardless of window focus
+- Always show native push notification regardless of window focus state
 
 ## [0.7.4] - 2026-02-26
 
 ### Fixed
-- Separate webpush channel toggle from device management
+- Separate webpush channel toggle from device management to prevent accidental unsubscription
 
 ## [0.7.3] - 2026-02-26
 
 ### Fixed
-- Improve PWA push notifications and multi-device UX
+- Improve PWA push notification reliability across multiple devices
+- Fix multi-device subscription management UX
 
 ## [0.7.2] - 2026-02-26
 
@@ -120,29 +247,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.4] - 2026-02-24
 
 ### Fixed
-- Migrated Semgrep from GitHub Action to direct CLI with rule exclusions for cleaner CI
-- Fixed flaky GraphQL error test
+- Migrate Semgrep from GitHub Action to direct CLI with rule exclusions for cleaner CI
+- Fix flaky GraphQL error test
 
 ## [0.6.3] - 2026-02-24
 
 ### Fixed
-- Resolved Semgrep CI findings with nosemgrep suppressions for false positives
-- Added shared security headers Nginx include file
+- Resolve Semgrep CI findings with nosemgrep suppressions for false positives
+- Add shared security headers Nginx include file
 
 ## [0.6.2] - 2026-02-24
 
 ### Security
 - SSRF protection hardening with DNS pinning to prevent DNS rebinding attacks
 - Internal error details no longer leak to API responses
-- Added security headers to Nginx configuration
+- Add security headers to Nginx configuration
 
 ## [0.6.1] - 2026-02-24
 
 ### Changed
-- Migrated passkey authentication from custom PasskeyService to Laragear WebAuthn typed request classes
-- Simplified PasskeyController register/login flows using built-in request methods
-- Added Auth::logout() and session invalidation when disabled user attempts passkey login
-- Updated User model and auth config for WebAuthn compatibility
+- Migrate passkey authentication from custom PasskeyService to Laragear WebAuthn typed request classes
+- Simplify PasskeyController register/login flows using built-in request methods
+- Add Auth::logout() and session invalidation when disabled user attempts passkey login
+- Update User model and auth config for WebAuthn compatibility
 
 ## [0.6.0] - 2026-02-23
 
@@ -152,21 +279,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Passkeys code review task added to roadmap
 
 ### Fixed
-- Registered Lighthouse service provider in bootstrap/providers.php for Laravel 11 GraphQL routes
-- Removed incorrect @field directives from GraphQL schema to allow Lighthouse auto-discovery
-- Fixed RefreshDatabase transaction isolation so test data is visible to GraphQL HTTP requests
-- Added context-based user resolution for GraphQL resolvers with auth guard fallback
-- Fixed DisableIntrospection to use int constants with explicit feature gate in tests
+- Register Lighthouse service provider in bootstrap/providers.php for Laravel 11 GraphQL routes
+- Remove incorrect @field directives from GraphQL schema to allow Lighthouse auto-discovery
+- Fix RefreshDatabase transaction isolation so test data is visible to GraphQL HTTP requests
+- Add context-based user resolution for GraphQL resolvers with auth guard fallback
+- Fix DisableIntrospection to use int constants with explicit feature gate in tests
 
 ## [0.5.2] - 2026-02-22
 
 ### Fixed
-- Corrected Lighthouse error handlers and Stripe webhook test expectations
+- Correct Lighthouse error handlers and Stripe webhook test expectations
 
 ## [0.5.1] - 2026-02-22
 
 ### Fixed
-- Resolved CI test failures in Stripe webhook, GraphQL, and API key tests
+- Resolve CI test failures in Stripe webhook, GraphQL, and API key tests
 
 ## [0.5.0] - 2026-02-22
 
@@ -184,19 +311,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Push subscription expiry detection that auto-removes stale subscriptions
 
 ### Changed
-- Replaced hand-rolled RFC 8291 WebPush payload encryption with minishlink/web-push library
+- Replace hand-rolled RFC 8291 WebPush payload encryption with minishlink/web-push library
 - Release tooling — push.ps1 now auto-detects branch, guards against detached HEAD, supports non-interactive mode
 
 ### Fixed
-- Fixed TypeScript error in notifications page by properly casting Object.values() result
-- Updated composer.lock to include minishlink/web-push dependencies
+- Fix TypeScript error in notifications page by properly casting Object.values() result
+- Update composer.lock to include minishlink/web-push dependencies
 
 ## [0.3.1] - 2026-02-15
 
 ### Added
 - Service worker cache versioning — release pipeline auto-updates CACHE_VERSION in sw.js
 - Service worker cleans up old versioned caches on activate
-- Expanded add-searchable-model recipe with dedicated search methods, validation, and Scout config
+- Expand add-searchable-model recipe with dedicated search methods, validation, and Scout config
 
 ## [0.3.0] - 2026-02-16
 
@@ -225,7 +352,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dark mode fixes across configuration pages for consistent theme adherence
 
 ### Fixed
-- Fixed theme preference race condition — use localStorage as single source of truth instead of stale API values
+- Fix theme preference race condition — use localStorage as single source of truth instead of stale API values
 
 ## [0.1.26] - 2026-02-14
 

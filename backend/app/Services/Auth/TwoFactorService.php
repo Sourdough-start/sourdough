@@ -64,7 +64,7 @@ class TwoFactorService
             return false;
         }
 
-        $secret = $user->two_factor_secret;
+        $secret = rtrim(trim($user->two_factor_secret), '=');
 
         try {
             return $this->google2fa->verifyKey($secret, $code);

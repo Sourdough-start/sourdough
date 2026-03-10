@@ -90,7 +90,7 @@ docker exec sourdough-dev bash -c "cd /var/www/html/frontend && npx shadcn@lates
 | File Manager | [ADR-030](docs/adr/030-file-manager.md), `backend/app/Http/Controllers/Api/FileManagerController.php`, [add-file-manager-feature recipe](docs/ai/recipes/add-file-manager-feature.md) |
 | Passkeys | [ADR-018](docs/adr/018-passkey-webauthn.md), `backend/app/Services/Auth/PasskeyService.php`, [add-passkey-support recipe](docs/ai/recipes/add-passkey-support.md) |
 | Onboarding | `backend/app/Http/Controllers/Api/OnboardingController.php`, [extend-onboarding recipe](docs/ai/recipes/extend-onboarding.md) |
-| Changelog | `backend/app/Services/ChangelogService.php`, [add-changelog-entry recipe](docs/ai/recipes/add-changelog-entry.md) |
+| Changelog | `backend/app/Services/ChangelogService.php`, [add-changelog-entry recipe](docs/ai/recipes/add-changelog-entry.md), [changelog-entries pattern](docs/ai/patterns/changelog-entries.md) |
 | API Keys | `backend/app/Services/ApiKeyService.php`, [api-key-service pattern](docs/ai/patterns/api-key-service.md) |
 | Release/Deploy | [commit-and-release recipe](docs/ai/recipes/commit-and-release.md), `scripts/push.ps1`, `VERSION` |
 | New Project Setup | Say **"Get cooking"** -- [setup-new-project recipe](docs/ai/recipes/setup-new-project.md) |

@@ -270,6 +270,7 @@ Route::middleware(['auth:sanctum', 'verified', '2fa.setup'])->group(function () 
     Route::prefix('backup')->group(function () {
         Route::get('/', [BackupController::class, 'index'])->middleware('can:backups.view');
         Route::post('/create', [BackupController::class, 'create'])->middleware('can:backups.create');
+        Route::post('/upload', [BackupController::class, 'upload'])->middleware('can:backups.create');
         Route::get('/download/{filename}', [BackupController::class, 'download'])->middleware('can:backups.view');
         Route::post('/restore', [BackupController::class, 'restore'])->middleware('can:backups.restore');
         Route::delete('/{filename}', [BackupController::class, 'destroy'])->middleware('can:backups.delete');

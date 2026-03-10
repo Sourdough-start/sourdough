@@ -64,6 +64,8 @@ Simply edit `CHANGELOG.md` at the project root following Keep a Changelog format
 
 Standard categories: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 
+**Writing quality entries:** See [Pattern: Changelog Entries](../patterns/changelog-entries.md) for rules on writing detailed, user-facing changelog entries. The release script (`push.ps1`) will skip auto-generation when a manual entry exists.
+
 **Related:** [Recipe: Commit and Release](commit-and-release.md)
 
 ## Implementation Journal

@@ -51,6 +51,19 @@ When releasing, you have two options for handling version bumps:
 
 **Recommendation**: Use Option A (bump locally) for cleaner history. The workflow handles both cases correctly.
 
+## Step 0: Write Changelog Entry (Before Releasing)
+
+**IMPORTANT**: Before releasing, write a detailed changelog entry manually. The auto-generated entries from commit messages are too vague.
+
+1. Determine the next version: read `VERSION` and bump accordingly
+2. Run `git diff <last-tag>..HEAD --stat` and `git log <last-tag>..HEAD --oneline` to review all changes
+3. Write a detailed entry in `CHANGELOG.md` following [Keep a Changelog](https://keepachangelog.com/) format
+4. One bullet per distinct change, user-facing language, specific names
+
+See [Pattern: Changelog Entries](../patterns/changelog-entries.md) for format rules and examples.
+
+The release script (`push.ps1`) will detect the pre-written entry and skip auto-generation.
+
 ## Step 1: Stage and Review Changes
 
 ```powershell

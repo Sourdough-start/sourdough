@@ -211,6 +211,23 @@ class BackupService
     }
 
     /**
+     * Store an uploaded backup file without restoring it.
+     */
+    public function upload(UploadedFile $file): array
+    {
+        $timestamp = now()->format('Y-m-d_H-i-s');
+        $filename = "sourdough-backup-{$timestamp}.zip";
+
+        Storage::disk($this->disk)->put($filename, file_get_contents($file->getRealPath()));
+
+        return [
+            'filename' => $filename,
+            'size' => Storage::disk($this->disk)->size($filename),
+            'created_at' => now()->toISOString(),
+        ];
+    }
+
+    /**
      * Restore from uploaded file.
      */
     public function restoreFromUpload(UploadedFile $file): array

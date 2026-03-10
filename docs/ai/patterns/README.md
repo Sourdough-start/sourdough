@@ -56,6 +56,7 @@ Follow these patterns for consistency across the codebase. Read only the files r
 | Real-Time Streaming | [real-time-streaming.md](real-time-streaming.md) | Laravel Reverb/Echo WebSocket streaming |
 | Stripe Service | [stripe-service.md](stripe-service.md) | Stripe Connect integration |
 | Stripe Webhooks | [stripe-webhooks.md](stripe-webhooks.md) | Handling Stripe webhook events |
+| Changelog Entries | [changelog-entries.md](changelog-entries.md) | Writing detailed release changelog entries |
 
 ## Naming Conventions
 

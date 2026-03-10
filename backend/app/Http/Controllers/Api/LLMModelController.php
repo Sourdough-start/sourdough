@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AIProvider;
 use App\Services\LLMModelDiscoveryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,15 +22,17 @@ class LLMModelController extends Controller
     {
         $validated = $request->validate([
             'provider' => ['required', 'string', 'in:openai,claude,gemini,ollama,azure,bedrock'],
-            'api_key' => ['required_unless:provider,ollama,bedrock', 'nullable', 'string'],
-            'host' => ['required_if:provider,ollama', 'nullable', 'string'],
-            'endpoint' => ['required_if:provider,azure', 'nullable', 'string'],
-            'region' => ['required_if:provider,bedrock', 'nullable', 'string'],
-            'access_key' => ['required_if:provider,bedrock', 'nullable', 'string'],
-            'secret_key' => ['required_if:provider,bedrock', 'nullable', 'string'],
+            'provider_id' => ['sometimes', 'integer'],
+            'api_key' => ['nullable', 'string'],
+            'host' => ['nullable', 'string'],
+            'endpoint' => ['nullable', 'string'],
+            'region' => ['nullable', 'string'],
+            'access_key' => ['nullable', 'string'],
+            'secret_key' => ['nullable', 'string'],
         ]);
 
         $credentials = $this->credentialsFromRequest($validated);
+        $credentials = $this->mergeStoredCredentials($request, $validated, $credentials);
 
         try {
             $valid = $this->discovery->validateCredentials($validated['provider'], $credentials);
@@ -53,15 +56,17 @@ class LLMModelController extends Controller
     {
         $validated = $request->validate([
             'provider' => ['required', 'string', 'in:openai,claude,gemini,ollama,azure,bedrock'],
-            'api_key' => ['required_unless:provider,ollama,bedrock', 'nullable', 'string'],
-            'host' => ['required_if:provider,ollama', 'nullable', 'string'],
-            'endpoint' => ['required_if:provider,azure', 'nullable', 'string'],
-            'region' => ['required_if:provider,bedrock', 'nullable', 'string'],
-            'access_key' => ['required_if:provider,bedrock', 'nullable', 'string'],
-            'secret_key' => ['required_if:provider,bedrock', 'nullable', 'string'],
+            'provider_id' => ['sometimes', 'integer'],
+            'api_key' => ['nullable', 'string'],
+            'host' => ['nullable', 'string'],
+            'endpoint' => ['nullable', 'string'],
+            'region' => ['nullable', 'string'],
+            'access_key' => ['nullable', 'string'],
+            'secret_key' => ['nullable', 'string'],
         ]);
 
         $credentials = $this->credentialsFromRequest($validated);
+        $credentials = $this->mergeStoredCredentials($request, $validated, $credentials);
 
         try {
             $models = $this->discovery->discoverModels($validated['provider'], $credentials);
@@ -110,6 +115,47 @@ class LLMModelController extends Controller
         if ($validated['provider'] === 'ollama' && empty($credentials['host'])) {
             $credentials['host'] = 'http://localhost:11434';
         }
+        return $credentials;
+    }
+
+    /**
+     * When provider_id is given and credentials are missing, fall back to the stored provider's credentials.
+     */
+    private function mergeStoredCredentials(Request $request, array $validated, array $credentials): array
+    {
+        if (empty($validated['provider_id'])) {
+            return $credentials;
+        }
+
+        $stored = AIProvider::where('id', $validated['provider_id'])
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if (!$stored) {
+            return $credentials;
+        }
+
+        if (empty($credentials['api_key']) && $stored->api_key) {
+            $credentials['api_key'] = $stored->api_key;
+        }
+
+        $settings = $stored->settings ?? [];
+        if (empty($credentials['host']) && !empty($settings['host'])) {
+            $credentials['host'] = $settings['host'];
+        }
+        if (empty($credentials['endpoint']) && !empty($settings['endpoint'])) {
+            $credentials['endpoint'] = $settings['endpoint'];
+        }
+        if (empty($credentials['region']) && !empty($settings['region'])) {
+            $credentials['region'] = $settings['region'];
+        }
+        if (empty($credentials['access_key']) && !empty($settings['access_key'])) {
+            $credentials['access_key'] = $settings['access_key'];
+        }
+        if (empty($credentials['secret_key']) && !empty($settings['secret_key'])) {
+            $credentials['secret_key'] = $settings['secret_key'];
+        }
+
         return $credentials;
     }
 

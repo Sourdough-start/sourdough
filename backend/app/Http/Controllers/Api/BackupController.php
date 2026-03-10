@@ -100,6 +100,35 @@ class BackupController extends Controller
     }
 
     /**
+     * Upload a backup file (store without restoring).
+     */
+    public function upload(Request $request): JsonResponse
+    {
+        $request->validate([
+            'backup' => ['required', 'file', 'mimes:zip'],
+        ]);
+
+        try {
+            $result = $this->backupService->upload($request->file('backup'));
+
+            $this->auditService->log('backup.uploaded', null, [], [
+                'filename' => $result['filename'],
+                'size' => $result['size'],
+            ]);
+
+            return response()->json([
+                'message' => 'Backup uploaded successfully',
+                'backup' => $result,
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to upload backup',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Restore from backup.
      */
     public function restore(Request $request): JsonResponse

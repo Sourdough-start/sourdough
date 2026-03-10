@@ -53,6 +53,9 @@ const SEGMENT_LABELS: Record<string, string> = {
 /** Routes where breadcrumbs should not be shown. */
 const HIDDEN_ON = new Set(["/dashboard"]);
 
+/** Intermediate segments that are group-only (no page) and should not be clickable. */
+const NON_NAVIGABLE_SEGMENTS = new Set(["user"]);
+
 function labelForSegment(segment: string): string {
   return SEGMENT_LABELS[segment] ?? segment.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -92,7 +95,7 @@ export function AppBreadcrumbs() {
             <React.Fragment key={crumb.href}>
               {index > 0 && <BreadcrumbSeparator />}
               <BreadcrumbItem>
-                {isLast ? (
+                {isLast || NON_NAVIGABLE_SEGMENTS.has(segments[index]) ? (
                   <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>

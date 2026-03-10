@@ -238,6 +238,17 @@ Write-Host "New version: $NewVersion" -ForegroundColor Green
 
 # Auto-update CHANGELOG.md with commits since last tag
 Write-Host "Updating changelog..." -ForegroundColor Cyan
+
+# Skip auto-generation if changelog already has a manually-written entry for this version
+$SkipChangelogAuto = $false
+if (Test-Path $ChangelogFile) {
+    $ExistingChangelog = Get-Content $ChangelogFile -Raw
+    if ($ExistingChangelog -match "## \[$([regex]::Escape($NewVersion))\]") {
+        Write-Host "Changelog already has entry for v$NewVersion - skipping auto-generation" -ForegroundColor Green
+        $SkipChangelogAuto = $true
+    }
+}
+
 $LastTag = git describe --tags --abbrev=0 2>$null
 if ($LastTag) {
     $CommitRange = "$LastTag..HEAD"
@@ -246,7 +257,7 @@ if ($LastTag) {
 }
 $Commits = @(git log $CommitRange --pretty=format:"%s" --no-merges 2>$null)
 
-if ($Commits.Count -gt 0) {
+if (-not $SkipChangelogAuto -and $Commits.Count -gt 0) {
     $Added = @()
     $Changed = @()
     $Fixed = @()
@@ -316,7 +327,7 @@ if ($Commits.Count -gt 0) {
         }
         if ($ChangelogContent -ne $OriginalContent) {
             Set-Content -Path $ChangelogFile -Value $ChangelogContent -NoNewline
-            Write-Host "Added changelog entry for v$NewVersion ($($Commits.Count) commits)" -ForegroundColor Green
+            Write-Host "Added changelog entry for v$NewVersion - $($Commits.Count) commits" -ForegroundColor Green
         } else {
             Write-Warning "Failed to update CHANGELOG.md - header pattern not matched. Update manually."
         }
