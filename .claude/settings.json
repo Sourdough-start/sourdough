@@ -13,7 +13,9 @@
       "Bash(wc -l \"/c/Users/jpitt_6932a9v/code/sourdough/frontend/app/\\(dashboard\\)/configuration/notifications/page.tsx\" \"/c/Users/jpitt_6932a9v/code/sourdough/frontend/app/\\(dashboard\\)/configuration/email/page.tsx\" \"/c/Users/jpitt_6932a9v/code/sourdough/frontend/app/\\(dashboard\\)/configuration/notification-templates/page.tsx\" \"/c/Users/jpitt_6932a9v/code/sourdough/frontend/app/\\(dashboard\\)/configuration/notification-templates/[id]/page.tsx\" \"/c/Users/jpitt_6932a9v/code/sourdough/frontend/app/\\(dashboard\\)/configuration/novu/page.tsx\" \"/c/Users/jpitt_6932a9v/code/sourdough/frontend/app/\\(dashboard\\)/configuration/notification-deliveries/page.tsx\" \"/c/Users/jpitt_6932a9v/code/sourdough/frontend/app/\\(dashboard\\)/configuration/email-templates/page.tsx\")",
       "Bash(head -100 \"/c/Users/jpitt_6932a9v/code/sourdough/frontend/app/\\(dashboard\\)/configuration/notifications/page.tsx\")",
       "Bash(wc -l \"c:\\\\Users\\\\jpitt_6932a9v\\\\code\\\\sourdough\\\\frontend\\\\app\\\\\\(dashboard\\)\\\\user\\\\preferences\\\\page.tsx\")",
-      "Bash(wc -l \"c:/Users/jpitt_6932a9v/code/sourdough/frontend/app/\\(dashboard\\)/user/preferences/page.tsx\")"
+      "Bash(wc -l \"c:/Users/jpitt_6932a9v/code/sourdough/frontend/app/\\(dashboard\\)/user/preferences/page.tsx\")",
+      "Bash(git log --all --oneline --grep=\"avatar\" -i -- frontend/components/user-dropdown.tsx frontend/components/user/avatar-upload.tsx frontend/components/header.tsx backend/app/Http/Controllers/Api/ProfileController.php)",
+      "Bash(ls -la \"/c/Users/jpitt_6932a9v/code/sourdough/frontend/app/\\(dashboard\\)/configuration/\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\jpitt_6932a9v\\code\\sourdough"

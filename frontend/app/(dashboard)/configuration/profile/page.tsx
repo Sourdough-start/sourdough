@@ -126,7 +126,7 @@ export default function ProfilePage() {
             {/* Avatar section */}
             <div className="flex items-center gap-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={user?.avatar || undefined} />
+                <AvatarImage src={user?.avatar || undefined} className="object-cover" />
                 <AvatarFallback className="text-lg">
                   {user?.name ? getInitials(user.name) : "?"}
                 </AvatarFallback>

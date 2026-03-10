@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { errorLogger } from "@/lib/error-logger";
 import { formatBytes, formatDateTime, getErrorMessage } from "@/lib/utils";
+import { useNotificationPrompt } from "@/lib/use-notification-prompt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -158,6 +159,7 @@ export default function BackupPage() {
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [testingDestination, setTestingDestination] = useState<string | null>(null);
+  const { promptIfNeeded } = useNotificationPrompt();
 
   const {
     register,
@@ -197,6 +199,7 @@ export default function BackupPage() {
       await api.post("/backup/create");
       toast.success("Backup created successfully");
       fetchBackups();
+      promptIfNeeded("Want to know when your backup completes?");
     } catch (error: unknown) {
       toast.error(getErrorMessage(error, "Failed to create backup"));
     } finally {

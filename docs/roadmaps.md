@@ -18,17 +18,17 @@ _(None — all items archived. Pick from Planned Features below or add new items
 
 Ready to start. These are unblocked and can begin immediately.
 
-- [ ] **Consolidate Configuration Notifications Page** - Unify notification settings scattered across configuration pages into a dedicated settings page under the configuration menu. Centralize channel configuration, preferences, and provider management with consistent UX. (see [Notifications Roadmap](plans/notifications-roadmap.md))
+_(None — pick from Planned Features below or add new items.)_
 
 ## Planned Features
 
 Requires foundation work or longer-term planning.
 
-- [ ] **Design Review** - Visual polish across login, dashboard, sidebar, header, notifications, user section, admin configuration, and help center. 26 sections covering color-coded notifications, typography, animations, visual hierarchy, avatar upload, security overview, config page consistency, help article rendering, and component standardization. (see [Design Review](plans/design-review-roadmap.md))
 - [ ] **OWASP ASVS Level 2 Audit** - Structured security audit against OWASP Application Security Verification Standard v4.0.3. 198 items across 14 verification categories. ~72% pass rate with 54 gaps identified and prioritized. (see [OWASP ASVS Audit](plans/owasp-asvs-audit-roadmap.md))
 - [ ] **Re-evaluate Stripe Integration** - Review the current Stripe Connect integration to assess whether it still fits project needs. Consider alternative payment processors, evaluate the 1% platform fee model, and determine if the integration should be simplified, replaced, or removed. (see [ADR-026](adr/026-stripe-connect-integration.md), [Stripe Connect Roadmap](plans/stripe-connect-roadmap.md))
 - [ ] **Documentation Review** - Comprehensive review of all project documentation for accuracy, completeness, and consistency. Audit ADRs, recipes, patterns, and guides against current codebase. Identify stale references, missing docs for new features, broken links, and gaps in onboarding material. Standardize formatting and cross-references across all doc files. (see [Documentation Review Roadmap](plans/documentation-review-roadmap.md))
 - [ ] **Get Cooking Script Audit** - Re-audit the "Get Cooking" onboarding script (`setup-new-project.md`) against current codebase. Previous audit (2026-03-02) scored 8/10 with 16 issues across 9 sections. Verify prior fixes were applied, identify new drift from recent features, and test the full onboarding flow end-to-end. (see [Get Cooking Audit Roadmap](plans/get-cooking-audit-roadmap.md))
+- [x] **AI-Readable Changelog Export** - ~~Add a downloadable markdown export of the changelog optimized for AI agents.~~ Complete — core export (service, API, UI, tests) plus admin-configurable settings for format, detail level, and instruction style. See [journal entry](journal/2026-03-10-ai-changelog-export-settings.md).
 
 ## Release Checklist
 

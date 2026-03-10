@@ -140,7 +140,7 @@ return [
         'subtitle' => 'Version history and release notes',
         'url' => '/configuration/changelog',
         'admin_only' => false,
-        'content' => 'changelog version release notes updates what\'s new history',
+        'content' => 'changelog version release notes updates what\'s new history export AI upgrade guide',
     ],
     [
         'id' => 'config-ai',

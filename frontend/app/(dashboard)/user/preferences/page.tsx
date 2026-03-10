@@ -48,6 +48,7 @@ import { ThemePicker } from "@/components/theme-picker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { getTypesByCategory } from "@/lib/notification-types";
+import { NotificationPermissionBanner } from "@/components/notifications/permission-banner";
 
 interface UserPreferences {
   theme?: "light" | "dark" | "system";
@@ -669,6 +670,7 @@ function PreferencesPageContent() {
         </TabsContent>
 
         <TabsContent value="notifications" className="mt-4 space-y-6">
+      <NotificationPermissionBanner />
       {/* Notification Preferences */}
       <Card>
         <CardHeader>

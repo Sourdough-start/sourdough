@@ -13,9 +13,9 @@ class ChangelogService
      */
     public function getEntries(int $page = 1, int $perPage = 10): array
     {
-        $changelogPath = base_path('../CHANGELOG.md');
+        $entries = $this->getAllEntries();
 
-        if (!file_exists($changelogPath)) {
+        if (empty($entries)) {
             return [
                 'data' => [],
                 'meta' => [
@@ -26,9 +26,6 @@ class ChangelogService
                 ],
             ];
         }
-
-        $content = file_get_contents($changelogPath);
-        $entries = $this->parseChangelog($content);
 
         $total = count($entries);
         $lastPage = max(1, (int) ceil($total / $perPage));
@@ -44,6 +41,32 @@ class ChangelogService
                 'total' => $total,
             ],
         ];
+    }
+
+    /**
+     * Get all changelog entries without pagination.
+     *
+     * @return array<int, array{version: string, date: string|null, categories: array}>
+     */
+    public function getAllEntries(): array
+    {
+        $content = $this->readChangelog();
+
+        if ($content === null) {
+            return [];
+        }
+
+        return $this->parseChangelog($content);
+    }
+
+    /**
+     * Read the CHANGELOG.md file contents.
+     */
+    private function readChangelog(): ?string
+    {
+        $path = base_path('../CHANGELOG.md');
+
+        return file_exists($path) ? file_get_contents($path) : null;
     }
 
     /**

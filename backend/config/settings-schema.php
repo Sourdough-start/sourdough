@@ -287,6 +287,12 @@ return [
         'cors_allowed_origins' => ['env' => 'GRAPHQL_CORS_ALLOWED_ORIGINS', 'default' => '*'],
     ],
 
+    'changelog' => [
+        'export_format' => ['env' => null, 'default' => 'detailed'],         // detailed | summary
+        'export_detail_level' => ['env' => null, 'default' => 'full'],       // full | changes-only
+        'export_instruction_style' => ['env' => null, 'default' => 'step-by-step'], // step-by-step | checklist | minimal
+    ],
+
     'defaults' => [
         'default_theme' => ['env' => null, 'default' => 'system', 'public' => true],
         'default_llm_mode' => ['env' => null, 'default' => 'single'],

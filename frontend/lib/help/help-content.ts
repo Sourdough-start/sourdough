@@ -194,7 +194,19 @@ Changes are organized into sections:
 
 ## Older Versions
 
-Older version entries are collapsible to keep the page clean. Click on a version header to expand its details.`,
+Older version entries are collapsible to keep the page clean. Click on a version header to expand its details.
+
+## AI Export
+
+Click the **AI Export** button to generate a structured markdown upgrade guide between two versions. This document is optimized for AI agents to understand and replicate changes in forked codebases. It includes version-by-version changes, consolidated summaries, database migration lists, and step-by-step instructions.
+
+## Export Settings (Admin)
+
+Admins can customize AI export output under the **changelog** settings group:
+
+- **Format** — \`detailed\` (version-by-version + consolidated) or \`summary\` (consolidated only)
+- **Detail Level** — \`full\` (includes migration detection) or \`changes-only\` (changelog entries only)
+- **Instruction Style** — \`step-by-step\` (numbered guide), \`checklist\` (task list), or \`minimal\` (brief)`,
       },
     ],
   },

@@ -61,7 +61,7 @@ export function UserDropdown() {
           className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
         >
           <Avatar className="h-8 w-8 border-2 border-background">
-            <AvatarImage src={user.avatar || undefined} />
+            <AvatarImage src={user.avatar || undefined} className="object-cover" />
             <AvatarFallback className="text-xs font-semibold">
               {getInitials(user.name)}
             </AvatarFallback>

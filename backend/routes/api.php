@@ -206,6 +206,8 @@ Route::middleware(['auth:sanctum', 'verified', '2fa.setup'])->group(function () 
     
     // Changelog (authenticated, read-only)
     Route::get('/changelog', [ChangelogController::class, 'index']);
+    Route::get('/changelog/versions', [ChangelogController::class, 'versions']);
+    Route::get('/changelog/export', [ChangelogController::class, 'export'])->middleware('throttle:10,1');
 
     // Settings (permission: settings.view / settings.edit)
     Route::prefix('settings')->group(function () {

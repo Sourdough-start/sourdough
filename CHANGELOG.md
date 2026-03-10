@@ -6,10 +6,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [0.10.2] - 2026-03-09
+## [0.10.3] - 2026-03-10
+
+### Added
+- AI-readable changelog export with version range picker and downloadable markdown upgrade guide
+- Changelog export API endpoints (`GET /changelog/versions`, `GET /changelog/export`) with rate limiting
+- Admin-configurable export settings for format, detail level, and instruction style
+- Notification permission guided flow in onboarding wizard (requests browser push directly)
+- Notification permission banner component for preferences page
+- Contextual notification prompt hook (`useNotificationPrompt`) triggered after key actions
 
 ### Changed
-- Update 25 file(s) -- CHANGELOG.md, CLAUDE.md, backend/app/Http/Controllers/Api/BackupController.php, backend/app/Http/Controllers/Api/LLMModelController.php, backend/app/Http/Controllers/Api/TwoFactorController.php (+20 more)
+- Release script now requires manual changelog entries instead of auto-generating from commits
+- Backfilled detailed changelog entries for v0.10.2
+- Updated changelog help content with AI export documentation
+- Added AI export keywords to changelog search page entry
+
+### Fixed
+- Fix avatar image stretching in profile, user table, and user dropdown with `object-cover`
+
+## [0.10.2] - 2026-03-09
+
+### Added
+- Backup upload endpoint (`POST /api/backup/upload`) for storing backup files without restoring
+- "Queued" notification delivery status with stats card in delivery log
+- Changelog entries pattern documentation and get-cooking audit roadmap
+
+### Changed
+- LLM model discovery falls back to stored provider credentials when editing (no need to re-enter API key)
+- AI provider dialog allows test/discover without re-entering credentials for existing providers
+- Remove password re-confirmation from 2FA disable, recovery codes, and regenerate endpoints
+- Release script skips auto-changelog generation when manual entry already exists
+- Queue worker explicitly specifies `database` connection in supervisord
+- Breadcrumb "user" segment rendered as non-navigable
+
+### Fixed
+- Fix 2FA TOTP verification by trimming padding from secret before validation
+- Fix avatar image stretching with `object-cover` styling
+- Fix changelog page list styling to use proper disc markers
+
 ## [0.10.1] - 2026-03-08
 
 ### Added

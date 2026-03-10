@@ -143,7 +143,7 @@ export const SEARCH_PAGES: SearchPage[] = [
     subtitle: "Version history and release notes",
     url: "/configuration/changelog",
     adminOnly: false,
-    keywords: ["changelog", "version", "release", "what's new", "updates"],
+    keywords: ["changelog", "version", "release", "what's new", "updates", "export", "AI", "upgrade guide"],
   },
   {
     id: "config-ai",

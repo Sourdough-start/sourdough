@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
 import { errorLogger } from "@/lib/error-logger";
 import { getErrorMessage, formatDate as utilFormatDate } from "@/lib/utils";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +13,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Collapsible,
@@ -28,6 +44,8 @@ import {
   ShieldCheck,
   RefreshCw,
   FileText,
+  Bot,
+  Download,
 } from "lucide-react";
 import { HelpLink } from "@/components/help/help-link";
 
@@ -211,6 +229,150 @@ function VersionEntry({
   );
 }
 
+// AI Export dialog
+function AIExportDialog() {
+  const [open, setOpen] = useState(false);
+  const [versions, setVersions] = useState<string[]>([]);
+  const [fromVersion, setFromVersion] = useState("");
+  const [toVersion, setToVersion] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+
+    setLoading(true);
+    api
+      .get("/changelog/versions")
+      .then((res) => {
+        setVersions(res.data.versions ?? []);
+      })
+      .catch(() => {
+        toast.error("Failed to load versions");
+      })
+      .finally(() => setLoading(false));
+  }, [open]);
+
+  const handleExport = async () => {
+    if (!fromVersion || !toVersion) return;
+
+    setExporting(true);
+    try {
+      const response = await api.get("/changelog/export", {
+        params: { from: fromVersion, to: toVersion },
+        responseType: "blob",
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `upgrade-guide-${fromVersion}-to-${toVersion}.md`
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Upgrade guide downloaded");
+      setOpen(false);
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to export changelog"));
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // Only show "from" versions that are older than the selected "to" version
+  const fromOptions = toVersion
+    ? versions.filter((v) => v !== toVersion && versions.indexOf(v) > versions.indexOf(toVersion))
+    : versions.slice(1); // Exclude newest by default (can't be "from")
+
+  // Only show "to" versions that are newer than the selected "from" version
+  const toOptions = fromVersion
+    ? versions.filter((v) => v !== fromVersion && versions.indexOf(v) < versions.indexOf(fromVersion))
+    : versions.slice(0, -1); // Exclude oldest by default (can't be "to")
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => {
+      setOpen(v);
+      if (!v) { setFromVersion(""); setToVersion(""); }
+    }}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Bot className="h-4 w-4 mr-2" />
+          AI Export
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>AI-Readable Upgrade Guide</DialogTitle>
+          <DialogDescription>
+            Generate a structured markdown document between two versions,
+            optimized for AI agents to understand and replicate changes in
+            forked codebases.
+          </DialogDescription>
+        </DialogHeader>
+
+        {loading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ) : versions.length < 2 ? (
+          <p className="text-sm text-muted-foreground">
+            At least two versions are required to generate an export.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">From version</label>
+              <Select value={fromVersion} onValueChange={setFromVersion}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select starting version" />
+                </SelectTrigger>
+                <SelectContent>
+                  {fromOptions.map((v) => (
+                    <SelectItem key={v} value={v}>
+                      v{v}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">To version</label>
+              <Select value={toVersion} onValueChange={setToVersion}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select target version" />
+                </SelectTrigger>
+                <SelectContent>
+                  {toOptions.map((v) => (
+                    <SelectItem key={v} value={v}>
+                      v{v}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button
+              className="w-full"
+              disabled={!fromVersion || !toVersion || exporting}
+              onClick={handleExport}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              {exporting ? "Generating..." : "Download Upgrade Guide"}
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function ChangelogPage() {
   const [entries, setEntries] = useState<ChangelogEntry[]>([]);
   const [meta, setMeta] = useState<ChangelogMeta | null>(null);
@@ -242,12 +404,15 @@ export default function ChangelogPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Changelog</h1>
-        <p className="text-muted-foreground mt-1">
-          Version history and release notes.{" "}
-          <HelpLink articleId="changelog" />
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Changelog</h1>
+          <p className="text-muted-foreground mt-1">
+            Version history and release notes.{" "}
+            <HelpLink articleId="changelog" />
+          </p>
+        </div>
+        <AIExportDialog />
       </div>
 
       {loading && <ChangelogSkeleton />}
