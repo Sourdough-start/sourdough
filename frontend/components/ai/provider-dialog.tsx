@@ -22,50 +22,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Loader2, CheckCircle, XCircle, RefreshCw } from "lucide-react";
-import type { AIProvider, DiscoveredModel, ProviderTemplate } from "@/components/ai/ai-types";
+import { Loader2 } from "lucide-react";
+import type { AIProvider, DiscoveredModel } from "@/components/ai/ai-types";
 import { providerTemplates } from "@/components/ai/ai-types";
+import { getCachedModels, setCachedModels, clearCachedModels } from "@/components/ai/model-cache";
+import { ProviderCredentialFields } from "@/components/ai/provider-credential-fields";
+import { ProviderModelSelection } from "@/components/ai/provider-model-selection";
 
 interface ProviderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingProvider?: AIProvider | null;
   onSave: (provider: AIProvider) => void;
-}
-
-const LLM_MODELS_CACHE_KEY = "llm_discovered_models";
-const LLM_MODELS_CACHE_TTL_MS = 60 * 60 * 1000;
-
-function getCachedModels(provider: string): DiscoveredModel[] | null {
-  if (typeof sessionStorage === "undefined") return null;
-  try {
-    const raw = sessionStorage.getItem(`${LLM_MODELS_CACHE_KEY}_${provider}`);
-    if (!raw) return null;
-    const { models, ts } = JSON.parse(raw) as { models: DiscoveredModel[]; ts: number };
-    if (Date.now() - ts > LLM_MODELS_CACHE_TTL_MS) return null;
-    return models;
-  } catch {
-    return null;
-  }
-}
-
-function setCachedModels(provider: string, models: DiscoveredModel[]) {
-  try {
-    sessionStorage.setItem(
-      `${LLM_MODELS_CACHE_KEY}_${provider}`,
-      JSON.stringify({ models, ts: Date.now() })
-    );
-  } catch {
-    // ignore
-  }
-}
-
-function clearCachedModels(provider: string) {
-  try {
-    sessionStorage.removeItem(`${LLM_MODELS_CACHE_KEY}_${provider}`);
-  } catch {
-    // ignore
-  }
 }
 
 export function ProviderDialog({
@@ -139,8 +107,6 @@ export function ProviderDialog({
     onOpenChange(nextOpen);
   }, [editingProvider, initEditState, resetState, onOpenChange]);
 
-  // When dialog opens with editingProvider, initialize state
-  // Use a ref-like approach: check if we need to sync
   const [lastEditId, setLastEditId] = useState<number | null>(null);
   if (open && editingProvider && editingProvider.id !== lastEditId) {
     setLastEditId(editingProvider.id);
@@ -158,6 +124,22 @@ export function ProviderDialog({
     setDiscoveredModels([]);
     setDiscoveryError(null);
   };
+
+  const handleCredentialChange = (setter: (v: string) => void) => (value: string) => {
+    setter(value);
+    clearKeyState();
+    if (!isEditing) clearDiscoveryOnCredentialChange();
+  };
+
+  const getCredentialPayload = () => ({
+    provider: activeProvider,
+    api_key: apiKey || undefined,
+    host: activeProvider === "ollama" ? (baseUrl || "http://localhost:11434") : undefined,
+    endpoint: activeProvider === "azure" ? endpoint || undefined : undefined,
+    region: activeProvider === "bedrock" ? region || undefined : undefined,
+    access_key: activeProvider === "bedrock" ? accessKey || undefined : undefined,
+    secret_key: activeProvider === "bedrock" ? secretKey || undefined : undefined,
+  });
 
   const testApiKey = async () => {
     if (activeProvider === "ollama") {
@@ -187,15 +169,7 @@ export function ProviderDialog({
     setKeyError(null);
     setKeyValid(null);
     try {
-      const response = await api.post("/llm-settings/test-key", {
-        provider: activeProvider,
-        api_key: apiKey || undefined,
-        host: activeProvider === "ollama" ? (baseUrl || "http://localhost:11434") : undefined,
-        endpoint: activeProvider === "azure" ? endpoint || undefined : undefined,
-        region: activeProvider === "bedrock" ? region || undefined : undefined,
-        access_key: activeProvider === "bedrock" ? accessKey || undefined : undefined,
-        secret_key: activeProvider === "bedrock" ? secretKey || undefined : undefined,
-      });
+      const response = await api.post("/llm-settings/test-key", getCredentialPayload());
       setKeyValid(response.data.valid);
       if (!response.data.valid && response.data.error) {
         setKeyError(response.data.error);
@@ -213,24 +187,12 @@ export function ProviderDialog({
 
   const discoverModels = async () => {
     if (activeProvider === "ollama") {
-      if (!baseUrl?.trim()) {
-        setDiscoveryError("Enter Ollama host first");
-        return;
-      }
+      if (!baseUrl?.trim()) { setDiscoveryError("Enter Ollama host first"); return; }
     } else if (activeProvider === "azure") {
-      if (!endpoint?.trim()) {
-        setDiscoveryError("Enter Azure OpenAI endpoint first");
-        return;
-      }
-      if (!apiKey?.trim()) {
-        setDiscoveryError("Enter your API key first");
-        return;
-      }
+      if (!endpoint?.trim()) { setDiscoveryError("Enter Azure OpenAI endpoint first"); return; }
+      if (!apiKey?.trim()) { setDiscoveryError("Enter your API key first"); return; }
     } else if (activeProvider === "bedrock") {
-      if (!accessKey?.trim() || !secretKey?.trim()) {
-        setDiscoveryError("Enter AWS access key and secret key first");
-        return;
-      }
+      if (!accessKey?.trim() || !secretKey?.trim()) { setDiscoveryError("Enter AWS access key and secret key first"); return; }
     } else if (!apiKey?.trim()) {
       setDiscoveryError("Enter your API key first");
       return;
@@ -238,23 +200,11 @@ export function ProviderDialog({
     setIsDiscovering(true);
     setDiscoveryError(null);
     try {
-      const response = await api.post("/llm-settings/discover-models", {
-        provider: activeProvider,
-        api_key: apiKey || undefined,
-        host: activeProvider === "ollama" ? (baseUrl || "http://localhost:11434") : undefined,
-        endpoint: activeProvider === "azure" ? endpoint || undefined : undefined,
-        region: activeProvider === "bedrock" ? region || undefined : undefined,
-        access_key: activeProvider === "bedrock" ? accessKey || undefined : undefined,
-        secret_key: activeProvider === "bedrock" ? secretKey || undefined : undefined,
-      });
+      const response = await api.post("/llm-settings/discover-models", getCredentialPayload());
       const models = response.data.models ?? [];
       setDiscoveredModels(models);
-      if (activeProvider) {
-        setCachedModels(activeProvider, models);
-      }
-      if (models.length === 0) {
-        setDiscoveryError("No models returned. Check your API key or host.");
-      }
+      if (activeProvider) setCachedModels(activeProvider, models);
+      if (models.length === 0) setDiscoveryError("No models returned. Check your API key or host.");
     } catch (err: unknown) {
       const data = err && typeof err === "object" && "response" in err
         ? (err as { response?: { data?: { error?: string; message?: string } } }).response?.data
@@ -266,58 +216,38 @@ export function ProviderDialog({
   };
 
   const refreshModels = () => {
-    if (activeProvider) {
-      clearCachedModels(activeProvider);
-    }
+    if (activeProvider) clearCachedModels(activeProvider);
     setDiscoveryError(null);
     discoverModels();
   };
 
   const handleSave = async () => {
     if (isEditing) {
-      if (!model) {
-        toast.error("Please select a model");
-        return;
-      }
+      if (!model) { toast.error("Please select a model"); return; }
       if (editingProvider!.provider === "azure" && !endpoint?.trim()) {
-        toast.error("Azure OpenAI endpoint is required");
-        return;
+        toast.error("Azure OpenAI endpoint is required"); return;
       }
       setIsSaving(true);
       try {
         const payload: Record<string, unknown> = {};
-        if (model !== editingProvider!.model) {
-          payload.model = model;
-        }
-        if (apiKey) {
-          payload.api_key = apiKey;
-        }
+        if (model !== editingProvider!.model) payload.model = model;
+        if (apiKey) payload.api_key = apiKey;
         if (editingProvider!.provider === "ollama") {
           const newUrl = baseUrl || "";
           const oldUrl = editingProvider!.base_url || "";
-          if (newUrl !== oldUrl) {
-            payload.base_url = newUrl || null;
-          }
+          if (newUrl !== oldUrl) payload.base_url = newUrl || null;
         }
         if (editingProvider!.provider === "azure") {
           const newEp = endpoint || "";
           const oldEp = editingProvider!.endpoint || "";
-          if (newEp !== oldEp) {
-            payload.endpoint = newEp || null;
-          }
+          if (newEp !== oldEp) payload.endpoint = newEp || null;
         }
         if (editingProvider!.provider === "bedrock") {
           const newRegion = region || "";
           const oldRegion = editingProvider!.region || "";
-          if (newRegion !== oldRegion) {
-            payload.region = newRegion || null;
-          }
-          if (accessKey) {
-            payload.access_key = accessKey;
-          }
-          if (secretKey) {
-            payload.secret_key = secretKey;
-          }
+          if (newRegion !== oldRegion) payload.region = newRegion || null;
+          if (accessKey) payload.access_key = accessKey;
+          if (secretKey) payload.secret_key = secretKey;
         }
         const response = await api.put(`/llm/providers/${editingProvider!.id}`, payload);
         onSave(response.data.provider);
@@ -331,22 +261,16 @@ export function ProviderDialog({
         setIsSaving(false);
       }
     } else {
-      if (!selectedTemplate || !model) {
-        toast.error("Please select a provider and model");
-        return;
-      }
+      if (!selectedTemplate || !model) { toast.error("Please select a provider and model"); return; }
       const template = providerTemplates.find((t) => t.id === selectedTemplate);
       if (template?.requires_api_key && !apiKey && selectedTemplate !== "bedrock") {
-        toast.error("API key is required for this provider");
-        return;
+        toast.error("API key is required for this provider"); return;
       }
       if (selectedTemplate === "azure" && !endpoint?.trim()) {
-        toast.error("Azure OpenAI endpoint is required");
-        return;
+        toast.error("Azure OpenAI endpoint is required"); return;
       }
       if (selectedTemplate === "bedrock" && (!accessKey?.trim() || !secretKey?.trim())) {
-        toast.error("AWS access key and secret key are required for Bedrock");
-        return;
+        toast.error("AWS access key and secret key are required for Bedrock"); return;
       }
       setIsSaving(true);
       try {
@@ -387,261 +311,6 @@ export function ProviderDialog({
     if (activeProvider === "bedrock") return !accessKey?.trim() || !secretKey?.trim();
     return !apiKey?.trim();
   })();
-
-  const renderCredentialFields = (tmpl: ProviderTemplate) => (
-    <>
-      {tmpl.requires_api_key && (
-        <div className="space-y-2">
-          <Label>API Key</Label>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Input
-                type="password"
-                value={apiKey}
-                onChange={(e) => {
-                  setApiKey(e.target.value);
-                  clearKeyState();
-                  if (!isEditing) clearDiscoveryOnCredentialChange();
-                }}
-                placeholder={isEditing && editingProvider?.api_key_set ? "Leave blank to keep current" : "Enter your API key"}
-              />
-              {keyValid === true && (
-                <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-600 dark:text-green-400" />
-              )}
-              {keyValid === false && (
-                <XCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-destructive" />
-              )}
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={testApiKey}
-              disabled={isTestDisabled}
-            >
-              {isTestingKey ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                "Test"
-              )}
-            </Button>
-          </div>
-          {keyError && (
-            <p className="text-sm text-destructive">{keyError}</p>
-          )}
-        </div>
-      )}
-
-      {activeProvider === "azure" && (
-        <div className="space-y-2">
-          <Label>Azure OpenAI endpoint</Label>
-          <Input
-            type="url"
-            value={endpoint}
-            onChange={(e) => {
-              setEndpoint(e.target.value);
-              clearKeyState();
-              if (!isEditing) clearDiscoveryOnCredentialChange();
-            }}
-            placeholder="https://your-resource.openai.azure.com"
-          />
-        </div>
-      )}
-
-      {activeProvider === "bedrock" && (
-        <>
-          <div className="space-y-2">
-            <Label>AWS Region</Label>
-            <Select
-              value={region}
-              onValueChange={(v) => {
-                setRegion(v);
-                clearKeyState();
-                if (!isEditing) clearDiscoveryOnCredentialChange();
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="us-east-1">us-east-1</SelectItem>
-                <SelectItem value="us-west-2">us-west-2</SelectItem>
-                <SelectItem value="eu-west-1">eu-west-1</SelectItem>
-                <SelectItem value="eu-central-1">eu-central-1</SelectItem>
-                <SelectItem value="ap-northeast-1">ap-northeast-1</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Access Key ID</Label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Input
-                  type="password"
-                  value={accessKey}
-                  onChange={(e) => {
-                    setAccessKey(e.target.value);
-                    clearKeyState();
-                    if (!isEditing) clearDiscoveryOnCredentialChange();
-                  }}
-                  placeholder={isEditing && editingProvider?.access_key_set ? "Leave blank to keep current" : "AKIA..."}
-                />
-                {keyValid === true && (
-                  <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-600 dark:text-green-400" />
-                )}
-                {keyValid === false && (
-                  <XCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-destructive" />
-                )}
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={testApiKey}
-                disabled={!accessKey?.trim() || !secretKey?.trim() || isTestingKey}
-              >
-                {isTestingKey ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  "Test"
-                )}
-              </Button>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Secret Access Key</Label>
-            <Input
-              type="password"
-              value={secretKey}
-              onChange={(e) => {
-                setSecretKey(e.target.value);
-                clearKeyState();
-                if (!isEditing) clearDiscoveryOnCredentialChange();
-              }}
-              placeholder={isEditing && editingProvider?.secret_key_set ? "Leave blank to keep current" : "Enter secret key"}
-            />
-          </div>
-          {keyError && (
-            <p className="text-sm text-destructive">{keyError}</p>
-          )}
-        </>
-      )}
-
-      {activeProvider === "ollama" && (
-        <div className="space-y-2">
-          <Label>Ollama host</Label>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Input
-                type="text"
-                value={baseUrl}
-                onChange={(e) => {
-                  setBaseUrl(e.target.value);
-                  clearKeyState();
-                  if (!isEditing) clearDiscoveryOnCredentialChange();
-                }}
-                placeholder="http://localhost:11434"
-              />
-              {keyValid === true && (
-                <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-green-600 dark:text-green-400" />
-              )}
-              {keyValid === false && (
-                <XCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-destructive" />
-              )}
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={testApiKey}
-              disabled={!baseUrl?.trim() || isTestingKey}
-            >
-              {isTestingKey ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                "Test"
-              )}
-            </Button>
-          </div>
-          {keyError && (
-            <p className="text-sm text-destructive">{keyError}</p>
-          )}
-        </div>
-      )}
-    </>
-  );
-
-  const renderModelSelection = (tmpl: ProviderTemplate) => {
-    if (!tmpl.supports_discovery) return null;
-    return (
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          <Label className="mb-0">{isEditing ? "Model" : "Models"}</Label>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={discoverModels}
-            disabled={!!isDiscoverDisabled}
-          >
-            {isDiscovering ? (
-              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-            ) : null}
-            Fetch Models
-          </Button>
-          {discoveredModels.length > 0 && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={refreshModels}
-              disabled={isDiscovering}
-            >
-              <RefreshCw className={`mr-1 h-3 w-3 ${isDiscovering ? "animate-spin" : ""}`} />
-              Refresh
-            </Button>
-          )}
-        </div>
-        {discoveryError && (
-          <p className="text-sm text-destructive">{discoveryError}</p>
-        )}
-        {discoveredModels.length > 0 ? (
-          <Select
-            value={model}
-            onValueChange={setModel}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a model" />
-            </SelectTrigger>
-            <SelectContent>
-              {isEditing && model && !discoveredModels.some((m) => m.id === model) && (
-                <SelectItem key={model} value={model}>
-                  {model} (current)
-                </SelectItem>
-              )}
-              {discoveredModels.map((m) => (
-                <SelectItem key={m.id} value={m.id}>
-                  {m.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : isEditing ? (
-          <div className="space-y-1">
-            <Input
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              placeholder="Enter model name"
-            />
-            <p className="text-sm text-muted-foreground">
-              Enter your API key above and click Fetch Models to browse, or type a model name directly.
-            </p>
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            Enter your API key (or host for Ollama) and click Fetch Models.
-          </p>
-        )}
-      </div>
-    );
-  };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -698,8 +367,41 @@ export function ProviderDialog({
 
           {templateData && (
             <>
-              {renderCredentialFields(templateData)}
-              {renderModelSelection(templateData)}
+              <ProviderCredentialFields
+                template={templateData}
+                activeProvider={activeProvider}
+                isEditing={isEditing}
+                editingProvider={editingProvider}
+                apiKey={apiKey}
+                onApiKeyChange={handleCredentialChange(setApiKey)}
+                baseUrl={baseUrl}
+                onBaseUrlChange={handleCredentialChange(setBaseUrl)}
+                endpoint={endpoint}
+                onEndpointChange={handleCredentialChange(setEndpoint)}
+                region={region}
+                onRegionChange={handleCredentialChange(setRegion)}
+                accessKey={accessKey}
+                onAccessKeyChange={handleCredentialChange(setAccessKey)}
+                secretKey={secretKey}
+                onSecretKeyChange={handleCredentialChange(setSecretKey)}
+                isTestingKey={isTestingKey}
+                isTestDisabled={isTestDisabled}
+                keyValid={keyValid}
+                keyError={keyError}
+                onTestApiKey={testApiKey}
+              />
+              <ProviderModelSelection
+                template={templateData}
+                isEditing={isEditing}
+                model={model}
+                onModelChange={setModel}
+                discoveredModels={discoveredModels}
+                isDiscovering={isDiscovering}
+                isDiscoverDisabled={!!isDiscoverDisabled}
+                discoveryError={discoveryError}
+                onDiscoverModels={discoverModels}
+                onRefreshModels={refreshModels}
+              />
 
               {!isEditing && (
                 <div className="flex gap-2">

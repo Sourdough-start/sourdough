@@ -163,7 +163,28 @@ if [ -z "${APP_KEY}" ]; then
         chmod 600 "${KEY_FILE}"
         chown www-data:www-data "${KEY_FILE}"
         export APP_KEY
-        echo "APP_KEY generated and saved to persistent storage"
+        echo ""
+        echo "=========================================="
+        echo "  IMPORTANT: APP_KEY has been generated."
+        echo "  Back it up with:"
+        echo "    docker exec sourdough cat ${KEY_FILE}"
+        echo "  Then set APP_KEY in your environment to"
+        echo "  avoid data loss if the volume is lost."
+        echo "=========================================="
+        echo ""
+    fi
+else
+    # APP_KEY was provided via environment variable
+    if [ -f "${KEY_FILE}" ]; then
+        SAVED_KEY=$(cat "${KEY_FILE}")
+        if [ "${APP_KEY}" != "${SAVED_KEY}" ]; then
+            echo ""
+            echo "WARNING: APP_KEY differs from the key saved in the data volume."
+            echo "  This may cause decryption failures for existing encrypted data."
+            echo "  If this is intentional (key rotation), you can ignore this."
+            echo "  If not, check your APP_KEY environment variable."
+            echo ""
+        fi
     fi
 fi
 # Write APP_KEY into .env for Laravel

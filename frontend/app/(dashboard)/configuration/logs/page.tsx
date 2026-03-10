@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAppLogStream, type AppLogEntry } from "@/lib/use-app-log-stream";
 import { Download, Loader2, Radio, RefreshCw, Trash2, Wifi, WifiOff } from "lucide-react";
 import { HelpLink } from "@/components/help/help-link";
@@ -360,12 +361,11 @@ export default function ApplicationLogsPage() {
               />
             </div>
             <div className="space-y-2 flex flex-col justify-end">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
+              <label htmlFor="auto-scroll" className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  id="auto-scroll"
                   checked={autoScroll}
-                  onChange={(e) => setAutoScroll(e.target.checked)}
-                  className="rounded border-input"
+                  onCheckedChange={(checked) => setAutoScroll(!!checked)}
                 />
                 <span className="text-sm">Auto-scroll</span>
               </label>

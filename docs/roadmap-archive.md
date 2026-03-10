@@ -8,6 +8,7 @@ High-priority work complete. Only optional/lower-priority items remain.
 
 | Roadmap | Completed | Remaining Work |
 |---------|-----------|----------------|
+| [ADR & API Documentation Audit](plans/adr-api-audit-roadmap.md) | 2026-03-08 | 30/30 ADRs, 65 doc fixes, 16 ADR updates, 4 implementation gaps, 1 bug. Optional: ~25 lower-priority endpoints missing from OpenAPI, rate limiting and error schema cross-checks deferred. |
 | Theming Engine | 2026-03-02 | None — Phase 1 (infrastructure) and Phase 2 (theme picker UI) complete. |
 | Get Cooking Wizard Audit | 2026-03-02 | None — all 9 audit issues resolved: auth dependency tree, search cleanup, pre-flight checks, Geist font enforcement, Stripe removal, verification script (`scripts/verify-setup.sh`), Windows git guidance, UX flow, post-removal verification. |
 | Passkeys Code Review | 2026-02-24 | None — review complete. Added 15 backend tests, delete confirmation, rename UI, error handling refactor, input trimming, ARIA attributes, ADR-018 documentation. |
@@ -81,6 +82,9 @@ Implementation history and development notes in `journal/`:
 
 | Date | Entry |
 |------|-------|
+| 2026-03-08 | [ADR API Audit — Batch 5: Infrastructure & UI](journal/2026-03-08-adr-api-audit-batch-5.md) |
+| 2026-03-08 | [ADR API Audit — Batches 3 & 4: Data & Storage + Features & Integrations](journal/2026-03-08-adr-api-audit-batches-3-4.md) |
+| 2026-03-08 | [ADR API Audit — Batch 2: Communication & Notifications](journal/2026-03-08-adr-api-audit-batch-2.md) |
 | 2026-02-14 | [Documentation & Architecture Review](journal/2026-02-14-documentation-architecture-review.md) |
 | 2026-02-14 | [Integration Usage Dashboard](journal/2026-02-14-integration-usage-dashboard.md) |
 | 2026-02-14 | [Changelog Page & Theme Adherence Fixes](journal/2026-02-14-changelog-and-theme-fixes.md) |

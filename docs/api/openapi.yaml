@@ -278,7 +278,8 @@ paths:
   /auth/sso/{provider}:
     get:
       tags: [SSO]
-      summary: Redirect to SSO provider
+      summary: Redirect to SSO provider (web route, not API)
+      description: This is a web route (routes/web.php) that uses session/cookie middleware for OAuth flow. Included here for completeness.
       parameters:
         - name: provider
           in: path
@@ -1710,29 +1711,7 @@ paths:
         '200':
           description: Settings updated
 
-  /user/notification-settings:
-    get:
-      tags: [User Settings]
-      summary: Get notification preferences
-      security:
-        - sanctum: []
-      responses:
-        '200':
-          description: Notification settings
-    put:
-      tags: [User Settings]
-      summary: Update notification preferences
-      security:
-        - sanctum: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        '200':
-          description: Settings updated
+  # NOTE: /user/notification-settings endpoints are defined above under "User Notification Settings" section
 
   /user/webpush-subscription:
     post:
@@ -2444,6 +2423,11 @@ paths:
           in: query
           schema:
             type: string
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [info, warning, error, critical]
         - name: date_from
           in: query
           schema:
@@ -2454,6 +2438,10 @@ paths:
           schema:
             type: string
             format: date
+        - name: correlation_id
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: CSV file
@@ -2466,6 +2454,7 @@ paths:
     get:
       tags: [Audit Logs]
       summary: Get audit statistics
+      description: Requires can:audit.view permission
       security:
         - sanctum: []
       parameters:
@@ -3109,45 +3098,7 @@ paths:
         '200':
           description: Test email sent
 
-  /notification-settings:
-    get:
-      tags: [Settings]
-      summary: Get notification channel settings
-      security:
-        - sanctum: []
-      responses:
-        '200':
-          description: Channel configurations
-    put:
-      tags: [Settings]
-      summary: Update notification settings
-      security:
-        - sanctum: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        '200':
-          description: Settings updated
-
-  /notification-settings/test/{channel}:
-    post:
-      tags: [Settings]
-      summary: Test notification channel
-      security:
-        - sanctum: []
-      parameters:
-        - name: channel
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Test result
+  # NOTE: /notification-settings endpoints are defined above under "Notification Settings (Admin)" section
 
   /llm-settings:
     get:
@@ -4646,8 +4597,22 @@ components:
           nullable: true
         action:
           type: string
-        description:
+        auditable_type:
           type: string
+          nullable: true
+          description: Polymorphic model type (e.g. "App\\Models\\User")
+        auditable_id:
+          type: integer
+          nullable: true
+          description: Polymorphic model ID
+        old_values:
+          type: object
+          nullable: true
+          description: Previous values (sensitive keys masked)
+        new_values:
+          type: object
+          nullable: true
+          description: New values (sensitive keys masked)
         severity:
           type: string
           enum: [info, warning, error, critical]
@@ -4655,13 +4620,15 @@ components:
           type: string
         user_agent:
           type: string
-        metadata:
-          type: object
         correlation_id:
           type: string
         created_at:
           type: string
           format: date-time
+        user:
+          $ref: '#/components/schemas/User'
+          nullable: true
+          description: Loaded when available (list and stats endpoints)
 
     AuditStats:
       type: object

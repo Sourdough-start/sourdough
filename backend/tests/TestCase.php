@@ -22,6 +22,11 @@ abstract class TestCase extends BaseTestCase
         // process-level env var, which phpunit.xml cannot override.
         $this->app['config']->set('scout.driver', 'collection');
 
+        // Force array cache driver in tests to avoid file cache directory
+        // issues (e.g. missing storage/framework/cache/data subdirectories
+        // when registration triggers GroupService/PermissionService cache writes).
+        $this->app['config']->set('cache.default', 'array');
+
         // Disable rate limiting middleware in tests to prevent 429 errors
         $this->withoutMiddleware(ThrottleRequests::class);
 

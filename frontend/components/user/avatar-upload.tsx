@@ -11,6 +11,45 @@ import type { User } from "@/lib/auth";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+const AVATAR_MAX_DIM = 512; // Max width/height after resize (2x retina for 256px display)
+
+/**
+ * Resize an image file to fit within maxDim x maxDim using Canvas.
+ * Returns a new File with the resized image as JPEG.
+ */
+function resizeImage(file: File, maxDim: number): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width <= maxDim && height <= maxDim) {
+        URL.revokeObjectURL(img.src);
+        resolve(file);
+        return;
+      }
+      const scale = Math.min(maxDim / width, maxDim / height);
+      width = Math.round(width * scale);
+      height = Math.round(height * scale);
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { reject(new Error("Canvas not supported")); return; }
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          URL.revokeObjectURL(img.src);
+          if (!blob) { reject(new Error("Resize failed")); return; }
+          resolve(new File([blob], file.name.replace(/\.\w+$/, ".jpg"), { type: "image/jpeg" }));
+        },
+        "image/jpeg",
+        0.85,
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(img.src); reject(new Error("Failed to load image")); };
+    img.src = URL.createObjectURL(file);
+  });
+}
 
 interface AvatarUploadProps {
   user: User | null;
@@ -42,14 +81,19 @@ export function AvatarUpload({ user, onAvatarUpdated }: AvatarUploadProps) {
       return;
     }
 
-    // Show immediate preview
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewUrl(objectUrl);
     setIsUploading(true);
+    let objectUrl: string | null = null;
 
     try {
+      // Resize large images client-side before uploading
+      const resized = await resizeImage(file, AVATAR_MAX_DIM);
+
+      // Show immediate preview
+      objectUrl = URL.createObjectURL(resized);
+      setPreviewUrl(objectUrl);
+
       const formData = new FormData();
-      formData.append("avatar", file);
+      formData.append("avatar", resized);
 
       await api.post("/profile/avatar", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -63,7 +107,7 @@ export function AvatarUpload({ user, onAvatarUpdated }: AvatarUploadProps) {
       toast.error(getErrorMessage(error, "Failed to upload avatar"));
     } finally {
       setIsUploading(false);
-      URL.revokeObjectURL(objectUrl);
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     }
   };
 

@@ -293,7 +293,7 @@ jobs:
 ### Mocking Strategy
 
 - Backend: Mock external services (API calls, email)
-- Frontend: Mock API responses with MSW
+- Frontend: Mock API responses with Vitest `vi.mock()` (direct module mocking)
 - E2E: Use test database, real API
 
 ## Implementation Journal

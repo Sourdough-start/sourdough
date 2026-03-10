@@ -815,7 +815,7 @@ Customize the content of system emails sent to users.
 
 ## Editing Templates
 
-1. Go to **Configuration** → **Email Templates**
+1. Go to **Configuration** → **Communications** → **Templates** tab
 2. Select the template to edit
 3. Modify the subject line and body
 4. Use the variable picker to insert dynamic content (e.g., user name, reset link)
@@ -883,7 +883,7 @@ Each notification type (e.g., backup completed, login alert) has templates for f
 
 ## Editing Templates
 
-1. Go to **Configuration** → **Notification Templates**
+1. Go to **Configuration** → **Communications** → **Templates** tab
 2. Select the notification type
 3. Use the **channel tabs** to switch between Push, In-App, Chat, and Email
 4. Edit the title/subject and body for each channel group
@@ -913,7 +913,7 @@ Novu is a notification infrastructure platform that provides workflow orchestrat
 
 ## Enabling Novu
 
-1. Go to **Configuration** → **Novu**
+1. Go to **Configuration** → **Communications** → **Novu** tab
 2. Enter your Novu API Key and Application Identifier
 3. Enable Novu integration
 4. Save settings

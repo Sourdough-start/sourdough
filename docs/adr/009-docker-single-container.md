@@ -25,41 +25,44 @@ We will package all services in a **single Docker container** using Supervisor f
 ### Container Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Single Docker Container                   │
-│                     (sourdough:latest)                      │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │                     Supervisor                          │ │
-│  │            (Process Manager - PID 1)                    │ │
-│  └─────────────────────┬──────────────────────────────────┘ │
-│       ┌────────┬───────┼────────┬────────┐                  │
-│       ▼        ▼       ▼        ▼        ▼                  │
-│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────────┐ │
-│  │ Nginx  │ │PHP-FPM │ │ Node   │ │ Queue  │ │ Meilisearch│ │
-│  │ :80    │ │ :9000  │ │ :3000  │ │Worker  │ │ :7700      │ │
-│  └────────┘ └────────┘ └────────┘ └────────┘ └────────────┘ │
-│       │        │         │         │                          │
-│       └────────┴─────────┴─────────┘                          │
-│         ▼                                                   │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │                      Volumes                             ││
-│  │  /data  /data/backups  /var/lib/meilisearch (search)     ││
-│  └─────────────────────────────────────────────────────────┘│
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                      Single Docker Container                          │
+│                       (sourdough:latest)                              │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                       │
+│  ┌────────────────────────────────────────────────────────────────┐  │
+│  │                       Supervisor                                │  │
+│  │              (Process Manager - PID 1)                          │  │
+│  └──────────────────────┬─────────────────────────────────────────┘  │
+│    ┌────────┬───────┬───┼────┬────────┬──────────┬──────────┐       │
+│    ▼        ▼       ▼   ▼    ▼        ▼          ▼          ▼       │
+│  ┌──────┐┌──────┐┌──────┐┌──────┐┌─────────┐┌────────┐┌──────────┐ │
+│  │Nginx ││PHP-  ││ Node ││Queue ││Schedule││ Reverb ││Meili-  │ │
+│  │ :80  ││FPM   ││:3000 ││×2    ││(cron)  ││ :6001  ││srch:7700│ │
+│  └──────┘└──────┘└──────┘└──────┘└─────────┘└────────┘└──────────┘ │
+│    │        │       │       │                                        │
+│    └────────┴───────┴───────┘                                        │
+│      ▼                                                               │
+│  ┌────────────────────────────────────────────────────────────────┐  │
+│  │                        Volumes                                  │  │
+│  │  /data  /data/backups  /var/lib/meilisearch (search)            │  │
+│  └────────────────────────────────────────────────────────────────┘  │
+│                                                                       │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Process Management
 
-Supervisor manages five main process types (plus scheduler in the actual config):
+Supervisor manages eight processes (seven persistent services plus one initialization task):
 
-1. **Nginx** - Reverse proxy, static files, SSL termination
+1. **Nginx** - Reverse proxy, static files, rate limiting
 2. **PHP-FPM** - Laravel API execution
 3. **Node** - Next.js frontend (production build)
-4. **Queue Worker** - Background job processing
-5. **Meilisearch** - Search engine (listens on 127.0.0.1:7700, data in `/var/lib/meilisearch`)
+4. **Queue Worker** - Background job processing (`numprocs=2`)
+5. **Scheduler** - Laravel cron-based task scheduling
+6. **Reverb** - WebSocket server for real-time broadcasting (:6001, internal)
+7. **Meilisearch** - Search engine (listens on 127.0.0.1:7700, data in `/var/lib/meilisearch`)
+8. **Search Reindex** - One-shot initialization task for Meilisearch indexing
 
 ```ini
 # supervisord.conf (excerpt)
@@ -138,7 +141,7 @@ The production image uses Debian (not Alpine) because embedded Meilisearch requi
 
 ```dockerfile
 # Stage 1: Build frontend
-FROM node:20-slim AS frontend-builder
+FROM node:20-alpine AS frontend-builder
 WORKDIR /build
 COPY frontend/package*.json ./
 RUN npm ci
@@ -167,7 +170,7 @@ COPY --from=frontend-builder /build/public /app/frontend/public
 
 # Copy configs
 COPY docker/nginx.conf /etc/nginx/nginx.conf
-COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/php.ini /usr/local/etc/php/php.ini
 COPY docker/entrypoint.sh /entrypoint.sh
 
@@ -178,42 +181,43 @@ EXPOSE 80
 VOLUME ["/data"]
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
 ```
 
 ### Entrypoint Script
 
-```bash
-#!/bin/sh
-set -e
+The entrypoint handles database setup, migrations, config caching, and secret key management before handing off to Supervisor.
 
-# Create database if not exists
-if [ ! -f /data/database.sqlite ]; then
-    touch /data/database.sqlite
-    chown www-data:www-data /data/database.sqlite
-fi
+#### APP_KEY Management
 
-# Link storage
-ln -sf /data/storage /app/backend/storage/app
+`APP_KEY` is never baked into the image. It is resolved at runtime in this priority order:
 
-# Run migrations
-cd /app/backend
-php artisan migrate --force
+1. **`APP_KEY` env var provided** — used directly, written into `.env`
+2. **Data volume file exists** (`/var/www/html/data/.app_key`) — loaded from persistent storage
+3. **Neither** — generated via `php artisan key:generate --show`, saved to the data volume file
 
-# Generate key if not set
-if [ -z "$APP_KEY" ]; then
-    php artisan key:generate --force
-fi
+On first boot (scenario 3), the entrypoint logs instructions to retrieve the key:
 
-# Cache config for production
-if [ "$APP_ENV" = "production" ]; then
-    php artisan config:cache
-    php artisan route:cache
-    php artisan view:cache
-fi
-
-exec "$@"
 ```
+==========================================
+  IMPORTANT: APP_KEY has been generated.
+  Back it up with:
+    docker exec sourdough cat /var/www/html/data/.app_key
+  Then set APP_KEY in your environment to
+  avoid data loss if the volume is lost.
+==========================================
+```
+
+The key itself is **never printed to logs** — only the retrieval command. This prevents accidental exposure via log aggregation services (Datadog, CloudWatch, Loki, etc.).
+
+If `APP_KEY` is provided via env var but differs from the saved volume key (e.g. after key rotation or accidental change), a warning is logged at boot:
+
+```
+WARNING: APP_KEY differs from the key saved in the data volume.
+  This may cause decryption failures for existing encrypted data.
+```
+
+**Backup recommendation:** After first boot, run `docker exec sourdough cat /var/www/html/data/.app_key` and store the key securely. Set it as `APP_KEY` in your environment so it survives volume loss.
 
 ### Volume Strategy
 
@@ -262,7 +266,9 @@ services:
     environment:
       - APP_ENV=production
       - APP_DEBUG=false
-      - APP_KEY=${APP_KEY}
+      # APP_KEY is auto-generated on first boot and persisted in the data volume.
+      # Set this only if migrating an existing deployment or after backing up the generated key.
+      # - APP_KEY=${APP_KEY}
     restart: unless-stopped
 
 volumes:
@@ -306,11 +312,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -f http://localhost/api/health || exit 1
 ```
 
-The health endpoint checks:
-- PHP-FPM responding
-- Database connection
-- Queue worker running
-- Disk space available
+The health endpoint returns a simple `{"status": "ok"}` response confirming the PHP-FPM and Nginx stack is responsive. It does not perform deep checks (database, queue, disk) — those are monitored separately via the audit and application logging systems.
 
 ### Production Safety
 

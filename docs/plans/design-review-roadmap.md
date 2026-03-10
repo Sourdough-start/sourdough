@@ -3,7 +3,7 @@
 Comprehensive design audit and visual polish across the application — login, dashboard, sidebar, header, notification system, user section, admin configuration, and help center. Reviewed with a focus on **mobile/PWA readiness**, **shadcn/ui block alignment**, and **touch accessibility**.
 
 **Priority**: MEDIUM
-**Status**: In Progress (Phase 1-4 core complete, 2 remaining items in Phase 4 Item 31)
+**Status**: COMPLETED (all Phase 1-4 items complete)
 **Last Updated**: 2026-03-08
 **Re-reviewed**: 2026-03-08 (mobile/PWA + shadcn blocks audit)
 
@@ -401,8 +401,8 @@ Cross-cutting consistency issues across all ~20 configuration pages.
 
 **Files**: `frontend/app/(dashboard)/configuration/sso/page.tsx`, `frontend/app/(dashboard)/configuration/ai/page.tsx`
 
-- [ ] **Extract SSO provider cards** — SSO page is 740+ lines; break into individual provider card components. Already uses CollapsibleCard pattern
-- [ ] **Audit AI/LLM page componentization** — At ~68KB this is the largest page; break into smaller sub-components. Already delegates to `AISettingsForm`
+- [x] **Extract SSO provider cards** — SSO page broken into `SSOGlobalOptionsCard`, `SSOProviderCard`, `SSOOidcCard` + shared types (page now 263 lines)
+- [x] **Audit AI/LLM page componentization** — AI page delegates to `OrchestrationModeCard`, `ProviderListCard`, `ProviderDialog`, `AISettingsForm`; `ProviderDialog` further decomposed into `ProviderCredentialFields`, `ProviderModelSelection`, and `model-cache` utilities (dialog 732→434 lines)
 - [x] **Consistent provider card pattern** — Both SSO and AI already use `CollapsibleCard` with status badges
 
 > **Mobile Impact**: LOW — Code organization improvements. The `CollapsibleCard` pattern already handles mobile well.
@@ -480,26 +480,26 @@ Key patterns and anti-patterns to follow during implementation:
 ## Success Criteria
 
 ### PWA & Mobile
-- [ ] App header and bottom actions respect iOS safe area insets in standalone mode
-- [ ] All interactive elements meet 44px minimum touch target on mobile
-- [ ] No hover-only interactions (all hover states have touch-accessible alternatives)
-- [ ] Help center is fully navigable on mobile without desktop sidebar
-- [ ] Notification dropdown is scannable on mobile Sheet with color-coded icons
-- [ ] Preferences page PWA/notification sections are accessible without excessive scrolling
-- [ ] Audit log filters are usable on mobile via drawer pattern
+- [x] App header and bottom actions respect iOS safe area insets in standalone mode
+- [x] All interactive elements meet 44px minimum touch target on mobile
+- [x] No hover-only interactions (all hover states have touch-accessible alternatives)
+- [x] Help center is fully navigable on mobile without desktop sidebar
+- [x] Notification dropdown is scannable on mobile Sheet with color-coded icons
+- [x] Preferences page PWA/notification sections are accessible without excessive scrolling
+- [x] Audit log filters are usable on mobile via drawer pattern
 
 ### Component Consistency
-- [ ] All checkboxes use shadcn `Checkbox` component (no native inputs)
-- [ ] All avatars use shadcn `Avatar`/`AvatarFallback` with consistent `getInitials()` utility
-- [ ] All loading states use `Loader2` or `SettingsPageSkeleton` (no custom spinner divs)
-- [ ] All buttons use shadcn `Button` (no custom `role="button"` divs)
-- [ ] Help sidebar uses shadcn `Button` and `Collapsible` components
+- [x] All checkboxes use shadcn `Checkbox` component (no native inputs)
+- [x] All avatars use shadcn `Avatar`/`AvatarFallback` with consistent `getInitials()` utility
+- [x] All loading states use `Loader2` or `SettingsPageSkeleton` (no custom spinner divs)
+- [x] All buttons use shadcn `Button` (no custom `role="button"` divs)
+- [x] Help sidebar uses shadcn `Button` and `Collapsible` components
 
 ### Visual Design
-- [ ] Login page creates a strong first impression aligned with login-02 block pattern
-- [ ] Dashboard has clear visual hierarchy aligned with dashboard-01 block pattern
-- [ ] Notifications are scannable at a glance (color-coded, clear read/unread states)
-- [ ] Newsreader font is visible and adds character in welcome, headings, and empty states
-- [ ] Config nav active state is clearly distinguishable with primary color accent
-- [ ] All changes respect the multi-theme system (work across all 18 color themes)
-- [ ] No regression in functionality, accessibility, or mobile responsiveness
+- [x] Login page creates a strong first impression aligned with login-02 block pattern
+- [x] Dashboard has clear visual hierarchy aligned with dashboard-01 block pattern
+- [x] Notifications are scannable at a glance (color-coded, clear read/unread states)
+- [x] Newsreader font is visible and adds character in welcome, headings, and empty states
+- [x] Config nav active state is clearly distinguishable with primary color accent
+- [x] All changes respect the multi-theme system (work across all 18 color themes)
+- [x] No regression in functionality, accessibility, or mobile responsiveness

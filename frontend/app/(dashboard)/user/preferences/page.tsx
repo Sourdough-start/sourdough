@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { Suspense, useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { getErrorMessage } from "@/lib/utils";
@@ -173,7 +174,9 @@ function InstallInstructions() {
   );
 }
 
-export default function PreferencesPage() {
+function PreferencesPageContent() {
+  const searchParams = useSearchParams();
+  const defaultTab = searchParams.get("tab") || "appearance";
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [preferences, setPreferences] = useState<UserPreferences>({
@@ -543,7 +546,7 @@ export default function PreferencesPage() {
         <OfflineBadge />
       </div>
 
-      <Tabs defaultValue="appearance">
+      <Tabs defaultValue={defaultTab}>
         <TabsList className="w-full justify-start overflow-x-auto">
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
           <TabsTrigger value="defaults">Defaults & Regional</TabsTrigger>
@@ -1031,5 +1034,13 @@ export default function PreferencesPage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+export default function PreferencesPage() {
+  return (
+    <Suspense>
+      <PreferencesPageContent />
+    </Suspense>
   );
 }

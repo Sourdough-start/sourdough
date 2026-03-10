@@ -253,7 +253,7 @@ export default function SystemSettingsPage() {
           <AlertDescription>
             Email features are disabled. Password reset and email verification
             will not work until you{" "}
-            <Link href="/configuration/email" className="underline hover:no-underline">
+            <Link href="/configuration/notifications?tab=email" className="underline hover:no-underline">
               configure email settings
             </Link>
             .

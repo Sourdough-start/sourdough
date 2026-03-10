@@ -29,11 +29,9 @@ const routeTitles: Record<string, string> = {
   "/configuration": "Configuration",
   "/configuration/system": "System Settings",
   "/configuration/branding": "Theme & Branding",
-  "/configuration/notifications": "Notifications",
+  "/configuration/notifications": "Communications",
   "/configuration/ai": "AI Settings",
   "/configuration/backup": "Backup & Restore",
-  "/configuration/email": "Email Settings",
-  "/configuration/email-templates": "Email Templates",
   "/configuration/storage": "Storage",
   "/configuration/storage/files": "File Browser",
   "/configuration/api": "API Keys",
@@ -47,7 +45,6 @@ const routeTitles: Record<string, string> = {
   "/configuration/security": "Security",
   "/configuration/sso": "Single Sign-On",
   "/configuration/search": "Search Settings",
-  "/configuration/notification-templates": "Notification Templates",
   "/configuration/profile": "Profile",
 
   // User pages

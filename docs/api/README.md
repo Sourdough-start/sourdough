@@ -58,7 +58,7 @@ const response = await fetch('/api/auth/user', {
 | POST | `/auth/2fa/confirm` | Confirm 2FA with TOTP code |
 | POST | `/auth/2fa/disable` | Disable 2FA |
 | POST | `/auth/2fa/verify` | Verify 2FA during login |
-| GET | `/auth/2fa/recovery-codes` | Get recovery codes |
+| POST | `/auth/2fa/recovery-codes` | Get recovery codes |
 | POST | `/auth/2fa/recovery-codes/regenerate` | Regenerate recovery codes |
 
 ### Profile
@@ -99,12 +99,12 @@ Requires `admin` ability. Admin CRUD for users; disabled users cannot log in.
 
 ### Audit Logs (Admin)
 
-Requires `admin` ability. See [Audit Logs roadmap](../plans/audit-logs-roadmap.md), [Recipe: Trigger audit logging](../ai/recipes/trigger-audit-logging.md).
+Requires `can:audit.view` permission (`can:logs.export` for export). See [Audit Logs roadmap](../plans/audit-logs-roadmap.md), [Recipe: Trigger audit logging](../ai/recipes/trigger-audit-logging.md).
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/audit-logs` | List audit logs (paginated). Query: `page`, `per_page`, `user_id`, `action` (search), `severity`, `date_from`, `date_to`. Response: Laravel pagination (`data`, `current_page`, `last_page`, `per_page`, `total`). |
-| GET | `/audit-logs/export` | Export as CSV. Query: same filters as list. |
+| GET | `/audit-logs` | List audit logs (paginated). Query: `page`, `per_page`, `user_id`, `action` (search), `severity`, `date_from`, `date_to`, `correlation_id`. Response: Laravel pagination (`data`, `current_page`, `last_page`, `per_page`, `total`). |
+| GET | `/audit-logs/export` | Export as CSV. Query: `user_id`, `action`, `severity`, `date_from`, `date_to`, `correlation_id`. |
 | GET | `/audit-logs/stats` | Statistics. Query: `date_from`, `date_to` (default last 30 days). Response: `total_actions`, `by_severity` (severity→count), `daily_trends` (date→count), `recent_warnings` (latest 5 warning/error/critical with user), `actions_by_type`, `actions_by_user`. |
 
 ### Access Logs (Admin, HIPAA)

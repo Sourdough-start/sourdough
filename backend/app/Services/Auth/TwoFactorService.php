@@ -66,7 +66,13 @@ class TwoFactorService
 
         $secret = $user->two_factor_secret;
 
-        return $this->google2fa->verifyKey($secret, $code);
+        try {
+            return $this->google2fa->verifyKey($secret, $code);
+        } catch (\Exception $e) {
+            // Secret may be corrupted or undecryptable (e.g., APP_KEY changed)
+            report($e);
+            return false;
+        }
     }
 
     /**
@@ -103,7 +109,13 @@ class TwoFactorService
      */
     public function verifyRecoveryCode(User $user, string $code): bool
     {
-        $recoveryCodes = $user->two_factor_recovery_codes ?? [];
+        try {
+            $recoveryCodes = $user->two_factor_recovery_codes ?? [];
+        } catch (\Exception $e) {
+            // Recovery codes may be undecryptable (e.g., APP_KEY changed)
+            report($e);
+            return false;
+        }
 
         if (!in_array($code, $recoveryCodes)) {
             return false;

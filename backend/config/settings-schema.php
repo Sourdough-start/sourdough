@@ -13,7 +13,21 @@ return [
     'general' => [
         'app_name' => ['env' => 'APP_NAME', 'default' => 'Sourdough', 'public' => true],
         'default_timezone' => ['env' => 'APP_TIMEZONE', 'default' => 'UTC'],
+        'default_locale' => ['env' => null, 'default' => 'en'],
         // app_url removed -- controlled exclusively by APP_URL env var (see config('app.url'))
+    ],
+
+    'registration' => [
+        'enabled' => ['env' => null, 'default' => true],
+        'email_verification_required' => ['env' => null, 'default' => true],
+        'allowed_domains' => ['env' => null, 'default' => ''],
+    ],
+
+    'security' => [
+        'session_timeout' => ['env' => null, 'default' => 120],
+        'password_min_length' => ['env' => null, 'default' => 8],
+        'password_require_special' => ['env' => null, 'default' => true],
+        'max_login_attempts' => ['env' => null, 'default' => 5],
     ],
 
     'mail' => [
@@ -208,10 +222,43 @@ return [
     ],
 
     'storage' => [
+        // Core
+        'driver' => ['env' => 'STORAGE_DRIVER', 'default' => 'local'],
+        'max_upload_size' => ['env' => 'STORAGE_MAX_UPLOAD_SIZE', 'default' => 10485760],
+        'allowed_file_types' => ['env' => null, 'default' => null],
+        // Alerts
         'storage_alert_enabled' => ['env' => 'STORAGE_ALERT_ENABLED', 'default' => false],
         'storage_alert_threshold' => ['env' => 'STORAGE_ALERT_THRESHOLD', 'default' => 80],
         'storage_alert_critical' => ['env' => 'STORAGE_ALERT_CRITICAL', 'default' => 95],
         'storage_alert_email' => ['env' => 'STORAGE_ALERT_EMAIL', 'default' => true],
+        // S3
+        's3_bucket' => ['env' => null, 'default' => null],
+        's3_region' => ['env' => null, 'default' => null],
+        's3_key' => ['env' => null, 'default' => null, 'encrypted' => true],
+        's3_secret' => ['env' => null, 'default' => null, 'encrypted' => true],
+        // Google Cloud Storage
+        'gcs_bucket' => ['env' => null, 'default' => null],
+        'gcs_project_id' => ['env' => null, 'default' => null],
+        'gcs_credentials_json' => ['env' => null, 'default' => null, 'encrypted' => true],
+        // Azure Blob
+        'azure_container' => ['env' => null, 'default' => null],
+        'azure_connection_string' => ['env' => null, 'default' => null, 'encrypted' => true],
+        // DigitalOcean Spaces
+        'do_spaces_bucket' => ['env' => null, 'default' => null],
+        'do_spaces_region' => ['env' => null, 'default' => null],
+        'do_spaces_key' => ['env' => null, 'default' => null, 'encrypted' => true],
+        'do_spaces_secret' => ['env' => null, 'default' => null, 'encrypted' => true],
+        'do_spaces_endpoint' => ['env' => null, 'default' => null],
+        // MinIO
+        'minio_bucket' => ['env' => null, 'default' => null],
+        'minio_endpoint' => ['env' => null, 'default' => null],
+        'minio_key' => ['env' => null, 'default' => null, 'encrypted' => true],
+        'minio_secret' => ['env' => null, 'default' => null, 'encrypted' => true],
+        // Backblaze B2
+        'b2_bucket' => ['env' => null, 'default' => null],
+        'b2_region' => ['env' => null, 'default' => null],
+        'b2_key_id' => ['env' => null, 'default' => null, 'encrypted' => true],
+        'b2_application_key' => ['env' => null, 'default' => null, 'encrypted' => true],
     ],
 
     'stripe' => [
@@ -238,6 +285,11 @@ return [
         'max_result_size' => ['env' => 'GRAPHQL_MAX_RESULT_SIZE', 'default' => 100],
         'key_rotation_grace_days' => ['env' => 'GRAPHQL_KEY_ROTATION_GRACE_DAYS', 'default' => 7],
         'cors_allowed_origins' => ['env' => 'GRAPHQL_CORS_ALLOWED_ORIGINS', 'default' => '*'],
+    ],
+
+    'defaults' => [
+        'default_theme' => ['env' => null, 'default' => 'system', 'public' => true],
+        'default_llm_mode' => ['env' => null, 'default' => 'single'],
     ],
 
     'usage' => [

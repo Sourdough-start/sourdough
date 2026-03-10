@@ -129,7 +129,7 @@ export default function EmailTemplateEditorPage() {
       const status = (error as { response?: { status?: number } })?.response?.status;
       if (status === 404) {
         toast.error("Template not found");
-        router.push("/configuration/email-templates");
+        router.push("/configuration/notifications?tab=templates");
         return;
       }
       toast.error(message || "Failed to load template");
@@ -249,7 +249,7 @@ export default function EmailTemplateEditorPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/configuration/email-templates" aria-label="Back to templates">
+          <Link href="/configuration/notifications?tab=templates" aria-label="Back to templates">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>

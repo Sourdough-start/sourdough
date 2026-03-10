@@ -153,6 +153,11 @@ class TwoFactorController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
             ], 400);
+        } catch (\Exception $e) {
+            report($e);
+            return response()->json([
+                'message' => 'Two-factor verification failed. Please try again or contact support.',
+            ], 500);
         }
 
         // Clear 2FA session, set verified flag, and login user

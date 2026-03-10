@@ -2,9 +2,22 @@
 
 Step-by-step guide to add a new static widget to the dashboard.
 
-> **Note**: This project uses static, developer-defined widgets. Widgets are React components added directly to the dashboard page—no user configuration or widget selection system. This approach prioritizes simplicity and AI-friendly patterns.
+> **Note**: This project uses static, developer-defined widgets organized into **sections** via `DashboardSection`. Widgets are React components; sections provide headings, descriptions, and optional action links. No user configuration or widget selection system.
 
-**Reference implementations:** See `frontend/components/dashboard/widgets/` for sample widgets: `welcome-widget.tsx` (greeting banner with date), `stats-widget.tsx` (metric cards using `AuditStatsCard`), `quick-actions-widget.tsx` (2x2 icon tile grid).
+**Reference implementations:** See `frontend/components/dashboard/widgets/` for 9 example widgets covering different visual patterns:
+- **Metric card:** `stats-widget.tsx` (API-backed `AuditStatsCard`)
+- **List/feed:** `recent-activity-widget.tsx` (event list with icons + timestamps)
+- **Status indicators:** `system-health-widget.tsx` (colored dots + latency)
+- **Progress bar:** `storage-overview-widget.tsx` (stacked bar + legend)
+- **Timeline:** `upcoming-tasks-widget.tsx` (schedule with badges)
+- **Summary grid:** `notifications-widget.tsx` (2x2 compact tiles)
+- **Key-value:** `environment-widget.tsx` (definition list)
+- **Icon tiles:** `quick-actions-widget.tsx` (2x2 action links)
+- **Banner:** `welcome-widget.tsx` (full-width gradient greeting)
+
+**Section component:** `DashboardSection` in `frontend/components/dashboard/dashboard-section.tsx` — wraps widgets with heading, description, action link, and responsive grid (`columns="1"|"2"|"3"|"4"`).
+
+**Full pattern reference:** [Dashboard Widget & Section Pattern](../patterns/dashboard-widget.md)
 
 ## Files to Create/Modify
 
@@ -126,30 +139,36 @@ export function ExampleWidget() {
 
 > **Note:** The app shell provides container padding (`max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8`) and a `bg-muted/30` content well. Pages should NOT add their own `container`, `p-4`, or outer padding.
 
+Add the widget inside an existing `DashboardSection`, or create a new section:
+
 ```tsx
 // frontend/app/(dashboard)/dashboard/page.tsx
-import { ExampleWidget } from '@/components/dashboard/example-widget';
+import { DashboardSection } from "@/components/dashboard/dashboard-section";
+import { ExampleWidget } from '@/components/dashboard/widgets/example-widget';
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-6">
-      {/* Full-width welcome banner */}
+    <div className="space-y-8">
       <WelcomeWidget />
 
-      {/* Metric cards + actions in a grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <StatsWidget />  {/* Renders individual AuditStatsCard per metric */}
-        <QuickActionsWidget />
+      {/* Add to an existing section */}
+      <DashboardSection title="Overview" columns="4">
+        <StatsWidget />
         <ExampleWidget />
-      </div>
+        <QuickActionsWidget />
+      </DashboardSection>
 
-      {/* Full-width sections below */}
-      {canViewUsage && (
-        <div>
-          <h2 className="text-lg font-semibold mb-3">Usage & Costs</h2>
-          <UsageDashboardWidget />
-        </div>
-      )}
+      {/* Or create a new section */}
+      <DashboardSection
+        title="My New Section"
+        description="Optional subtitle"
+        actionHref="/some/page"
+        actionLabel="View details"
+        columns="3"
+      >
+        <ExampleWidget />
+        <AnotherWidget />
+      </DashboardSection>
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/lib/auth";
-import { AppConfigProvider } from "@/lib/app-config";
+import { AppConfigProvider, useAppConfig } from "@/lib/app-config";
 import { VersionProvider } from "@/lib/version-provider";
 import { NotificationProvider } from "@/lib/notifications";
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -26,6 +26,20 @@ function DeferredToaster() {
   }, []);
   if (!mounted) return null;
   return <Toaster richColors closeButton position="top-right" />;
+}
+
+/**
+ * Reads the admin-configured default theme from AppConfig and passes it
+ * to ThemeProvider so that new users see the admin's chosen default
+ * instead of the hardcoded "system".
+ */
+function ConfiguredThemeProvider({ children }: { children: React.ReactNode }) {
+  const { defaultTheme } = useAppConfig();
+  return (
+    <ThemeProvider defaultTheme={defaultTheme} storageKey="sourdough-theme">
+      {children}
+    </ThemeProvider>
+  );
 }
 
 function AuthInitializer({ children }: { children: React.ReactNode }) {
@@ -59,7 +73,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ErrorBoundary>
         <AppConfigProvider>
           <VersionProvider>
-            <ThemeProvider defaultTheme="system" storageKey="sourdough-theme">
+            <ConfiguredThemeProvider>
               <TooltipProvider delayDuration={300}>
                 <ErrorHandlerSetup />
                 <ServiceWorkerSetup />
@@ -68,7 +82,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 </AuthInitializer>
                 <DeferredToaster />
               </TooltipProvider>
-            </ThemeProvider>
+            </ConfiguredThemeProvider>
           </VersionProvider>
         </AppConfigProvider>
       </ErrorBoundary>

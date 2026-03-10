@@ -31,4 +31,17 @@ class DashboardController extends Controller
 
         return response()->json(['metrics' => $metrics]);
     }
+
+    /**
+     * Get environment info for the environment widget.
+     */
+    public function environment(): JsonResponse
+    {
+        return response()->json([
+            'environment' => config('app.env', 'production'),
+            'php_version' => PHP_VERSION,
+            'laravel_version' => app()->version(),
+            'database' => config('database.default'),
+        ]);
+    }
 }

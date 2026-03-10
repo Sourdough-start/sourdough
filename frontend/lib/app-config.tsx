@@ -35,6 +35,7 @@ interface AppConfigState {
   secondaryColor: string | null;
   colorTheme: string | null;
   customCss: string | null;
+  defaultTheme: "light" | "dark" | "system";
   features: AppConfigFeatures | null;
   novu: NovuPublicConfig | null;
   isLoading: boolean;
@@ -76,6 +77,14 @@ function useAppConfigQuery() {
         const sanitize = (v: unknown): string | null =>
           typeof v === "string" && v !== "" && v !== "null" ? v : null;
 
+        // Resolve admin-configured default theme (light/dark/system)
+        const rawDefaultTheme = systemSettings.defaults?.default_theme;
+        const validThemes: Array<"light" | "dark" | "system"> = ["light", "dark", "system"];
+        const defaultTheme: "light" | "dark" | "system" =
+          typeof rawDefaultTheme === "string" && validThemes.includes(rawDefaultTheme as "light" | "dark" | "system")
+            ? (rawDefaultTheme as "light" | "dark" | "system")
+            : "system";
+
         // Backend ensures app_name always has a default value, so it should always be present
         return {
           appName: systemSettings.general?.app_name || '',
@@ -86,6 +95,7 @@ function useAppConfigQuery() {
           secondaryColor: sanitize(branding.secondary_color),
           colorTheme: sanitize(branding.color_theme),
           customCss: sanitize(branding.custom_css),
+          defaultTheme,
           novu,
           features: features
             ? {
@@ -114,6 +124,7 @@ function useAppConfigQuery() {
           secondaryColor: null,
           colorTheme: null,
           customCss: null,
+          defaultTheme: "system" as const,
           novu: null,
           features: null,
         };
@@ -141,6 +152,7 @@ export function AppConfigProvider({ children }: { children: React.ReactNode }) {
   const secondaryColor = query.data?.secondaryColor || null;
   const colorTheme = query.data?.colorTheme || null;
   const customCss = query.data?.customCss || null;
+  const defaultTheme = query.data?.defaultTheme || "system";
   const features = query.data?.features ?? null;
   const novu = query.data?.novu ?? null;
 
@@ -229,6 +241,7 @@ export function AppConfigProvider({ children }: { children: React.ReactNode }) {
     secondaryColor,
     colorTheme,
     customCss,
+    defaultTheme,
     features,
     novu,
     isLoading: query.isLoading,
@@ -260,6 +273,7 @@ export function useAppConfig(): AppConfigState {
       secondaryColor: null,
       colorTheme: null,
       customCss: null,
+      defaultTheme: "system",
       features: null,
       novu: null,
       isLoading: false,

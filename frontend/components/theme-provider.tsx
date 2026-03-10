@@ -41,6 +41,16 @@ export function ThemeProvider({
     setMounted(true);
   }, [storageKey]);
 
+  // When defaultTheme prop changes (e.g. admin config loads async),
+  // apply it only if the user hasn't set their own preference.
+  React.useEffect(() => {
+    if (!mounted) return;
+    const stored = localStorage.getItem(storageKey);
+    if (!stored) {
+      setTheme(defaultTheme);
+    }
+  }, [defaultTheme, mounted, storageKey]);
+
   // Update resolved theme and apply class
   React.useEffect(() => {
     if (!mounted) return;

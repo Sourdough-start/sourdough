@@ -5,55 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 ## [0.10.0] - 2026-03-08
 
 ### Added
 - ADR API audit, frontend component refactoring, design review improvements, and documentation updates
 
-### Changed
-- Release v0.9.2
 ## [0.9.2] - 2026-03-05
 
 ### Fixed
 - Align local push script with CI checks (lint, build, audit)
-- Align local push script with CI checks (lint, build, audit)
-- Align local push script with CI checks (lint, build, audit)
-- Align local push script with CI checks (lint, build, audit)
 
-### Changed
-- Release v0.9.1
 ## [0.9.1] - 2026-03-05
 
 ### Fixed
 - CI build failures - TS type error and composer audit abandoned pkg
 
-### Changed
-- Release v0.9.0
 ## [0.9.0] - 2026-03-05
 
 ### Changed
 - RC1
-- Release v0.8.6
+
 ## [0.8.6] - 2026-03-03
 
 ### Fixed
 - Help center code block overflow and download button in modal
 
-### Changed
-- Release v0.8.5
 ## [0.8.5] - 2026-03-03
 
 ### Added
@@ -62,15 +38,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Sync package-lock.json with socket.io-client dependency
 
-### Changed
-- Release v0.8.4
 ## [0.8.4] - 2026-03-02
 
 ### Fixed
 - Conditional WebSocket upgrade headers and improve onboarding recipes
 
-### Changed
-- Release v0.8.3
 ## [0.8.3] - 2026-03-01
 
 ### Added
@@ -79,35 +51,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Sanitize search highlight HTML and tighten security defaults
 
-### Changed
-- Release v0.8.2
 ## [0.8.2] - 2026-02-28
 
 ### Added
 - Refine theme system and update docs
+
 ## [0.8.0] - 2026-02-28
 
 ### Added
 - Admin-only theming, Reverb defaults, inline migration seeders
+
 ## [0.7.11] - 2026-02-27
 
 ### Added
 - Theming engine, auth UI redesign, dashboard widget improvements
+
 ## [0.7.8] - 2026-02-26
 
 ### Changed
-- Update 6 file(s) -- backend/app/Http/Controllers/Api/NotificationController.php, backend/app/Http/Controllers/Api/PasskeyController.php, docker/Dockerfile, frontend/app/(dashboard)/user/preferences/page.tsx, frontend/next-env.d.ts (+1 more)
+- Update notification, passkey, and Docker configuration
 
 ### Fixed
 - Passkey error handling, push notification device matching, and WebAuthn permissions policy
 
-### Changed
-- Release v0.7.7
-- Release v0.7.6
 ## [0.7.6] - 2026-02-26
 
 ### Added
 - Add push notification diagnostics endpoint and delivery debug logging
+
 ## [0.7.5] - 2026-02-26
 
 ### Fixed

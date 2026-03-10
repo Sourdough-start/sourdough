@@ -18,7 +18,6 @@ _(None — all items archived. Pick from Planned Features below or add new items
 
 Ready to start. These are unblocked and can begin immediately.
 
-- [ ] **ADR & API Documentation Audit** - Systematic audit of all 30 ADRs against API docs and actual code implementation. Verify docs accuracy, ADR alignment, and implementation completeness. (see [ADR API Audit](plans/adr-api-audit-roadmap.md))
 - [ ] **Consolidate Configuration Notifications Page** - Unify notification settings scattered across configuration pages into a dedicated settings page under the configuration menu. Centralize channel configuration, preferences, and provider management with consistent UX. (see [Notifications Roadmap](plans/notifications-roadmap.md))
 
 ## Planned Features
@@ -27,6 +26,7 @@ Requires foundation work or longer-term planning.
 
 - [ ] **Design Review** - Visual polish across login, dashboard, sidebar, header, notifications, user section, admin configuration, and help center. 26 sections covering color-coded notifications, typography, animations, visual hierarchy, avatar upload, security overview, config page consistency, help article rendering, and component standardization. (see [Design Review](plans/design-review-roadmap.md))
 - [ ] **OWASP ASVS Level 2 Audit** - Structured security audit against OWASP Application Security Verification Standard v4.0.3. 198 items across 14 verification categories. ~72% pass rate with 54 gaps identified and prioritized. (see [OWASP ASVS Audit](plans/owasp-asvs-audit-roadmap.md))
+- [ ] **Re-evaluate Stripe Integration** - Review the current Stripe Connect integration to assess whether it still fits project needs. Consider alternative payment processors, evaluate the 1% platform fee model, and determine if the integration should be simplified, replaced, or removed. (see [ADR-026](adr/026-stripe-connect-integration.md), [Stripe Connect Roadmap](plans/stripe-connect-roadmap.md))
 
 ## Release Checklist
 

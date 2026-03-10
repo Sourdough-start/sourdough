@@ -10,17 +10,6 @@ use Minishlink\WebPush\Subscription;
 
 class WebPushChannel implements ChannelInterface
 {
-    private string $publicKey;
-    private string $privateKey;
-    private string $subject;
-
-    public function __construct()
-    {
-        $this->publicKey = config('notifications.channels.webpush.public_key', '');
-        $this->privateKey = config('notifications.channels.webpush.private_key', '');
-        $this->subject = config('notifications.channels.webpush.subject', '');
-    }
-
     public function send(User $user, string $type, string $title, string $message, array $data = []): array
     {
         $resolved = $this->resolveContent($user, $type, $title, $message, $data);
@@ -33,7 +22,14 @@ class WebPushChannel implements ChannelInterface
             throw new \RuntimeException('No Web Push subscriptions for user');
         }
 
-        if (!$this->publicKey || !$this->privateKey) {
+        // Read VAPID keys at send-time so runtime config updates (e.g. from
+        // applyNotificationsConfigForRequest) are always picked up, even when
+        // this channel instance is cached by the singleton orchestrator.
+        $publicKey = config('notifications.channels.webpush.public_key', '');
+        $privateKey = config('notifications.channels.webpush.private_key', '');
+        $subject = config('notifications.channels.webpush.subject', '') ?: config('app.url');
+
+        if (!$publicKey || !$privateKey) {
             throw new \RuntimeException('VAPID keys not configured');
         }
 
@@ -41,9 +37,9 @@ class WebPushChannel implements ChannelInterface
 
         $auth = [
             'VAPID' => [
-                'subject' => $this->subject ?: config('app.url'),
-                'publicKey' => $this->publicKey,
-                'privateKey' => $this->privateKey,
+                'subject' => $subject,
+                'publicKey' => $publicKey,
+                'privateKey' => $privateKey,
             ],
         ];
 
@@ -56,9 +52,20 @@ class WebPushChannel implements ChannelInterface
                 'endpoint' => $sub->endpoint,
                 'publicKey' => $sub->p256dh,
                 'authToken' => $sub->auth,
+                'contentEncoding' => 'aesgcm',
             ]);
 
-            $report = $webPush->sendOneNotification($subscription, $payload);
+            try {
+                $report = $webPush->sendOneNotification($subscription, $payload);
+            } catch (\Throwable $e) {
+                Log::warning('WebPush sendOneNotification threw', [
+                    'subscription_id' => $sub->id,
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage(),
+                ]);
+                $results[] = ['endpoint' => $sub->endpoint, 'device' => $sub->device_name, 'error' => $e->getMessage()];
+                continue;
+            }
 
             if ($report->isSuccess()) {
                 $sub->update(['last_used_at' => now()]);
@@ -88,6 +95,10 @@ class WebPushChannel implements ChannelInterface
                 $user->setSetting('notifications', 'webpush_enabled', false);
                 throw new \RuntimeException('All Web Push subscriptions expired');
             }
+
+            // Collect error reasons so the caller knows why delivery failed.
+            $errors = collect($results)->pluck('error')->filter()->unique()->values()->all();
+            throw new \RuntimeException('Web Push delivery failed: ' . implode('; ', $errors));
         }
 
         return [

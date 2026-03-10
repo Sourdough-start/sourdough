@@ -35,6 +35,9 @@ FROM php:8.3-fpm
 
 LABEL maintainer="Sourdough"
 LABEL description="Sourdough - Foundation Application Framework"
+LABEL org.opencontainers.image.source="https://github.com/Sourdough-start/sourdough"
+LABEL org.opencontainers.image.description="Sourdough - Foundation Application Framework"
+LABEL org.opencontainers.image.licenses="MIT"
 
 # Build arguments for version info
 ARG APP_VERSION=0.0.0

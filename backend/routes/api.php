@@ -191,8 +191,9 @@ Route::middleware(['auth:sanctum', 'verified', '2fa.setup'])->group(function () 
         Route::delete('/webpush-subscription/{id}', [UserNotificationSettingsController::class, 'destroyWebPushSubscriptionById'])->whereNumber('id')->middleware('log.access:Setting');
     });
 
-    // Dashboard (static widget data)
+    // Dashboard (widget data)
     Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+    Route::get('/dashboard/environment', [DashboardController::class, 'environment'])->middleware('can:settings.view');
 
     // Onboarding (wizard status and progress)
     Route::prefix('onboarding')->group(function () {

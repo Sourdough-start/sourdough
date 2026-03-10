@@ -4,16 +4,17 @@ Systematic audit of all 30 ADRs against API documentation (`docs/api/README.md`,
 
 ## Summary
 
-- **Total ADRs audited**: 23/30
-- **API doc issues found**: 9 + 27 + 11 + 13 = 60
+- **Total ADRs audited**: 30/30 ✅
+- **API doc issues found**: 9 + 27 + 11 + 13 + 5 = 65
 - **Implementation gaps found**: 2 + 2 = 4
-- **ADR updates needed**: 3 + 2 + 4 = 9
+- **ADR updates needed**: 4 + 2 + 4 + 6 = 16
 - **Bugs logged**: 1
 
 ## Implementation Journals
 
 - [Batch 2: Communication & Notifications (2026-03-08)](../journal/2026-03-08-adr-api-audit-batch-2.md)
 - [Batches 3 & 4: Data & Storage + Features & Integrations (2026-03-08)](../journal/2026-03-08-adr-api-audit-batches-3-4.md)
+- [Batch 5: Infrastructure & UI (2026-03-08)](../journal/2026-03-08-adr-api-audit-batch-5.md)
 
 ## How to Audit
 
@@ -83,13 +84,13 @@ For each ADR:
 
 | ADR | Title | Docs Accuracy | ADR Alignment | Implementation Complete | Notes |
 |-----|-------|--------------|---------------|------------------------|-------|
-| 001 | Technology Stack | | | | |
-| 008 | Testing Strategy | | | | |
-| 009 | Docker Single-Container | | | | |
-| 011 | Global Navigation Architecture | | | | |
-| 013 | Responsive Mobile-First Design | | | | |
-| 019 | Progressive Web App | | | | |
-| 023 | Audit Logging System | | | | |
+| 001 | Technology Stack | ✅ | ✅ | ✅ | All stack claims verified: Laravel 11, PHP 8.3, Next.js 16, React 18, SQLite default, Zustand, Tailwind, Sanctum, shadcn/ui |
+| 008 | Testing Strategy | ✅ | ⚠️ | ✅ | MSW reference was stale (uses `vi.mock()` instead) — fixed. Coverage targets aspirational (not enforced in CI) |
+| 009 | Docker Single-Container | ⚠️ | ⚠️ | ✅ | Process diagram showed 5 services (actual: 8 — missing Reverb, Scheduler, Search-Reindex) — fixed. Health check overclaimed (basic status only) — fixed. Base image `slim` → `alpine` — fixed. Supervisord path — fixed |
+| 011 | Global Navigation Architecture | ✅ | ⚠️ | ✅ | Header described "logo/branding" but actually shows breadcrumbs — fixed. Missing localStorage persistence docs, AppShell provider orchestration — fixed |
+| 013 | Responsive Mobile-First Design | ✅ | ✅ | ✅ | Pure frontend architecture. Breakpoints, `useIsMobile` hook, mobile-first CSS all accurately documented and implemented |
+| 019 | Progressive Web App | ✅ | ✅ | ✅ | All 5 phases implemented. Service worker, push notifications, offline support, install experience, background sync all verified |
+| 023 | Audit Logging System | ⚠️ | ✅ | ✅ | OpenAPI schema had fabricated `description`/`metadata` fields instead of actual polymorphic fields — fixed. Export missing `severity`/`correlation_id` params — fixed. Stats endpoint missing permission description — fixed. README used stale "admin ability" language — fixed |
 
 **Key files**: `docker/Dockerfile`, `docker-compose.yml`, `frontend/app/(dashboard)/`, `AuditLogController`, `sw.js`
 
@@ -189,15 +190,30 @@ _(None found in Batch 1)_
 **Implementation Fixes:**
 1. ~~`UsageController` validation excluded `payments` from integration filter enum~~ — fixed in `stats`, `breakdown`, and `export` methods
 
+**Batch 5 (Infrastructure & UI):**
+
+**API Doc Fixes:**
+1. ~~OpenAPI `AuditLog` schema had fabricated `description` and `metadata` fields~~ — replaced with actual `auditable_type`, `auditable_id`, `old_values`, `new_values`, `user` relation
+2. ~~OpenAPI `/audit-logs/export` missing `severity` and `correlation_id` parameters~~ — added
+3. ~~OpenAPI `/audit-logs/stats` missing permission description~~ — added `Requires can:audit.view permission`
+4. ~~README Audit Logs section used stale "admin ability" language~~ — updated to `can:audit.view` / `can:logs.export`
+5. ~~README `/audit-logs` missing `correlation_id` in filter list; `/audit-logs/export` said "same filters as list" without specifying~~ — explicit filter lists added
+
+**ADR Updates:**
+1. ~~ADR-008: Mocking strategy claimed "Mock API responses with MSW"~~ — updated to `vi.mock()` (MSW never installed)
+2. ~~ADR-009: Process diagram showed 5 services, actual is 8 (missing Reverb, Scheduler, Search-Reindex)~~ — updated diagram and list
+3. ~~ADR-009: Health check claimed to verify database, queue, disk~~ — corrected to basic status-only endpoint
+4. ~~ADR-009: Base image `node:20-slim` should be `node:20-alpine`; supervisord path wrong~~ — both fixed
+5. ~~ADR-011: Header described as "logo/branding" but shows breadcrumbs~~ — corrected
+6. ~~ADR-011: Missing localStorage persistence, AppShell provider orchestration~~ — added to Notes section
+
 ---
 
 ## Cross-Cutting Checks
 
-After all batches, verify these global concerns:
-
-- [ ] All 240 routes in `api.php` are documented in `README.md`
-- [ ] All endpoints in `openapi.yaml` actually exist in `api.php`
-- [ ] No orphaned endpoints (in code but not docs, or in docs but not code)
-- [ ] Rate limiting documented matches middleware applied
-- [ ] Permission/middleware requirements match docs
-- [ ] Error response schemas in OpenAPI match actual error responses
+- [x] **All routes in `api.php` documented in `README.md`** — Verified. All ~240 routes are present in README.
+- [x] **All endpoints in `openapi.yaml` exist in `api.php`** — Verified with 2 exceptions: `/auth/sso/{provider}` is a web route (noted in OpenAPI), `/broadcasting/auth` is a Laravel-internal route.
+- [x] **No orphaned endpoints** — Fixed: removed duplicate `/notification-settings` and `/user/notification-settings` definitions in OpenAPI (stale copies from earlier batch additions). ~25 endpoints exist in api.php but are not in OpenAPI (onboarding, graphql admin, user API keys, branding mutations, client-errors, etc.) — these are lower-priority and can be added incrementally.
+- [ ] Rate limiting documented matches middleware applied — Not checked (out of scope for ADR audit)
+- [ ] Permission/middleware requirements match docs — Spot-checked during per-ADR audit; comprehensive check deferred
+- [ ] Error response schemas in OpenAPI match actual error responses — Deferred (would require running all endpoints)

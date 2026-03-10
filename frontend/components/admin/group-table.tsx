@@ -1,16 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
+import { api } from "@/lib/api";
+import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { DataTable } from "@/components/ui/data-table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -77,17 +73,14 @@ export function GroupTable({ groups, onGroupsUpdated }: GroupTableProps) {
   const confirmDelete = async () => {
     if (!groupToDelete) return;
     try {
-      const { api } = await import("@/lib/api");
       await api.delete(`/groups/${groupToDelete.id}`);
-      const { toast } = await import("sonner");
       toast.success("Group deleted successfully");
       setDeleteDialogOpen(false);
       setGroupToDelete(null);
       onGroupsUpdated();
     } catch (error: unknown) {
-      const { toast } = await import("sonner");
       const err = error as Error & { response?: { data?: { message?: string } } };
-      toast.error(err.message || err.response?.data?.message || "Failed to delete group");
+      toast.error(err.response?.data?.message || err.message || "Failed to delete group");
     }
   };
 
@@ -97,96 +90,124 @@ export function GroupTable({ groups, onGroupsUpdated }: GroupTableProps) {
     setEditingGroup(null);
   };
 
+  const columns: ColumnDef<Group>[] = [
+    {
+      accessorKey: "name",
+      header: "Name",
+      cell: ({ row }) => {
+        const group = row.original;
+        return (
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{group.name}</span>
+            {group.is_system && (
+              <Badge variant="secondary" className="text-xs">
+                System
+              </Badge>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "description",
+      header: "Description",
+      meta: { className: "hidden md:table-cell" },
+      cell: ({ row }) => (
+        <span className="text-muted-foreground truncate max-w-[200px] block">
+          {row.original.description || "—"}
+        </span>
+      ),
+    },
+    {
+      id: "members",
+      header: "Members",
+      enableSorting: false,
+      cell: ({ row }) => {
+        const group = row.original;
+        const count = group.members_count ?? 0;
+        return (
+          <Button
+            variant="link"
+            className="h-auto p-0 text-primary"
+            onClick={() => setMemberManagerGroup(group)}
+          >
+            {count} member{count !== 1 ? "s" : ""}
+          </Button>
+        );
+      },
+    },
+    {
+      id: "default",
+      header: "Default",
+      enableSorting: false,
+      meta: { className: "hidden md:table-cell" },
+      cell: ({ row }) =>
+        row.original.is_default ? (
+          <Check className="h-4 w-4 text-muted-foreground" />
+        ) : (
+          "—"
+        ),
+    },
+    {
+      id: "actions",
+      header: () => <span className="sr-only">Actions</span>,
+      enableSorting: false,
+      meta: { className: "text-right" },
+      cell: ({ row }) => {
+        const group = row.original;
+        return (
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-11 w-11 min-h-11 min-w-11"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleEdit(group)}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setMemberManagerGroup(group)}>
+                  <Users className="mr-2 h-4 w-4" />
+                  Manage Members
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setPermissionMatrixGroup(group)}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  Manage Permissions
+                </DropdownMenuItem>
+                {!group.is_system && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => handleDelete(group)}
+                      className="text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+    },
+  ];
+
   return (
     <>
-      <div className="overflow-x-auto rounded-md border">
-        <Table className="min-w-[600px]">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead className="hidden md:table-cell">Description</TableHead>
-              <TableHead>Members</TableHead>
-              <TableHead className="hidden md:table-cell">Default</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {groups.map((group) => (
-              <TableRow key={group.id}>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{group.name}</span>
-                    {group.is_system && (
-                      <Badge variant="secondary" className="text-xs">
-                        System
-                      </Badge>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="hidden max-w-[200px] truncate md:table-cell text-muted-foreground">
-                  {group.description || "—"}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="link"
-                    className="h-auto p-0 text-primary"
-                    onClick={() => setMemberManagerGroup(group)}
-                  >
-                    {group.members_count ?? 0} member{(group.members_count ?? 0) !== 1 ? "s" : ""}
-                  </Button>
-                </TableCell>
-                <TableCell className="hidden md:table-cell">
-                  {group.is_default ? (
-                    <Check className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    "—"
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-11 w-11 min-h-11 min-w-11"
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => handleEdit(group)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setMemberManagerGroup(group)}>
-                        <Users className="mr-2 h-4 w-4" />
-                        Manage Members
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setPermissionMatrixGroup(group)}>
-                        <Shield className="mr-2 h-4 w-4" />
-                        Manage Permissions
-                      </DropdownMenuItem>
-                      {!group.is_system && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(group)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable
+        columns={columns}
+        data={groups}
+        getRowId={(row) => String(row.id)}
+      />
 
       <GroupDialog
         group={editingGroup}

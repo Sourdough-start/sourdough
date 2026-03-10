@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import type { Group } from "./group-table";
 
@@ -149,16 +150,16 @@ export function PermissionMatrix({
                     {perms.map((perm) => (
                       <label
                         key={perm}
+                        htmlFor={`perm-${perm}`}
                         className={cn(
                           "flex min-h-[44px] cursor-pointer items-center gap-2 rounded-md border px-3 py-2 transition-colors hover:bg-accent/50",
                           selectedPermissions.has(perm) && "border-primary bg-accent/30"
                         )}
                       >
-                        <input
-                          type="checkbox"
+                        <Checkbox
+                          id={`perm-${perm}`}
                           checked={selectedPermissions.has(perm)}
-                          onChange={(e) => togglePermission(perm, e.target.checked)}
-                          className="h-4 w-4 rounded border-input"
+                          onCheckedChange={(checked) => togglePermission(perm, !!checked)}
                         />
                         <span className="text-sm">{formatPermissionLabel(perm)}</span>
                       </label>

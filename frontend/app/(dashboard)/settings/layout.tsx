@@ -24,7 +24,7 @@ export default function SettingsLayout({
       "/settings/notifications": "/configuration/notifications",
       "/settings/ai": "/configuration/ai",
       "/settings/system": "/configuration/system",
-      "/settings/email": "/configuration/email",
+      "/settings/email": "/configuration/notifications?tab=email",
       "/settings/storage": "/configuration/storage",
       "/settings/api": "/configuration/api",
       "/settings/branding": "/configuration/branding",

@@ -29,7 +29,7 @@ We will implement a global navigation architecture with:
    - Bottom section: Settings button (admin-only, conditionally rendered)
 
 2. **Shared Header Component**: A unified header component that:
-   - Contains logo/branding on the left
+   - Contains breadcrumbs on the left (desktop) or hamburger menu (mobile)
    - Right-justifies navigation items (theme toggle, user info, sign out) using `ml-auto` for explicit alignment
    - Replaces all duplicated header implementations
 
@@ -71,9 +71,11 @@ This architecture will be applied to all authenticated routes via the dashboard 
 
 ## Notes
 
-The sidebar supports two modes: collapsed (icon-only, 64px/w-16) and expanded (icon+label). Users can toggle between modes with an expand/collapse button. The active state is indicated by button variant changes and background color. On mobile, the sidebar is hidden and accessible via a sheet/drawer.
+The sidebar supports two modes: collapsed (icon-only, 64px/w-16) and expanded (icon+label, 224px/w-56). Users can toggle between modes with an expand/collapse button. The expansion state is persisted to `localStorage` (key: `sidebar-expanded`), defaulting to collapsed on first load. The active state is indicated by button variant changes and background color. On mobile, the sidebar is hidden and rendered as a `<Sheet>` drawer overlay.
 
-The header uses `ml-auto` on the right-side container to explicitly push items to the right edge, ensuring proper right-justification regardless of content length.
+The header contains breadcrumbs on desktop (hidden on mobile) and right-justified navigation items (search, help, notifications, theme toggle, user dropdown) using `ml-auto`. On mobile, a hamburger menu button replaces breadcrumbs to trigger the sidebar sheet.
+
+The AppShell wraps all authenticated pages and orchestrates multiple context providers: `SidebarProvider` (sidebar state), `HelpProvider`, `SearchProvider`, and `WizardProvider` (onboarding). It also includes utility components: `OfflineIndicator`, `InstallPrompt`, `PostInstallPushPrompt`, and `PageTitleManager`.
 
 ## Implementation Journal
 

@@ -34,6 +34,7 @@ import {
   XCircle,
   Webhook,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, isAdminUser } from "@/lib/auth";
 import { HelpLink } from "@/components/help/help-link";
 
@@ -299,12 +300,10 @@ export default function APISettingsPage() {
                 <div className="grid grid-cols-2 gap-2">
                   {availableEvents.map((event) => (
                     <div key={event} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         id={`event-${event}`}
                         checked={newWebhook.events.includes(event)}
-                        onChange={() => toggleEvent(event)}
-                        className="rounded"
+                        onCheckedChange={() => toggleEvent(event)}
                       />
                       <Label htmlFor={`event-${event}`} className="cursor-pointer">
                         {event}

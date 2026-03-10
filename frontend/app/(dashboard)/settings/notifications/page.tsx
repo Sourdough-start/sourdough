@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function NotificationsRedirect() {
-  redirect("/configuration/notifications");
+  redirect("/user/preferences?tab=notifications");
 }
