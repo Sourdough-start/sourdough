@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.4] - 2026-03-10
+
+### Fixed
+- Fix `queue:monitor` scheduled command missing required `queues` argument, causing errors every 5 minutes
+
 ## [0.10.3] - 2026-03-10
 
 ### Added

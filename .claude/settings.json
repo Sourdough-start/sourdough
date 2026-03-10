@@ -15,7 +15,9 @@
       "Bash(wc -l \"c:\\\\Users\\\\jpitt_6932a9v\\\\code\\\\sourdough\\\\frontend\\\\app\\\\\\(dashboard\\)\\\\user\\\\preferences\\\\page.tsx\")",
       "Bash(wc -l \"c:/Users/jpitt_6932a9v/code/sourdough/frontend/app/\\(dashboard\\)/user/preferences/page.tsx\")",
       "Bash(git log --all --oneline --grep=\"avatar\" -i -- frontend/components/user-dropdown.tsx frontend/components/user/avatar-upload.tsx frontend/components/header.tsx backend/app/Http/Controllers/Api/ProfileController.php)",
-      "Bash(ls -la \"/c/Users/jpitt_6932a9v/code/sourdough/frontend/app/\\(dashboard\\)/configuration/\")"
+      "Bash(ls -la \"/c/Users/jpitt_6932a9v/code/sourdough/frontend/app/\\(dashboard\\)/configuration/\")",
+      "Bash(timeout 180 bash -c 'while true; do lines=$\\(wc -l < C:/Users/JPITT_~4/AppData/Local/Temp/claude/c--Users-jpitt-6932a9v-code-sourdough/tasks/b8nbm2rrm.output 2>/dev/null || echo 0\\); if tail -5 C:/Users/JPITT_~4/AppData/Local/Temp/claude/c--Users-jpitt-6932a9v-code-sourdough/tasks/b8nbm2rrm.output 2>/dev/null | grep -qE \"\"\\(Release complete|FAILED|error:|pushed\\)\"\"; then break; fi; sleep 5; done && tail -40 C:/Users/JPITT_~4/AppData/Local/Temp/claude/c--Users-jpitt-6932a9v-code-sourdough/tasks/b8nbm2rrm.output')",
+      "Bash(timeout 120 bash -c 'while true; do if tail -5 C:/Users/JPITT_~4/AppData/Local/Temp/claude/c--Users-jpitt-6932a9v-code-sourdough/tasks/b8nbm2rrm.output 2>/dev/null | grep -qiE \"\"\\(Release complete|complete!|pushed|FAILED|fatal\\)\"\"; then break; fi; sleep 5; done')"
     ],
     "additionalDirectories": [
       "C:\\Users\\jpitt_6932a9v\\code\\sourdough"
