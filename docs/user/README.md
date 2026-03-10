@@ -507,6 +507,46 @@ Click **Disconnect** to remove your Stripe account. Existing payments are not af
 
 ---
 
+## Upgrade Guide (AI Export)
+
+The changelog page includes a tool to generate AI-readable upgrade guides for forked codebases.
+
+### Generating an Upgrade Guide
+
+1. Go to **Configuration > Changelog**
+2. Click **AI Export** in the top right
+3. Select the **From version** (your current version)
+4. Select the **To version** (the version you want to upgrade to)
+5. Click **Download Upgrade Guide**
+
+The downloaded markdown file contains:
+
+- **Quick summary** of all changes (counts by category)
+- **Version-by-version changes** with Added, Changed, Fixed, Removed, and Security sections
+- **Consolidated changes** grouped by category across all versions
+- **Database migrations** that need to be run (detected automatically from migration file dates)
+- **Instructions for AI agents** to apply changes to forked codebases
+
+### Export Settings (Admin)
+
+Admins can configure the export format in the settings schema:
+
+| Setting | Options | Default | Effect |
+|---------|---------|---------|--------|
+| Export Format | Detailed, Summary | Detailed | Summary skips version-by-version details |
+| Detail Level | Full, Changes Only | Full | Changes Only omits migration detection |
+| Instruction Style | Step-by-step, Checklist, Minimal | Step-by-step | Controls the AI instructions section format |
+
+### Using with AI Assistants
+
+The upgrade guide is structured specifically for AI consumption. To upgrade a fork:
+
+1. Download the upgrade guide between your current version and the target version
+2. Give the markdown file to your AI assistant (Claude, Cursor, Copilot, etc.)
+3. Ask it to apply the changes to your codebase, respecting your fork-specific customizations
+
+---
+
 ## Troubleshooting
 
 ### Can't Login

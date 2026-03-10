@@ -47,6 +47,9 @@ Amazon S3, Google Cloud Storage, Azure Blob Storage, and local filesystem with i
 ### Stripe Payments (Optional)
 Stripe Connect integration with platform fees, destination charges, OAuth onboarding, and idempotent webhook handling.
 
+### AI-Readable Upgrade Guide
+Generate structured markdown upgrade guides between any two versions directly from the changelog page. Designed for AI agents to understand and apply upstream changes to forked codebases—includes version-by-version details, consolidated changes, database migration detection, and step-by-step instructions.
+
 ### Simple Deployment
 Everything runs in one Docker container—Nginx, PHP-FPM, Next.js, Meilisearch, and Supervisor all start automatically. No orchestration required.
 
@@ -87,6 +90,7 @@ Sourdough is built to be agentic-friendly with deep AI documentation:
 - [Developer Guide](docs/dev/) — Technical documentation for developers
 - [API Reference](docs/api/) — API endpoints and integration details
 - [Backup & Restore](docs/backup.md) — Backup/restore user guide, admin settings, and developer docs
+- [Upgrade Guide](docs/user/README.md#upgrade-guide-ai-export) — Generate AI-readable upgrade guides for forked codebases
 - [Architecture Decisions](docs/architecture.md) — ADRs and design decisions
 - [AI Development Guide](docs/ai/README.md) — Recipes, patterns, and workflow for AI-assisted development
 

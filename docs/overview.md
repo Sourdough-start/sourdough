@@ -22,6 +22,7 @@ Sourdough is designed to be forked and customized for your own projects:
 - [Compliance Templates](compliance/README.md) - SOC 2, ISO 27001, and security policy templates for customization
 - [Features](features.md) - Core functionality (auth, notifications, LLM, backup)
 - [Backup & Restore](backup.md) - **Backup hub**: user guide, admin settings, developer docs, key files, recipes, patterns
+- [Upgrade Guide](user/README.md#upgrade-guide-ai-export) - AI-readable upgrade guide for forked codebases
 - [Roadmaps & Plans](roadmaps.md) - Development roadmaps and journal entries
 
 ### Technical Reference

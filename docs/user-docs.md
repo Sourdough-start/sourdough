@@ -5,6 +5,7 @@ End-user guides and help:
 - [User Guide](user/README.md) - Complete user documentation covering account management, security, notifications, AI features, backup/restore
 - [User Guide – Single Sign-On (SSO)](user/README.md#single-sign-on-sso) - Admin SSO setup (Configuration > SSO)
 - [Backup & Restore](backup.md) - Central backup docs (user, admin, and developer); for end users see [User Guide – Backup & Restore](user/README.md#backup--restore)
+- [Upgrade Guide (AI Export)](user/README.md#upgrade-guide-ai-export) - Generate AI-readable upgrade guides for forked codebases
 
 Administrators can manage users (create, edit, disable, resend verification) from **Configuration > Users**. See [User Guide – Administration (Admins)](user/README.md#administration-admins).
 

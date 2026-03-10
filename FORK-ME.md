@@ -131,6 +131,18 @@ Use the AI development guide (`docs/ai/README.md`) to add your own features. The
 - Adding dashboard widgets
 - And 45 more...
 
+## Staying Up to Date
+
+When new versions of Sourdough are released, you can generate an AI-readable upgrade guide to help merge upstream changes into your fork:
+
+1. Go to **Configuration > Changelog** in your running instance
+2. Click **AI Export**
+3. Select your current version as "From" and the latest release as "To"
+4. Download the upgrade guide markdown file
+5. Give it to your AI assistant and ask it to apply the changes, respecting your fork-specific customizations
+
+The upgrade guide includes version-by-version changes, database migrations to run, consolidated breaking changes, and step-by-step instructions optimized for AI agents. See [Upgrade Guide documentation](docs/user/README.md#upgrade-guide-ai-export) for details.
+
 ## What to Keep
 
 **Always keep:**
