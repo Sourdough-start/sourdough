@@ -26,5 +26,4 @@ Key completed roadmaps:
 - `pwa-roadmap.md` — Progressive Web App
 - `security-compliance-roadmap.md` — Security hardening
 - `storage-settings-roadmap.md` — Storage provider system
-- `stripe-connect-roadmap.md` — Stripe Connect integration
 - `user-groups-roadmap.md` — Groups and permissions

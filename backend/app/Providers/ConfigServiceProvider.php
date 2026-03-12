@@ -102,10 +102,13 @@ class ConfigServiceProvider extends ServiceProvider
     }
 
     /**
-     * Inject Stripe Connect settings into config.
+     * Inject Stripe settings into config.
      */
     private function injectStripeConfig(array $settings): void
     {
+        if (array_key_exists('enabled', $settings)) {
+            config(['stripe.enabled' => filter_var($settings['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN)]);
+        }
         if (array_key_exists('secret_key', $settings)) {
             config(['stripe.secret_key' => $settings['secret_key'] ?? null]);
         }
@@ -115,27 +118,11 @@ class ConfigServiceProvider extends ServiceProvider
         if (array_key_exists('webhook_secret', $settings)) {
             config(['stripe.webhook_secret' => $settings['webhook_secret'] ?? null]);
         }
-        if (array_key_exists('platform_account_id', $settings)) {
-            config(['stripe.platform_account_id' => $settings['platform_account_id'] ?? null]);
-        }
-        if (array_key_exists('platform_client_id', $settings)) {
-            config(['stripe.platform_client_id' => $settings['platform_client_id'] ?? null]);
-        }
-        if (array_key_exists('application_fee_percent', $settings)) {
-            $v = (float) ($settings['application_fee_percent'] ?? 1.0);
-            config(['stripe.application_fee_percent' => max(0, min(100, $v))]);
-        }
         if (array_key_exists('currency', $settings)) {
             config(['stripe.currency' => $settings['currency'] ?? 'usd']);
         }
         if (array_key_exists('mode', $settings)) {
             config(['stripe.mode' => $settings['mode'] ?? 'test']);
-        }
-        if (array_key_exists('deployment_role', $settings)) {
-            config(['stripe.deployment_role' => $settings['deployment_role'] ?? 'fork']);
-        }
-        if (array_key_exists('connected_account_id', $settings)) {
-            config(['stripe.connected_account_id' => $settings['connected_account_id'] ?? null]);
         }
     }
 

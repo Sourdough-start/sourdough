@@ -58,8 +58,6 @@ $handled = match ($event->type) {
     'payment_intent.succeeded' => $this->handlePaymentIntentSucceeded($event),
     'payment_intent.payment_failed' => $this->handlePaymentIntentFailed($event),
     'charge.refunded' => $this->handleChargeRefunded($event),
-    'account.updated' => $this->handleAccountUpdated($event),
-    'account.application.deauthorized' => $this->handleAccountDeauthorized($event),
     'invoice.paid' => $this->handleInvoicePaid($event),  // ← Add here
     default => false,
 };
@@ -134,6 +132,6 @@ Stripe sends POST /stripe/webhook
 
 ## Related
 
-- [ADR-026: Stripe Connect Integration](../../adr/026-stripe-connect-integration.md)
+- [ADR-026: Stripe Integration](../../adr/026-stripe-integration.md)
 - [Pattern: Stripe Webhooks](../patterns/stripe-webhooks.md)
 - [Recipe: Add Payment Flow](add-payment-flow.md)

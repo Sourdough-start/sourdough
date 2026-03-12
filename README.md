@@ -45,7 +45,7 @@ Offline capability, install prompts, background sync, Service Worker via Workbox
 Amazon S3, Google Cloud Storage, Azure Blob Storage, and local filesystem with integrated file manager UI.
 
 ### Stripe Payments (Optional)
-Stripe Connect integration with platform fees, destination charges, OAuth onboarding, and idempotent webhook handling.
+Stripe payment processing with idempotent webhook handling and feature gating.
 
 ### AI-Readable Upgrade Guide
 Generate structured markdown upgrade guides between any two versions directly from the changelog page. Designed for AI agents to understand and apply upstream changes to forked codebases—includes version-by-version details, consolidated changes, database migration detection, and step-by-step instructions.

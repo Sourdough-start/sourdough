@@ -247,7 +247,7 @@ export const SEARCH_PAGES: SearchPage[] = [
     subtitle: "Payment processing configuration",
     url: "/configuration/stripe",
     adminOnly: true,
-    keywords: ["stripe", "payments", "connect", "billing", "webhooks"],
+    keywords: ["stripe", "payments", "billing", "webhooks"],
   },
   {
     id: "config-payments",

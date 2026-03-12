@@ -83,7 +83,6 @@ Example plan reference:
 | Setup Stripe | [setup-stripe.md](recipes/setup-stripe.md) |
 | Add Payment Flow | [add-payment-flow.md](recipes/add-payment-flow.md) |
 | Handle Stripe Webhooks | [handle-stripe-webhooks.md](recipes/handle-stripe-webhooks.md) |
-| Stripe Connect Onboarding | [stripe-connect-onboarding.md](recipes/stripe-connect-onboarding.md) |
 | Add Color Theme | [add-theme.md](recipes/add-theme.md) |
 | Add Changelog Entry | [add-changelog-entry.md](recipes/add-changelog-entry.md) |
 | Add File Manager Feature | [add-file-manager-feature.md](recipes/add-file-manager-feature.md) |

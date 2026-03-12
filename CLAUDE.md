@@ -66,7 +66,7 @@ docker exec sourdough-dev bash -c "cd /var/www/html/frontend && npx shadcn@lates
 | LLM | [ADR-006](docs/adr/006-llm-orchestration-modes.md), `backend/app/Services/LLM/` |
 | Auth | [ADR-002](docs/adr/002-authentication-architecture.md), `backend/app/Http/Controllers/Api/AuthController.php` |
 | Backup | [ADR-007](docs/adr/007-backup-system-design.md), `backend/app/Services/Backup/BackupService.php` |
-| Payments/Stripe | [ADR-026](docs/adr/026-stripe-connect-integration.md), `backend/app/Services/Stripe/`, [setup-stripe recipe](docs/ai/recipes/setup-stripe.md) |
+| Payments/Stripe | [ADR-026](docs/adr/026-stripe-integration.md), `backend/app/Services/Stripe/`, [setup-stripe recipe](docs/ai/recipes/setup-stripe.md) |
 | Search | `backend/app/Services/Search/SearchService.php`, `frontend/lib/search.ts` |
 | Help/Docs | `frontend/lib/help/help-content.ts`, `frontend/components/help/` |
 | Docker | [ADR-009](docs/adr/009-docker-single-container.md), `docker/Dockerfile`, `docker-compose.yml` |

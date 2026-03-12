@@ -18,9 +18,9 @@ function injectMockClient(StripeService $service, object $mockClient): void
  */
 function createEnabledServiceWithMock(): array
 {
+    config(['stripe.enabled' => true]);
     config(['stripe.secret_key' => 'sk_test_123']);
     config(['stripe.currency' => 'usd']);
-    config(['stripe.application_fee_percent' => 1.0]);
 
     $service = new StripeService();
     $mockClient = Mockery::mock(\Stripe\StripeClient::class)->makePartial();
@@ -48,7 +48,15 @@ describe('StripeService', function () {
             expect($this->service->isEnabled())->toBeFalse();
         });
 
-        it('returns true when secret key is present', function () {
+        it('returns false when enabled is false even with secret key', function () {
+            config(['stripe.enabled' => false]);
+            config(['stripe.secret_key' => 'sk_test_123']);
+
+            expect($this->service->isEnabled())->toBeFalse();
+        });
+
+        it('returns true when enabled and secret key is present', function () {
+            config(['stripe.enabled' => true]);
             config(['stripe.secret_key' => 'sk_test_123']);
 
             expect($this->service->isEnabled())->toBeTrue();
@@ -57,11 +65,11 @@ describe('StripeService', function () {
 
     describe('createPaymentIntent', function () {
         it('returns error when amount is zero', function () {
+            config(['stripe.enabled' => true]);
             config(['stripe.secret_key' => 'sk_test_123']);
 
             $result = $this->service->createPaymentIntent([
                 'amount' => 0,
-                'connected_account_id' => 'acct_123',
             ]);
 
             expect($result['success'])->toBeFalse();
@@ -69,27 +77,15 @@ describe('StripeService', function () {
         });
 
         it('returns error when amount is negative', function () {
+            config(['stripe.enabled' => true]);
             config(['stripe.secret_key' => 'sk_test_123']);
 
             $result = $this->service->createPaymentIntent([
                 'amount' => -500,
-                'connected_account_id' => 'acct_123',
             ]);
 
             expect($result['success'])->toBeFalse();
             expect($result['error'])->toContain('Amount must be a positive integer');
-        });
-
-        it('returns error when connected account id is missing', function () {
-            config(['stripe.secret_key' => 'sk_test_123']);
-
-            $result = $this->service->createPaymentIntent([
-                'amount' => 1000,
-                'connected_account_id' => '',
-            ]);
-
-            expect($result['success'])->toBeFalse();
-            expect($result['error'])->toContain('Connected account ID is required');
         });
     });
 
@@ -175,7 +171,7 @@ describe('StripeService', function () {
     });
 
     describe('createPaymentIntent (mocked client)', function () {
-        it('creates a payment intent with destination charge and application fee', function () {
+        it('creates a payment intent with amount and currency', function () {
             [$service, $mockClient] = createEnabledServiceWithMock();
 
             $mockPaymentIntents = Mockery::mock();
@@ -184,8 +180,8 @@ describe('StripeService', function () {
                 ->with(Mockery::on(function ($params) {
                     return $params['amount'] === 5000
                         && $params['currency'] === 'usd'
-                        && $params['application_fee_amount'] === 50  // 1% of 5000
-                        && $params['transfer_data']['destination'] === 'acct_connected_123';
+                        && ! isset($params['application_fee_amount'])
+                        && ! isset($params['transfer_data']);
                 }))
                 ->andReturn(\Stripe\PaymentIntent::constructFrom([
                     'id' => 'pi_mock_789',
@@ -195,7 +191,6 @@ describe('StripeService', function () {
 
             $result = $service->createPaymentIntent([
                 'amount' => 5000,
-                'connected_account_id' => 'acct_connected_123',
             ]);
 
             expect($result['success'])->toBeTrue();
@@ -222,7 +217,6 @@ describe('StripeService', function () {
 
             $result = $service->createPaymentIntent([
                 'amount' => 2000,
-                'connected_account_id' => 'acct_123',
                 'customer_id' => 'cus_123',
                 'description' => 'Test payment',
                 'metadata' => ['order_id' => 'order_1'],

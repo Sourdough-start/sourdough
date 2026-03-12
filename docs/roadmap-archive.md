@@ -47,9 +47,9 @@ All tasks complete.
 | [GraphQL API with User API Keys](plans/graphql-api-roadmap.md) | 2026-02-22 |
 | Stripe Connect Fork Experience | 2026-02-22 |
 | Login Page Cleanup | 2026-02-22 |
-| [Stripe Connect Bug Fixes](plans/stripe-bug-fixes-roadmap.md) | 2026-02-22 |
+| Stripe Connect Bug Fixes (archived — Connect removed) | 2026-02-22 |
 | Logo Update | 2026-02-21 |
-| [Stripe Connect Integration](plans/stripe-connect-roadmap.md) | 2026-02-21 |
+| Stripe Connect Integration (archived — simplified to plain Stripe, see [ADR-026](adr/026-stripe-integration.md)) | 2026-02-21 |
 | Repository Ownership Transfer (jpittelkow -> Sourdough-start) | 2026-02-21 |
 | [Documentation Audit](plans/documentation-audit-roadmap.md) | 2026-01-31 |
 | [Configurable Auth Features](plans/configurable-auth-features-roadmap.md) | 2026-01-30 |

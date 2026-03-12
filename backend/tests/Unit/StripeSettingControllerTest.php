@@ -28,13 +28,8 @@ describe('StripeSettingController', function () {
                     'secret_key' => 'sk_test_real_key',
                     'publishable_key' => 'pk_test_123',
                     'webhook_secret' => 'whsec_real_secret',
-                    'platform_account_id' => 'acct_123',
-                    'platform_client_id' => 'ca_123',
-                    'application_fee_percent' => 1.0,
                     'currency' => 'usd',
                     'mode' => 'test',
-                    'connected_account_id' => 'acct_connected',
-                    'connect_onboarding_state' => 'some_state',
                 ]);
 
             $response = $this->controller->show();
@@ -44,9 +39,6 @@ describe('StripeSettingController', function () {
             expect($data['settings']['secret_key'])->toBe('••••••••');
             expect($data['settings']['webhook_secret'])->toBe('••••••••');
             expect($data['settings']['publishable_key'])->toBe('pk_test_123');
-            // Connect keys should be excluded
-            expect(array_key_exists('connected_account_id', $data['settings']))->toBeFalse();
-            expect(array_key_exists('connect_onboarding_state', $data['settings']))->toBeFalse();
         });
 
         it('returns null for empty encrypted fields instead of mask', function () {

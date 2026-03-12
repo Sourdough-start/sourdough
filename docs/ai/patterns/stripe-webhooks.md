@@ -40,8 +40,6 @@ try {
 | `payment_intent.succeeded` | `handlePaymentIntentSucceeded` | Update Payment status, record usage |
 | `payment_intent.payment_failed` | `handlePaymentIntentFailed` | Update Payment status to failed |
 | `charge.refunded` | `handleChargeRefunded` | Update Payment status, record negative usage |
-| `account.updated` | `handleAccountUpdated` | Log account status changes |
-| `account.application.deauthorized` | `handleAccountDeauthorized` | Log disconnection |
 
 ## Adding a New Event Handler
 
@@ -65,4 +63,4 @@ stripe trigger charge.refunded
 
 **Key files:** `backend/app/Services/Stripe/StripeWebhookService.php`, `backend/app/Http/Controllers/Api/StripeWebhookController.php`, `backend/app/Models/StripeWebhookEvent.php`.
 
-**Related:** [Recipe: Handle Stripe Webhooks](../recipes/handle-stripe-webhooks.md), [ADR-026](../../adr/026-stripe-connect-integration.md).
+**Related:** [Recipe: Handle Stripe Webhooks](../recipes/handle-stripe-webhooks.md), [ADR-026](../../adr/026-stripe-integration.md).

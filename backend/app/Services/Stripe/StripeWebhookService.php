@@ -5,7 +5,6 @@ namespace App\Services\Stripe;
 use App\Models\Payment;
 use App\Models\StripeWebhookEvent;
 use App\Services\Notifications\NotificationOrchestrator;
-use App\Services\SettingService;
 use App\Services\UsageTrackingService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Log;
@@ -64,8 +63,6 @@ class StripeWebhookService
                 'payment_intent.succeeded' => $this->handlePaymentIntentSucceeded($event),
                 'payment_intent.payment_failed' => $this->handlePaymentIntentFailed($event),
                 'charge.refunded' => $this->handleChargeRefunded($event),
-                'account.updated' => $this->handleAccountUpdated($event),
-                'account.application.deauthorized' => $this->handleAccountDeauthorized($event),
                 default => false,
             };
 
@@ -268,37 +265,6 @@ class StripeWebhookService
             'payment_id' => (string) $payment->id,
             'refund_type' => $refundType,
         ]);
-
-        return true;
-    }
-
-    private function handleAccountUpdated(Event $event): bool
-    {
-        $account = $event->data->object;
-
-        Log::info('Stripe account.updated received', [
-            'account_id' => $account->id,
-            'charges_enabled' => $account->charges_enabled,
-            'payouts_enabled' => $account->payouts_enabled,
-            'details_submitted' => $account->details_submitted,
-            'type' => $account->type,
-        ]);
-
-        return true;
-    }
-
-    private function handleAccountDeauthorized(Event $event): bool
-    {
-        $account = $event->data->object;
-
-        Log::warning('Stripe account.application.deauthorized — connected account revoked platform access', [
-            'account_id' => $account->id,
-        ]);
-
-        // Clear the connected account so the app stops trying to use a revoked account
-        $settingService = app(SettingService::class);
-        $settingService->set('stripe', 'connected_account_id', null);
-        $settingService->set('stripe', 'connect_onboarding_state', null);
 
         return true;
     }

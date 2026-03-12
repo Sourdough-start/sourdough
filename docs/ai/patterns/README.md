@@ -54,7 +54,7 @@ Follow these patterns for consistency across the codebase. Read only the files r
 | Webhook Service | [webhook-service.md](webhook-service.md) | Outbound webhooks with HMAC signatures |
 | API Key Service | [api-key-service.md](api-key-service.md) | API key lifecycle, rate limiting |
 | Real-Time Streaming | [real-time-streaming.md](real-time-streaming.md) | Laravel Reverb/Echo WebSocket streaming |
-| Stripe Service | [stripe-service.md](stripe-service.md) | Stripe Connect integration |
+| Stripe Service | [stripe-service.md](stripe-service.md) | Stripe payment integration |
 | Stripe Webhooks | [stripe-webhooks.md](stripe-webhooks.md) | Handling Stripe webhook events |
 | Changelog Entries | [changelog-entries.md](changelog-entries.md) | Writing detailed release changelog entries |
 

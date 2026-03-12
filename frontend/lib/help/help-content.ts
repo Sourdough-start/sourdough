@@ -1062,78 +1062,31 @@ If search isn't working:
       {
         id: "stripe-configuration",
         title: "Stripe Configuration",
-        tags: ["stripe", "payments", "connect", "billing", "api keys"],
+        tags: ["stripe", "payments", "billing", "api keys"],
         content: `# Stripe Configuration
 
-Configure Stripe Connect for payment processing.
+Configure Stripe for payment processing.
 
 ## Prerequisites
 
-Before configuring Stripe in the app, you need a Stripe account with Connect enabled (Standard accounts).
+You need a Stripe account. Sign up at stripe.com if you don't have one.
 
 ## Setup Steps
 
 1. Go to **Configuration** → **Stripe**
-2. Enable Stripe integration
-3. Enter your API keys (Secret Key, Publishable Key)
-4. Set the Webhook Secret
-5. Use **Test Connection** to verify
-6. Configure Connect settings (Platform Account ID, Client ID)
-
-## Connect Onboarding
-
-Once Stripe is configured, connect your Stripe account:
-
-1. In the **Connect** section, click **Connect with Stripe**
-2. Complete the Stripe onboarding flow
-3. Return to the app — your account will show as connected
+2. Enter your API keys (Secret Key, Publishable Key)
+3. Set the Webhook Secret
+4. Use **Test Connection** to verify
+5. Set the currency code (default: usd)
 
 ## Modes
 
 - **Test Mode** — Use Stripe test keys for development
 - **Live Mode** — Use live keys for real payments
 
-## Application Fee
+## Webhooks
 
-The platform collects a configurable application fee (default 1%) on each payment via Stripe Connect.`,
-      },
-      {
-        id: "stripe-connect-fork",
-        title: "Connecting Your Stripe Account (Fork Operators)",
-        tags: ["stripe", "connect", "payments", "fork", "onboarding"],
-        content: `# Connecting Your Stripe Account
-
-If you're running a forked instance, connecting your Stripe account takes just a few clicks.
-
-## Steps
-
-1. Go to **Configuration** > **Stripe**
-2. Click **Connect Stripe Account**
-3. Authorize your account on Stripe
-4. Complete business verification if prompted
-5. Return to the app
-
-## Connection States
-
-- **Not Connected** — Click "Connect Stripe Account" to begin
-- **Setup Incomplete** — Click "Complete Setup" to finish Stripe's onboarding
-- **Active** — Your account is ready to accept payments
-
-## What Happens Next
-
-- Payments from your users go to your Stripe account
-- The platform automatically collects a small application fee (shown on the Stripe page)
-- You manage disputes and payouts in your own Stripe Dashboard
-
-## Disconnecting
-
-Click **Disconnect** to remove your Stripe account. Existing payments are not affected, but no new payments can be processed.
-
-## Troubleshooting
-
-- **"Failed to create Connect link"** — The platform credentials may not be configured. Contact the platform administrator.
-- **Stuck on "Setup Incomplete"** — Click "Complete Setup" to finish Stripe's identity verification.
-- **Want to switch accounts** — Disconnect first, then reconnect with a different Stripe account.`,
+Set up a webhook endpoint in your Stripe dashboard pointing to \`https://your-domain/api/stripe/webhook\`. The app handles payment succeeded, failed, and refund events automatically.`,
       },
       {
         id: "graphql-configuration",

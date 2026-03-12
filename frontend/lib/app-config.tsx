@@ -17,6 +17,7 @@ export interface AppConfigFeatures {
   webpushEnabled?: boolean;
   webpushVapidPublicKey?: string;
   graphqlEnabled?: boolean;
+  stripeEnabled?: boolean;
 }
 
 export interface NovuPublicConfig {
@@ -109,6 +110,7 @@ function useAppConfigQuery() {
                 webpushEnabled: !!features.webpush_enabled,
                 webpushVapidPublicKey: features.webpush_vapid_public_key ?? undefined,
                 graphqlEnabled: !!features.graphql_enabled,
+                stripeEnabled: !!features.stripe_enabled,
               }
             : null,
         };

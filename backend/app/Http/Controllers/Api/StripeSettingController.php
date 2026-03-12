@@ -16,9 +16,6 @@ class StripeSettingController extends Controller
 
     private const GROUP = 'stripe';
 
-    /** Keys owned by StripeConnectController — excluded from settings responses. */
-    private const CONNECT_KEYS = ['connected_account_id', 'connect_onboarding_state'];
-
     /** Encrypted keys that must be masked in responses. */
     private const MASKED_KEYS = ['secret_key', 'webhook_secret'];
 
@@ -31,16 +28,11 @@ class StripeSettingController extends Controller
     ) {}
 
     /**
-     * Get Stripe settings. Encrypted keys are masked; Connect keys are excluded.
+     * Get Stripe settings. Encrypted keys are masked.
      */
     public function show(): JsonResponse
     {
         $settings = $this->settingService->getGroup(self::GROUP);
-
-        // Exclude Connect-owned keys
-        foreach (self::CONNECT_KEYS as $key) {
-            unset($settings[$key]);
-        }
 
         // Mask encrypted fields
         foreach (self::MASKED_KEYS as $key) {
@@ -62,12 +54,8 @@ class StripeSettingController extends Controller
             'secret_key' => ['sometimes', 'nullable', 'string', 'max:500'],
             'publishable_key' => ['sometimes', 'nullable', 'string', 'max:500'],
             'webhook_secret' => ['sometimes', 'nullable', 'string', 'max:500'],
-            'platform_account_id' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'platform_client_id' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'application_fee_percent' => ['sometimes', 'numeric', 'min:0', 'max:100'],
             'currency' => ['sometimes', 'string', 'size:3'],
             'mode' => ['sometimes', 'string', 'in:test,live'],
-            'deployment_role' => ['sometimes', 'string', 'in:platform,fork'],
         ]);
 
         // Skip masked placeholders (user did not change the encrypted field)

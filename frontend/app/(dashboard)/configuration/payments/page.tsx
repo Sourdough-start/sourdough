@@ -130,7 +130,6 @@ export default function PaymentHistoryPage() {
                   <TableHead>Description</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                   <TableHead>Status</TableHead>
-                  {isAdmin && <TableHead className="text-right">Fee</TableHead>}
                   {isAdmin && <TableHead>User</TableHead>}
                 </TableRow>
               </TableHeader>
@@ -149,16 +148,6 @@ export default function PaymentHistoryPage() {
                     <TableCell>
                       <StatusBadge status={payment.status} />
                     </TableCell>
-                    {isAdmin && (
-                      <TableCell className="text-right whitespace-nowrap text-muted-foreground">
-                        {payment.application_fee_amount != null
-                          ? formatAmount(
-                              payment.application_fee_amount,
-                              payment.currency
-                            )
-                          : "—"}
-                      </TableCell>
-                    )}
                     {isAdmin && (
                       <TableCell className="max-w-[200px] truncate">
                         {payment.user?.name || payment.user?.email || "—"}

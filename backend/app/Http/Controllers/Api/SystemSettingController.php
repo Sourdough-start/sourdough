@@ -86,6 +86,10 @@ class SystemSettingController extends Controller
                     $this->settingService->get('graphql', 'enabled', false),
                     FILTER_VALIDATE_BOOLEAN
                 ),
+                'stripe_enabled' => filter_var(
+                    $this->settingService->get('stripe', 'enabled', false),
+                    FILTER_VALIDATE_BOOLEAN
+                ),
             ],
         ]);
     }

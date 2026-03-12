@@ -49,7 +49,6 @@ use App\Http\Controllers\Api\UsageController;
 use App\Http\Controllers\Api\ApiKeyController;
 use App\Http\Controllers\Api\GraphQLSettingController;
 use App\Http\Controllers\Api\StripeWebhookController;
-use App\Http\Controllers\Api\StripeConnectController;
 use App\Http\Controllers\Api\StripeSettingController;
 use App\Http\Controllers\Api\StripePaymentController;
 use Illuminate\Support\Facades\Route;
@@ -419,15 +418,6 @@ Route::middleware(['auth:sanctum', 'verified', '2fa.setup'])->group(function () 
         Route::put('/', [SSOSettingController::class, 'update'])->middleware('can:settings.edit');
         Route::post('/test/{provider}', [SSOSettingController::class, 'test'])->middleware('can:settings.edit');
         Route::delete('/keys/{key}', [SSOSettingController::class, 'reset'])->middleware('can:settings.edit');
-    });
-
-    // Stripe Connect (permission: settings.view / settings.edit)
-    Route::prefix('stripe/connect')->group(function () {
-        Route::get('/status', [StripeConnectController::class, 'status'])->middleware('can:settings.view');
-        Route::post('/oauth-link', [StripeConnectController::class, 'createOAuthLink'])->middleware('can:settings.edit');
-        Route::post('/account-link', [StripeConnectController::class, 'createAccountLink'])->middleware('can:settings.edit');
-        Route::post('/login-link', [StripeConnectController::class, 'createLoginLink'])->middleware('can:settings.edit');
-        Route::delete('/disconnect', [StripeConnectController::class, 'disconnect'])->middleware('can:settings.edit');
     });
 
     // Stripe Settings (permission: settings.view / settings.edit)

@@ -1,19 +1,17 @@
 # Set Up Stripe Payments
 
-Step-by-step guide to enable and configure Stripe Connect for payment processing in a Sourdough deployment.
+Step-by-step guide to enable and configure Stripe for payment processing in a Sourdough deployment.
 
 ## When to Use
 
 - You want to accept payments via Stripe.
-- You want the platform to collect an application fee via Stripe Connect.
 - You're setting up Stripe for the first time on a deployment.
 
 ## Critical Principles
 
-1. **Complete platform setup first** — You need a Stripe account with Connect enabled before configuring in the app.
+1. **Enable the feature first** — Stripe is disabled by default. Enable it via the admin UI or `stripe.enabled` setting.
 2. **Use test mode initially** — Always verify with test keys before switching to live.
-3. **Connect is required for the free license** — Direct Stripe usage (bypassing Connect) requires a commercial license. See `backend/app/Services/Stripe/LICENSE.md`.
-4. **All keys are stored encrypted** — Secret keys use SettingService with `encrypted: true` in the schema.
+3. **All keys are stored encrypted** — Secret keys use SettingService with `encrypted: true` in the schema.
 
 ## Files
 
@@ -27,36 +25,17 @@ Step-by-step guide to enable and configure Stripe Connect for payment processing
 
 ## Steps
 
-### Fork Operator Quick Setup
-
-If this deployment is a **fork** (not the platform itself), the setup is simple — you only need to complete the Connect OAuth flow:
-
-1. Go to **Configuration > Stripe**.
-2. Click **Connect Stripe Account** and complete the Stripe OAuth flow.
-3. Return to the app — your status will show as "Pending" or "Active".
-
-The Platform Client ID is pre-configured with the default value. Fork operators can adjust currency, fee percentage, and platform identifiers in the Stripe Connect section if needed.
-
-### Platform Setup
-
-The following steps are for the **platform operator** (the entity running the main Sourdough instance).
-
-### 1. Stripe Platform Account Setup (one-time)
+### 1. Stripe Account Setup (one-time)
 
 In the [Stripe Dashboard](https://dashboard.stripe.com/):
 
 1. Create or upgrade your Stripe account and complete identity verification.
-2. Enable **Stripe Connect** (Settings → Connect → Get started). Choose **Platform or Marketplace** with **Standard** accounts.
-3. Configure platform branding (Settings → Connect → Branding: name, icon, color, website URL).
-4. Configure OAuth settings (Settings → Connect → OAuth: note the **Platform Client ID**, add redirect URIs — `{APP_URL}/api/stripe/connect/callback`).
-5. Note your credentials:
-   - **Platform Account ID** (starts with `acct_`)
+2. Note your credentials:
    - **Secret Key** (starts with `sk_test_` or `sk_live_`)
    - **Publishable Key** (starts with `pk_test_` or `pk_live_`)
-   - **Platform Client ID** (starts with `ca_`)
-6. Set up a webhook endpoint:
+3. Set up a webhook endpoint:
    - URL: `{APP_URL}/stripe/webhook`
-   - Events: `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refunded`, `account.updated`, `account.application.deauthorized`
+   - Events: `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refunded`
    - Note the **Webhook Signing Secret** (starts with `whsec_`)
 
 ### 2. Configure Environment Variables (Option A)
@@ -69,31 +48,20 @@ STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_MODE=test
 STRIPE_CURRENCY=usd
-STRIPE_APPLICATION_FEE_PERCENT=1.0
-STRIPE_PLATFORM_ACCOUNT_ID=acct_...
 ```
-
-> **Note:** `STRIPE_ENABLED` and `STRIPE_PLATFORM_CLIENT_ID` are no longer needed. The Stripe module is always available, and the Platform Client ID is hardcoded with a default value that can be overridden via the admin UI.
 
 ### 3. Configure via Admin UI (Option B)
 
 1. Go to **Configuration → Stripe**.
-2. In the **Stripe Connect** section, configure currency, application fee %, and platform identifiers. The Platform Client ID is pre-filled with the default.
-3. In the **API Keys** section, select mode (Test / Live) and enter API keys (Secret Key, Publishable Key, Webhook Secret).
+2. Toggle **Enable Stripe** on.
+3. Select mode (Test / Live) and enter API keys (Secret Key, Publishable Key, Webhook Secret).
 4. Click **Save**.
 
 ### 4. Test Connection
 
 Click the **Test Connection** button on the Stripe configuration page. This calls `StripeService::testConnection()` which retrieves your account info from the Stripe API.
 
-### 5. Connect Onboarding
-
-1. In the **Connect** section of the Stripe config page, click **Connect with Stripe**.
-2. Complete the Stripe OAuth onboarding flow.
-3. You'll be redirected back to the app with a connected account.
-4. The UI will show the connected status with a link to the Stripe dashboard.
-
-### 6. Switch to Live Mode
+### 5. Switch to Live Mode
 
 When ready for production:
 
@@ -105,13 +73,10 @@ When ready for production:
 ## Checklist
 
 - [ ] Stripe account created with identity verification
-- [ ] Connect enabled with Standard accounts
-- [ ] OAuth redirect URI configured (`{APP_URL}/api/stripe/connect/callback`)
+- [ ] `stripe.enabled` setting turned on (admin UI or settings)
 - [ ] API keys set (Secret, Publishable, Webhook Secret)
-- [ ] Platform Account ID and Client ID configured
 - [ ] Test Connection succeeds
 - [ ] Webhook endpoint configured in Stripe dashboard
-- [ ] Connect onboarding completed
 - [ ] Test payment processed successfully
 
 ## Common Mistakes
@@ -122,11 +87,11 @@ When ready for production:
 - **❌ Using live keys in test mode** — Payments will process real charges.
 - **✅ Match keys to the mode** — `sk_test_*` for test mode, `sk_live_*` for live mode.
 
-- **❌ Wrong redirect URI in Stripe** — Connect OAuth callback will fail.
-- **✅ Set redirect URI to `{APP_URL}/api/stripe/connect/callback`** — Must match exactly, including protocol.
+- **❌ Forgetting to enable Stripe** — The feature is disabled by default. `StripeService::isEnabled()` checks both `stripe.enabled` AND that a secret key is configured.
+- **✅ Enable via admin UI or set `stripe.enabled` to `true`** — Navigation items only appear when the feature flag is active.
 
 ## Related
 
-- [ADR-026: Stripe Connect Integration](../../adr/026-stripe-connect-integration.md)
+- [ADR-026: Stripe Integration](../../adr/026-stripe-integration.md)
 - [Pattern: Stripe Service](../patterns/stripe-service.md)
 - [Recipe: Add Payment Flow](add-payment-flow.md)

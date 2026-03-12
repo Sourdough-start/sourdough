@@ -201,9 +201,8 @@ docs/plans/env-to-database-roadmap.md
 
 **Read first:**
 ```
-docs/adr/026-stripe-connect-integration.md
+docs/adr/026-stripe-integration.md
 backend/app/Services/Stripe/StripeService.php
-backend/app/Services/Stripe/StripeConnectService.php
 backend/app/Services/Stripe/StripeWebhookService.php
 backend/config/stripe.php
 backend/config/settings-schema.php                  # stripe group
@@ -212,8 +211,6 @@ backend/config/settings-schema.php                  # stripe group
 **Also useful:**
 ```
 backend/app/Http/Controllers/Api/StripeSettingController.php
-backend/app/Http/Controllers/Api/StripeConnectController.php
-backend/app/Http/Controllers/Api/StripeConnectCallbackController.php
 backend/app/Http/Controllers/Api/StripePaymentController.php
 backend/app/Http/Controllers/Api/StripeWebhookController.php
 backend/app/Models/Payment.php
@@ -224,14 +221,12 @@ frontend/app/(dashboard)/configuration/stripe/page.tsx
 frontend/app/(dashboard)/configuration/payments/page.tsx
 backend/app/Providers/ConfigServiceProvider.php     # injectStripeConfig
 backend/routes/api.php                              # stripe routes
-backend/routes/web.php                              # connect callback
 ```
 
 **Recipes:**
 - [Setup Stripe](recipes/setup-stripe.md)
 - [Add Payment Flow](recipes/add-payment-flow.md)
 - [Handle Stripe Webhooks](recipes/handle-stripe-webhooks.md)
-- [Stripe Connect Onboarding](recipes/stripe-connect-onboarding.md)
 
 ## Email Template Work
 

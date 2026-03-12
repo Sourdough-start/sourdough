@@ -108,7 +108,7 @@ const navigationGroups: NavGroup[] = [
       { name: "AI / LLM", href: "/configuration/ai", icon: Brain, description: "LLM providers and modes", permission: "settings.view" },
       { name: "Storage", href: "/configuration/storage", icon: HardDrive, description: "File storage configuration", permission: "settings.view" },
       { name: "Search", href: "/configuration/search", icon: Search, description: "Manage search indexes", permission: "settings.view" },
-      { name: "Stripe", href: "/configuration/stripe", icon: CreditCard, description: "Payment processing", permission: "settings.view" },
+      { name: "Stripe", href: "/configuration/stripe", icon: CreditCard, description: "Payment processing", permission: "settings.view", featureFlag: "stripe" },
     ],
   },
   {
@@ -121,7 +121,7 @@ const navigationGroups: NavGroup[] = [
       { name: "Log Retention", href: "/configuration/log-retention", icon: FileText, description: "Retention and cleanup config", permission: "settings.view" },
       { name: "Jobs", href: "/configuration/jobs", icon: Clock, description: "Monitor scheduled jobs", permission: "settings.view" },
       { name: "Usage & Costs", href: "/configuration/usage", icon: BarChart3, description: "Integration usage analytics", permission: "usage.view" },
-      { name: "Payment History", href: "/configuration/payments", icon: Receipt, description: "View payment transactions", permission: "payments.view" },
+      { name: "Payment History", href: "/configuration/payments", icon: Receipt, description: "View payment transactions", permission: "payments.view", featureFlag: "stripe" },
     ],
   },
 ];
@@ -183,6 +183,7 @@ function GroupedNavigation({ pathname }: { pathname: string }) {
   const featureFlags = useMemo<Record<string, boolean>>(
     () => ({
       graphql: features?.graphqlEnabled ?? false,
+      stripe: features?.stripeEnabled ?? false,
     }),
     [features]
   );

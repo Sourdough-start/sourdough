@@ -78,8 +78,8 @@ Architecture Decision Records (ADRs) document all significant design decisions:
   - See also: [Security Patterns](ai/patterns/security.md)
 - [ADR-025: Novu Notification Integration](adr/025-novu-notification-integration.md) - Optional Novu notification infrastructure (Cloud or self-hosted) with local system fallback
   - Key files: `backend/app/Services/NovuService.php`, `backend/app/Http/Controllers/Api/NovuSettingController.php`, `backend/app/Http/Controllers/Api/NovuController.php`, `frontend/app/(dashboard)/configuration/novu/page.tsx`, `frontend/components/notifications/novu-inbox.tsx`
-- [ADR-026: Stripe Connect Integration](adr/026-stripe-connect-integration.md) - Stripe Connect with destination charges and 1% platform application fee
-  - Key files: `backend/app/Services/Stripe/StripeService.php`, `backend/app/Services/Stripe/StripeConnectService.php`, `backend/app/Services/Stripe/StripeWebhookService.php`, `backend/config/stripe.php`, `frontend/app/(dashboard)/configuration/stripe/page.tsx`
+- [ADR-026: Stripe Integration](adr/026-stripe-integration.md) - Optional, feature-gated plain Stripe payment processing (fully MIT)
+  - Key files: `backend/app/Services/Stripe/StripeService.php`, `backend/app/Services/Stripe/StripeWebhookService.php`, `backend/config/stripe.php`, `frontend/app/(dashboard)/configuration/stripe/page.tsx`
 
 - [ADR-027: Real-Time Streaming](adr/027-real-time-streaming.md) - Laravel Reverb WebSocket server with Echo frontend for live updates
   - Key files: `frontend/lib/echo.ts`, `frontend/lib/use-app-log-stream.ts`, `frontend/lib/use-audit-stream.ts`, `backend/config/broadcasting.php`, `backend/config/reverb.php`

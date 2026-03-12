@@ -14,7 +14,8 @@ class StripeService
 
     public function isEnabled(): bool
     {
-        return ! empty(config('stripe.secret_key'));
+        return filter_var(config('stripe.enabled'), FILTER_VALIDATE_BOOLEAN)
+            && ! empty(config('stripe.secret_key'));
     }
 
     /**
@@ -96,9 +97,9 @@ class StripeService
     }
 
     /**
-     * Create a payment intent with destination charge for a connected account.
+     * Create a payment intent.
      *
-     * @param  array{amount: int, currency?: string, customer_id?: string, connected_account_id: string, description?: string, metadata?: array}  $params
+     * @param  array{amount: int, currency?: string, customer_id?: string, description?: string, metadata?: array}  $params
      * @return array{success: bool, payment_intent_id?: string, client_secret?: string, error?: string}
      */
     public function createPaymentIntent(array $params): array
@@ -111,23 +112,13 @@ class StripeService
             return ['success' => false, 'error' => 'Amount must be a positive integer (in cents)'];
         }
 
-        if (empty($params['connected_account_id'])) {
-            return ['success' => false, 'error' => 'Connected account ID is required'];
-        }
-
         try {
             $client = $this->getClient();
             $currency = $params['currency'] ?? config('stripe.currency', 'usd');
-            $feePercent = (float) config('stripe.application_fee_percent', 1.0);
-            $applicationFee = (int) round($params['amount'] * ($feePercent / 100));
 
             $intentParams = [
                 'amount' => $params['amount'],
                 'currency' => $currency,
-                'application_fee_amount' => $applicationFee,
-                'transfer_data' => [
-                    'destination' => $params['connected_account_id'],
-                ],
             ];
 
             if (! empty($params['customer_id'])) {
@@ -170,7 +161,6 @@ class StripeService
         User $user,
         int $amount,
         string $currency,
-        string $connectedAccountId,
         ?string $description = null,
         array $metadata = []
     ): array {
@@ -182,7 +172,6 @@ class StripeService
         $result = $this->createPaymentIntent([
             'amount' => $amount,
             'currency' => $currency,
-            'connected_account_id' => $connectedAccountId,
             'customer_id' => $customerResult['customer_id'],
             'description' => $description,
             'metadata' => $metadata,
@@ -193,7 +182,6 @@ class StripeService
         }
 
         $stripeCustomer = StripeCustomer::where('stripe_customer_id', $customerResult['customer_id'])->first();
-        $feePercent = (float) config('stripe.application_fee_percent', 1.0);
 
         $payment = Payment::create([
             'user_id' => $user->id,
@@ -204,8 +192,6 @@ class StripeService
             'status' => 'requires_payment_method',
             'description' => $description,
             'metadata' => !empty($metadata) ? $metadata : null,
-            'stripe_account_id' => $connectedAccountId,
-            'application_fee_amount' => (int) round($amount * ($feePercent / 100)),
         ]);
 
         return [

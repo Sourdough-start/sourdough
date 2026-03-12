@@ -5,14 +5,13 @@ How to create a new payment flow (e.g., one-time charge, subscription, donation)
 ## When to Use
 
 - You need to collect a payment from a user.
-- You want to create a payment intent with Stripe Connect destination charges.
+- You want to create a payment intent with Stripe.
 
 ## Critical Principles
 
-1. **Always use `StripeService`** — never use the Stripe PHP SDK directly. The service handles client initialization, feature gating, connected account routing, and application fee calculation.
-2. **Use destination charges** — all payments flow through Connect with `application_fee_amount`.
-3. **Record via `UsageTrackingService`** — payment events should be tracked for cost visibility.
-4. **Handle webhook events** — payment confirmation comes via webhooks, not synchronous responses.
+1. **Always use `StripeService`** — never use the Stripe PHP SDK directly. The service handles client initialization and feature gating.
+2. **Record via `UsageTrackingService`** — payment events should be tracked for cost visibility.
+3. **Handle webhook events** — payment confirmation comes via webhooks, not synchronous responses.
 
 ## Files
 
@@ -40,15 +39,11 @@ public function createPayment(Request $request, StripeService $stripeService)
         return response()->json(['error' => $customerResult['error']], 500);
     }
 
-    // Get connected account ID from settings
-    $connectedAccountId = config('stripe.connected_account_id');
-
-    // Create payment intent with destination charge
+    // Create payment intent
     $result = $stripeService->createPaymentIntent([
         'amount' => 2000, // $20.00 in cents
         'currency' => config('stripe.currency', 'usd'),
         'customer_id' => $customerResult['customer_id'],
-        'connected_account_id' => $connectedAccountId,
         'description' => 'Order #123',
         'metadata' => ['order_id' => 123],
     ]);
@@ -132,7 +127,7 @@ The `charge.refunded` webhook handler updates the payment status and records a n
 - **❌ Confirming payment without a local record** — You won't be able to match the webhook event.
 - **✅ Always create a `Payment` record first** — The webhook handler finds payments by `stripe_payment_intent_id`.
 
-- **❌ Using the Stripe SDK directly** — Bypasses feature gating, fee calculation, and connected account routing.
+- **❌ Using the Stripe SDK directly** — Bypasses feature gating and configuration.
 - **✅ Always use `StripeService`** — It handles all Stripe API calls with proper configuration.
 
 - **❌ Treating the synchronous response as confirmation** — The payment may still be processing.
@@ -140,6 +135,6 @@ The `charge.refunded` webhook handler updates the payment status and records a n
 
 ## Related
 
-- [ADR-026: Stripe Connect Integration](../../adr/026-stripe-connect-integration.md)
+- [ADR-026: Stripe Integration](../../adr/026-stripe-integration.md)
 - [Pattern: Stripe Service](../patterns/stripe-service.md)
 - [Recipe: Handle Stripe Webhooks](handle-stripe-webhooks.md)

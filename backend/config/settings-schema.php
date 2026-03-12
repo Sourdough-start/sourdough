@@ -262,17 +262,12 @@ return [
     ],
 
     'stripe' => [
+        'enabled' => ['env' => null, 'default' => false, 'public' => true],
         'secret_key' => ['env' => 'STRIPE_SECRET_KEY', 'default' => null, 'encrypted' => true],
         'publishable_key' => ['env' => 'STRIPE_PUBLISHABLE_KEY', 'default' => null, 'public' => true],
         'webhook_secret' => ['env' => 'STRIPE_WEBHOOK_SECRET', 'default' => null, 'encrypted' => true],
-        'platform_account_id' => ['env' => 'STRIPE_PLATFORM_ACCOUNT_ID', 'default' => null],
-        'platform_client_id' => ['env' => 'STRIPE_PLATFORM_CLIENT_ID', 'default' => null],
-        'application_fee_percent' => ['env' => 'STRIPE_APPLICATION_FEE_PERCENT', 'default' => 1.0],
         'currency' => ['env' => 'STRIPE_CURRENCY', 'default' => 'usd'],
         'mode' => ['env' => 'STRIPE_MODE', 'default' => 'test'],
-        'deployment_role' => ['env' => 'STRIPE_DEPLOYMENT_ROLE', 'default' => 'fork'],
-        'connected_account_id' => ['env' => 'STRIPE_CONNECTED_ACCOUNT_ID', 'default' => null],
-        'connect_onboarding_state' => ['env' => null, 'default' => null],
     ],
 
     'graphql' => [

@@ -247,7 +247,7 @@ return [
         'url' => '/configuration/stripe',
         'admin_only' => true,
         'permission' => 'settings.view',
-        'content' => 'stripe payments connect billing webhooks api keys platform',
+        'content' => 'stripe payments billing webhooks api keys',
     ],
     [
         'id' => 'config-payments',
@@ -659,7 +659,7 @@ return [
         'url' => 'help:stripe-configuration',
         'admin_only' => true,
         'permission' => 'settings.view',
-        'content' => 'stripe payments connect billing api keys webhook platform onboarding test live',
+        'content' => 'stripe payments billing api keys webhook test live',
     ],
     [
         'id' => 'help-payment-history',

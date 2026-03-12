@@ -2,17 +2,14 @@
 
 use App\Http\Controllers\Api\StripePaymentController;
 use App\Models\Payment;
-use App\Services\SettingService;
 use App\Services\Stripe\StripeService;
 
 describe('StripePaymentController', function () {
 
     beforeEach(function () {
         $this->stripeService = $this->createMock(StripeService::class);
-        $this->settingService = $this->createMock(SettingService::class);
         $this->controller = new StripePaymentController(
             $this->stripeService,
-            $this->settingService,
         );
     });
 
@@ -60,33 +57,10 @@ describe('StripePaymentController', function () {
     });
 
     describe('createIntent', function () {
-        it('returns 422 when no connected account configured', function () {
-            $this->settingService
-                ->method('get')
-                ->with('stripe', 'connected_account_id')
-                ->willReturn(null);
-
-            $request = Illuminate\Http\Request::create('/api/payments/intent', 'POST', [
-                'amount' => 1000,
-            ]);
-            $request->setUserResolver(fn () => createUser());
-
-            $response = $this->controller->createIntent($request);
-            $data = $response->getData(true);
-
-            expect($response->getStatusCode())->toBe(422);
-            expect($data['message'])->toContain('No connected Stripe account');
-        });
-
         it('creates payment intent and local payment record', function () {
             config(['stripe.currency' => 'usd']);
 
             $user = createUser();
-
-            $this->settingService
-                ->method('get')
-                ->with('stripe', 'connected_account_id')
-                ->willReturn('acct_connected_123');
 
             $this->stripeService
                 ->method('initiatePayment')
@@ -111,11 +85,6 @@ describe('StripePaymentController', function () {
         });
 
         it('returns 500 when initiatePayment fails', function () {
-            $this->settingService
-                ->method('get')
-                ->with('stripe', 'connected_account_id')
-                ->willReturn('acct_connected_123');
-
             $this->stripeService
                 ->method('initiatePayment')
                 ->willReturn(['success' => false, 'error' => 'Stripe API error']);

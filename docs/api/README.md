@@ -320,19 +320,9 @@ See [ADR-006: LLM Orchestration Modes](../adr/006-llm-orchestration-modes.md). R
 - `aggregation` - Query all, primary synthesizes
 - `council` - All providers vote, consensus resolution
 
-### Stripe Connect (Admin)
+### Stripe (Admin)
 
-Requires `can:settings.view` / `can:settings.edit`. See [ADR-026: Stripe Connect](../adr/026-stripe-connect-integration.md).
-
-**Stripe Connect:**
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/stripe/connect/status` | Get Stripe Connect account status (connected, account_id, details_submitted, charges_enabled) |
-| POST | `/stripe/connect/oauth-link` | Generate OAuth link to start Connect onboarding |
-| POST | `/stripe/connect/account-link` | Generate account link for returning users to complete onboarding |
-| POST | `/stripe/connect/login-link` | Generate Stripe Express Dashboard login link |
-| DELETE | `/stripe/connect/disconnect` | Disconnect and deauthorize Stripe Connect account |
+Requires `can:settings.view` / `can:settings.edit`. See [ADR-026: Stripe Integration](../adr/026-stripe-integration.md).
 
 **Stripe Settings (Admin)**:
 

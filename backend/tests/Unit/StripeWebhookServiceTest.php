@@ -171,34 +171,6 @@ describe('StripeWebhookService', function () {
         });
     });
 
-    describe('handleEvent — account.updated', function () {
-        it('acknowledges the event and marks it processed', function () {
-            $event = buildFakeAccountUpdatedEvent('evt_acct_001', 'acct_test_001');
-
-            $result = $this->service->handleEvent($event);
-
-            expect($result['handled'])->toBeTrue();
-            $this->assertDatabaseHas('stripe_webhook_events', [
-                'stripe_event_id' => 'evt_acct_001',
-                'status' => 'processed',
-            ]);
-        });
-    });
-
-    describe('handleEvent — account.application.deauthorized', function () {
-        it('acknowledges the event and marks it processed', function () {
-            $event = buildFakeAccountDeauthorizedEvent('evt_deauth_001', 'acct_test_002');
-
-            $result = $this->service->handleEvent($event);
-
-            expect($result['handled'])->toBeTrue();
-            $this->assertDatabaseHas('stripe_webhook_events', [
-                'stripe_event_id' => 'evt_deauth_001',
-                'status' => 'processed',
-            ]);
-        });
-    });
-
     describe('handleEvent — unknown event type', function () {
         it('marks the event as skipped for unhandled event types', function () {
             $event = buildFakeStripeEvent('evt_unk_001', 'customer.created', [

@@ -39,9 +39,7 @@ A complete full-stack application framework with enterprise-grade features ready
 - Suspicious activity detection
 
 **Payments (Optional)**
-- Stripe Connect integration with 1% platform application fee
-- Payment processing with destination charges
-- Connect onboarding (OAuth) for fork operators
+- Stripe payment processing (feature-gated, disabled by default)
 - Payment history with admin view
 - Webhook handling with idempotency
 - Usage tracking integration for payment events
@@ -200,5 +198,3 @@ docs/
 ## License
 
 Sourdough is MIT licensed. You can use it for any purpose, including commercial projects.
-
-**Stripe module exception:** The Stripe/payments files are dual-licensed under the Sourdough Commercial License. Using them via Stripe Connect is free; direct Stripe usage requires a commercial license. See `backend/app/Services/Stripe/LICENSE.md` for details.

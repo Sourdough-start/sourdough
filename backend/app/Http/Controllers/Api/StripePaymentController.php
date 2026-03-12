@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Traits\ApiResponseTrait;
 use App\Models\Payment;
-use App\Services\SettingService;
 use App\Services\Stripe\StripeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,8 +14,7 @@ class StripePaymentController extends Controller
     use ApiResponseTrait;
 
     public function __construct(
-        private StripeService $stripeService,
-        private SettingService $settingService
+        private StripeService $stripeService
     ) {}
 
     /**
@@ -46,7 +44,7 @@ class StripePaymentController extends Controller
     }
 
     /**
-     * Create a Stripe payment intent (destination charge to connected account).
+     * Create a Stripe payment intent.
      */
     public function createIntent(Request $request): JsonResponse
     {
@@ -58,18 +56,12 @@ class StripePaymentController extends Controller
             'metadata' => ['sometimes', 'nullable', 'array'],
         ]);
 
-        $connectedAccountId = $this->settingService->get('stripe', 'connected_account_id');
-        if (empty($connectedAccountId)) {
-            return $this->errorResponse('No connected Stripe account configured', 422);
-        }
-
         $currency = $validated['currency'] ?? config('stripe.currency', 'usd');
 
         $result = $this->stripeService->initiatePayment(
             user: $request->user(),
             amount: $validated['amount'],
             currency: $currency,
-            connectedAccountId: $connectedAccountId,
             description: $validated['description'] ?? null,
             metadata: $validated['metadata'] ?? [],
         );
