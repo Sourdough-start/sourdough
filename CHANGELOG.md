@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.5] - 2026-03-12
+
+### Removed
+- Stripe Connect (destination charges, platform fees, OAuth onboarding) — simplified to plain Stripe payments
+- Dual MIT+Commercial license — reverted to pure MIT
+- Stripe Connect routes, controllers, service, and tests (7 files deleted)
+- Connect-related settings from settings schema (reduced from 11 to 6)
+
+### Changed
+- Stripe `isEnabled()` now checks both `stripe.enabled` flag and `secret_key` presence
+- Stripe config simplified to 6 keys (enabled, secret_key, publishable_key, webhook_secret, currency, mode)
+- Stripe settings page rewritten (~260 lines, down from ~600)
+- Stripe and Payment History nav items now feature-gated via `stripe.enabled` setting
+
+### Added
+- `stripe.enabled` setting with `public: true` for feature gating
+- `stripeEnabled` feature flag in frontend app config
+
 ## [0.10.4] - 2026-03-10
 
 ### Fixed
