@@ -20,7 +20,8 @@
       "Bash(timeout 120 bash -c 'while true; do if tail -5 C:/Users/JPITT_~4/AppData/Local/Temp/claude/c--Users-jpitt-6932a9v-code-sourdough/tasks/b8nbm2rrm.output 2>/dev/null | grep -qiE \"\"\\(Release complete|complete!|pushed|FAILED|fatal\\)\"\"; then break; fi; sleep 5; done')",
       "Bash(wc -l /c/Users/jpitt_6932a9v/code/sourdough/backend/app/Services/Stripe/*.php /c/Users/jpitt_6932a9v/code/sourdough/backend/app/Http/Controllers/Api/Stripe*.php /c/Users/jpitt_6932a9v/code/sourdough/backend/app/Http/Controllers/StripeConnectCallbackController.php /c/Users/jpitt_6932a9v/code/sourdough/backend/app/Models/Payment.php /c/Users/jpitt_6932a9v/code/sourdough/backend/app/Models/StripeCustomer.php /c/Users/jpitt_6932a9v/code/sourdough/backend/app/Models/StripeWebhookEvent.php /c/Users/jpitt_6932a9v/code/sourdough/frontend/lib/stripe.ts /c/Users/jpitt_6932a9v/code/sourdough/frontend/app/\\\\\\(dashboard\\\\\\)/configuration/stripe/page.tsx /c/Users/jpitt_6932a9v/code/sourdough/frontend/app/\\\\\\(dashboard\\\\\\)/configuration/payments/page.tsx)",
       "Bash(docker-compose -f \"c:/Users/jpitt_6932a9v/code/sourdough/docker-compose.yml\" up -d)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(powershell -File ./scripts/push.ps1 patch \"refactor: remove Stripe Connect, simplify to plain Stripe payments\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\jpitt_6932a9v\\code\\sourdough"
